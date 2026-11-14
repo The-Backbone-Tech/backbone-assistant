@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+test('the real gate skips only a package proven by an earlier gate on the same input', t => {
+  const temporary = mkdtempSync(join(tmpdir(), 'gate-reuse-run-'));
+  t.after(() => rmSync(temporary, { recursive: true, force: true }));
+  const root = join(temporary, 'repo'), bin = join(temporary, 'bin'), calls = join(temporary, 'calls');
+  mkdirSync(root); mkdirSync(bin); mkdirSync(join(root, 'packages/a'), { recursive: true });
+  writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages:\n  - "packages/*"\n');
+  writeFileSync(join(root, 'pnpm-lock.yaml'), 'lock');
+  writeFileSync(join(root, 'packages/a/package.json'), JSON.stringify({ name: 'a', scripts: { test: 'fake' } }));
+  writeFileSync(join(root, 'packages/a/source'), 'first');
+  writeFileSync(join(bin, 'pnpm'), `#!/usr/bin/env node\nif(process.argv.includes('--version'))console.log('10.30.1');else{const fs=require('fs'),lock=process.env.BACKBONE_HEAVY_LOCK; if(JSON.parse(fs.readFileSync(lock+'/owner')).role!=='gate'||fs.existsSync(lock+'/A')||fs.existsSync(lock+'/B'))throw Error('gate must own reference slot A');fs.appendFileSync(${JSON.stringify(calls)},'run\\n');console.log('ok 1 - completes work\\n# pass 1\\n# fail 0');}\n`, { mode: 0o755 });
+  const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
+  git('init', '-q'); git('config', 'user.name', 'Test'); git('config', 'user.email', 'test@example.invalid'); git('config', 'commit.gpgsign', 'false'); git('config', 'core.hooksPath', '/dev/null');
+  git('add', '.'); git('commit', '-qm', 'fixture');
+  const gate = fileURLToPath(new URL('./gate.mjs', import.meta.url));
+  const invoke = (name, wrapped = false) => {
+    const out = join(temporary, name);
+    const code = `import {main} from ${JSON.stringify(gate)}; process.exitCode=await main(['--out',${JSON.stringify(out)}],[{name:'a',command:'pnpm',args:['--filter','a','test']}]);`;
+    const wrapper = fileURLToPath(new URL('./with-heavy-lock.mjs', import.meta.url));
+    const wrappedCode = `import {runHeavy} from ${JSON.stringify(wrapper)};const r=await runHeavy('gate',${JSON.stringify([process.execPath, '--input-type=module', '-e', code])},{lock:${JSON.stringify(join(temporary, 'lock'))},out:${JSON.stringify(join(temporary, 'metrics'))},role:'gate',wait:0,segments:()=>0,sample:()=>({swept:[],kept:[]})});process.exitCode=r.exitCode;`;
+    const run = spawnSync(process.execPath, ['--input-type=module', '-e', wrapped ? wrappedCode : code], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BACKBONE_HEAVY_LOCK: join(temporary, 'lock'), BACKBONE_TEST_RESULTS: join(temporary, 'results') } });
+    assert.equal(run.status, 0, run.stderr + run.stdout);
+    assert.equal(existsSync(join(temporary, 'lock')), false);
+    assert.equal(existsSync(join(temporary, 'lock.b')), false);
+    assert.equal(existsSync(join(temporary, 'lock.next')), false);
+    return JSON.parse(readFileSync(join(out, 'gate.json'), 'utf8'));
+  };
+  const first = invoke('first'), second = invoke('second');
+  assert.equal(first.kind, 'gate'); assert.equal(first.suites[0].reusedFrom, undefined);
+  assert.equal(second.suites[0].reusedFrom, join(temporary, 'first'));
+  assert.equal(second.overall, 'passed'); assert.equal(readFileSync(calls, 'utf8').trim().split('\n').length, 1);
+  assert.equal(invoke('wrapped', true).overall, 'passed', 'the gate can borrow its integrator wrapper slot without deadlocking');
+  writeFileSync(join(root, 'packages/a/source'), 'changed'); git('commit', '-qam', 'changed');
+  assert.equal(invoke('changed').suites[0].reusedFrom, undefined);
+  assert.equal(readFileSync(calls, 'utf8').trim().split('\n').length, 2);
+});

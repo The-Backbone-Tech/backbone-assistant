@@ -1,0 +1,5229 @@
+{
+  "format": 1,
+  "bootstrap": [
+    {
+      "object": "function gov._admin(text)",
+      "version": "baseline",
+      "file": "gov/_admin.sql"
+    },
+    {
+      "object": "function gov._ancestors(uuid)",
+      "version": "baseline",
+      "file": "gov/_ancestors.sql"
+    },
+    {
+      "object": "function gov._append(text,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/_append.sql"
+    },
+    {
+      "object": "function gov._apply_classification(uuid)",
+      "version": "baseline",
+      "file": "gov/_apply_classification.sql"
+    },
+    {
+      "object": "function gov._ask_about_effect(uuid)",
+      "version": "baseline",
+      "file": "gov/_ask_about_effect.sql"
+    },
+    {
+      "object": "function gov._builtin(text)",
+      "version": "baseline",
+      "file": "gov/_builtin.sql"
+    },
+    {
+      "object": "function gov._cancel_effect(uuid,text)",
+      "version": "baseline",
+      "file": "gov/_cancel_effect.sql"
+    },
+    {
+      "object": "function gov._carry_task_marks(uuid)",
+      "version": "baseline",
+      "file": "gov/_carry_task_marks.sql"
+    },
+    {
+      "object": "function gov._claim(uuid,text,integer)",
+      "version": "baseline",
+      "file": "gov/_claim.sql"
+    },
+    {
+      "object": "function gov._claim_effect(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/_claim_effect.sql"
+    },
+    {
+      "object": "function gov._claimable(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/_claimable.sql"
+    },
+    {
+      "object": "function gov._create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/_create_workspace.sql"
+    },
+    {
+      "object": "function gov._document_audience(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/_document_audience.sql"
+    },
+    {
+      "object": "function gov._document_reasons(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_document_reasons.sql"
+    },
+    {
+      "object": "function gov._effect_payload(uuid)",
+      "version": "baseline",
+      "file": "gov/_effect_payload.sql"
+    },
+    {
+      "object": "function gov._effect_question(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_effect_question.sql"
+    },
+    {
+      "object": "function gov._enqueue_effect(uuid)",
+      "version": "baseline",
+      "file": "gov/_enqueue_effect.sql"
+    },
+    {
+      "object": "function gov._has_verifier()",
+      "version": "baseline",
+      "file": "gov/_has_verifier.sql"
+    },
+    {
+      "object": "function gov._holder(uuid,bigint)",
+      "version": "baseline",
+      "file": "gov/_holder.sql"
+    },
+    {
+      "object": "function gov._initial_marks(uuid)",
+      "version": "baseline",
+      "file": "gov/_initial_marks.sql"
+    },
+    {
+      "object": "function gov._lock_workspace()",
+      "version": "baseline",
+      "file": "gov/_lock_workspace.sql"
+    },
+    {
+      "object": "function gov._mandate_standing(uuid)",
+      "version": "baseline",
+      "file": "gov/_mandate_standing.sql"
+    },
+    {
+      "object": "function gov._mark(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/_mark.sql"
+    },
+    {
+      "object": "function gov._material_source_state(uuid)",
+      "version": "baseline",
+      "file": "gov/_material_source_state.sql"
+    },
+    {
+      "object": "function gov._may_answer(uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/_may_answer.sql"
+    },
+    {
+      "object": "function gov._names_own_connection(jsonb)",
+      "version": "baseline",
+      "file": "gov/_names_own_connection.sql"
+    },
+    {
+      "object": "function gov._open_decision(text,uuid,uuid,uuid,text,text,text,boolean,text,uuid)",
+      "version": "baseline",
+      "file": "gov/_open_decision.sql"
+    },
+    {
+      "object": "function gov._operation_class(text,smallint,boolean,uuid)",
+      "version": "baseline",
+      "file": "gov/_operation_class.sql"
+    },
+    {
+      "object": "function gov._person(text)",
+      "version": "baseline",
+      "file": "gov/_person.sql"
+    },
+    {
+      "object": "function gov._person_name(uuid)",
+      "version": "baseline",
+      "file": "gov/_person_name.sql"
+    },
+    {
+      "object": "function gov._piece_standing(text,uuid,text,smallint)",
+      "version": "baseline",
+      "file": "gov/_piece_standing.sql"
+    },
+    {
+      "object": "function gov._profile_reads()",
+      "version": "baseline",
+      "file": "gov/_profile_reads.sql"
+    },
+    {
+      "object": "function gov._promote(uuid,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_promote.sql"
+    },
+    {
+      "object": "function gov._promotion_sources_allowed(uuid)",
+      "version": "baseline",
+      "file": "gov/_promotion_sources_allowed.sql"
+    },
+    {
+      "object": "function gov._quote_run(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_quote_run.sql"
+    },
+    {
+      "object": "function gov._quoted_ids(jsonb,text)",
+      "version": "baseline",
+      "file": "gov/_quoted_ids.sql"
+    },
+    {
+      "object": "function gov._route_for_run(uuid,smallint,text,smallint,boolean,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/_route_for_run.sql"
+    },
+    {
+      "object": "function gov._run_kept(uuid)",
+      "version": "baseline",
+      "file": "gov/_run_kept.sql"
+    },
+    {
+      "object": "function gov._run_person(uuid)",
+      "version": "baseline",
+      "file": "gov/_run_person.sql"
+    },
+    {
+      "object": "function gov._settle_decision(uuid,text,uuid,text)",
+      "version": "baseline",
+      "file": "gov/_settle_decision.sql"
+    },
+    {
+      "object": "function gov._settle_decision_with_basis(uuid,text,uuid,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/_settle_decision_with_basis.sql"
+    },
+    {
+      "object": "function gov._source_name(text)",
+      "version": "baseline",
+      "file": "gov/_source_name.sql"
+    },
+    {
+      "object": "function gov._stop_run(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/_stop_run.sql"
+    },
+    {
+      "object": "function gov._strip_carried(text)",
+      "version": "baseline",
+      "file": "gov/_strip_carried.sql"
+    },
+    {
+      "object": "function gov._subtree(uuid)",
+      "version": "baseline",
+      "file": "gov/_subtree.sql"
+    },
+    {
+      "object": "function gov._system(text)",
+      "version": "baseline",
+      "file": "gov/_system.sql"
+    },
+    {
+      "object": "function gov._task_read_beyond(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_task_read_beyond.sql"
+    },
+    {
+      "object": "function gov._wake_run(uuid)",
+      "version": "baseline",
+      "file": "gov/_wake_run.sql"
+    },
+    {
+      "object": "function gov.accept_invitation(text,text)",
+      "version": "baseline",
+      "file": "gov/accept_invitation.sql"
+    },
+    {
+      "object": "function gov.add_person(text,text,text)",
+      "version": "baseline",
+      "file": "gov/add_person.sql"
+    },
+    {
+      "object": "function gov.answer_decision(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/answer_decision.sql"
+    },
+    {
+      "object": "function gov.answer_decision_with_basis(uuid,text,text,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/answer_decision_with_basis.sql"
+    },
+    {
+      "object": "function gov.answer_in_conversation(uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/answer_in_conversation.sql"
+    },
+    {
+      "object": "function gov.begin_dispatch(uuid,text)",
+      "version": "baseline",
+      "file": "gov/begin_dispatch.sql"
+    },
+    {
+      "object": "function gov.bind_account(text)",
+      "version": "baseline",
+      "file": "gov/bind_account.sql"
+    },
+    {
+      "object": "function gov.cancel_effect(uuid,text)",
+      "version": "baseline",
+      "file": "gov/cancel_effect.sql"
+    },
+    {
+      "object": "function gov.change_role(uuid,text)",
+      "version": "baseline",
+      "file": "gov/change_role.sql"
+    },
+    {
+      "object": "function gov.claim_effect(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/claim_effect.sql"
+    },
+    {
+      "object": "function gov.claim_next_effect(text,integer)",
+      "version": "baseline",
+      "file": "gov/claim_next_effect.sql"
+    },
+    {
+      "object": "function gov.claim_next_run(text,integer,text,uuid)",
+      "version": "baseline",
+      "file": "gov/claim_next_run.sql"
+    },
+    {
+      "object": "function gov.claim_next_verification(text,integer)",
+      "version": "baseline",
+      "file": "gov/claim_next_verification.sql"
+    },
+    {
+      "object": "function gov.claim_run(uuid,text,integer,text,uuid)",
+      "version": "baseline",
+      "file": "gov/claim_run.sql"
+    },
+    {
+      "object": "function gov.classify_operations(jsonb)",
+      "version": "baseline",
+      "file": "gov/classify_operations.sql"
+    },
+    {
+      "object": "function gov.complete_pairing(text)",
+      "version": "baseline",
+      "file": "gov/complete_pairing.sql"
+    },
+    {
+      "object": "function gov.complete_step(uuid,integer,jsonb)",
+      "version": "baseline",
+      "file": "gov/complete_step.sql"
+    },
+    {
+      "object": "function gov.create_agent(text,text)",
+      "version": "baseline",
+      "file": "gov/create_agent.sql"
+    },
+    {
+      "object": "function gov.create_document(uuid,text,text,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/create_document.sql"
+    },
+    {
+      "object": "function gov.create_routine(uuid,text,text,text,text,text,smallint,timestamp with time zone)",
+      "version": "baseline",
+      "file": "gov/create_routine.sql"
+    },
+    {
+      "object": "function gov.create_task(uuid,uuid,text,text,text,text,uuid)",
+      "version": "baseline",
+      "file": "gov/create_task.sql"
+    },
+    {
+      "object": "function gov.create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/create_workspace.sql"
+    },
+    {
+      "object": "function gov.decide_memory_proposal(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/decide_memory_proposal.sql"
+    },
+    {
+      "object": "function gov.decision_answer_basis(uuid)",
+      "version": "baseline",
+      "file": "gov/decision_answer_basis.sql"
+    },
+    {
+      "object": "function gov.end_connector_signature(uuid,text)",
+      "version": "baseline",
+      "file": "gov/end_connector_signature.sql"
+    },
+    {
+      "object": "function gov.escalate_decision(uuid,text)",
+      "version": "baseline",
+      "file": "gov/escalate_decision.sql"
+    },
+    {
+      "object": "function gov.finish_run(uuid,bigint,text)",
+      "version": "baseline",
+      "file": "gov/finish_run.sql"
+    },
+    {
+      "object": "function gov.forget_memory(uuid)",
+      "version": "baseline",
+      "file": "gov/forget_memory.sql"
+    },
+    {
+      "object": "function gov.give_connector_signature(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/give_connector_signature.sql"
+    },
+    {
+      "object": "function gov.held_claims()",
+      "version": "baseline",
+      "file": "gov/held_claims.sql"
+    },
+    {
+      "object": "function gov.import_material(uuid,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/import_material.sql"
+    },
+    {
+      "object": "function gov.invitation_info(text)",
+      "version": "baseline",
+      "file": "gov/invitation_info.sql"
+    },
+    {
+      "object": "function gov.issue_mandate(uuid,uuid,jsonb,jsonb,jsonb,jsonb,smallint,bigint,bigint,bigint,bigint,timestamp with time zone,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/issue_mandate.sql"
+    },
+    {
+      "object": "function gov.join_channel_thread(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/join_channel_thread.sql"
+    },
+    {
+      "object": "function gov.ledger_head()",
+      "version": "baseline",
+      "file": "gov/ledger_head.sql"
+    },
+    {
+      "object": "function gov.ledger_words_match(bigint,text,text)",
+      "version": "baseline",
+      "file": "gov/ledger_words_match.sql"
+    },
+    {
+      "object": "function gov.list_documents(uuid,text[],integer)",
+      "version": "baseline",
+      "file": "gov/list_documents.sql"
+    },
+    {
+      "object": "function gov.mark_connection(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/mark_connection.sql"
+    },
+    {
+      "object": "function gov.mark_document(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/mark_document.sql"
+    },
+    {
+      "object": "function gov.may_decide(uuid)",
+      "version": "baseline",
+      "file": "gov/may_decide.sql"
+    },
+    {
+      "object": "function gov.observe_effect(uuid,text,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/observe_effect.sql"
+    },
+    {
+      "object": "function gov.park_run(uuid,bigint)",
+      "version": "baseline",
+      "file": "gov/park_run.sql"
+    },
+    {
+      "object": "function gov.post_message(uuid,uuid,text,uuid)",
+      "version": "baseline",
+      "file": "gov/post_message.sql"
+    },
+    {
+      "object": "function gov.propose_candidate(text,jsonb,uuid,text)",
+      "version": "baseline",
+      "file": "gov/propose_candidate.sql"
+    },
+    {
+      "object": "function gov.propose_effect(uuid,bigint,integer,text,text,text,text,smallint,boolean,jsonb,text,text,text)",
+      "version": "baseline",
+      "file": "gov/propose_effect.sql"
+    },
+    {
+      "object": "function gov.propose_undo(uuid,jsonb,text,text,text)",
+      "version": "baseline",
+      "file": "gov/propose_undo.sql"
+    },
+    {
+      "object": "function gov.queue_run(uuid,uuid,uuid,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/queue_run.sql"
+    },
+    {
+      "object": "function gov.quote_marks(uuid,jsonb)",
+      "version": "baseline",
+      "file": "gov/quote_marks.sql"
+    },
+    {
+      "object": "function gov.read_document(uuid,uuid,integer,text)",
+      "version": "baseline",
+      "file": "gov/read_document.sql"
+    },
+    {
+      "object": "function gov.recall_knowledge(uuid,text[],integer)",
+      "version": "baseline",
+      "file": "gov/recall_knowledge.sql"
+    },
+    {
+      "object": "function gov.recall_memory(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/recall_memory.sql"
+    },
+    {
+      "object": "function gov.reconcile_effect(uuid,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/reconcile_effect.sql"
+    },
+    {
+      "object": "function gov.record_commitment(uuid,uuid,uuid,text,date,smallint)",
+      "version": "baseline",
+      "file": "gov/record_commitment.sql"
+    },
+    {
+      "object": "function gov.record_connection_tools(uuid,text,jsonb,text)",
+      "version": "baseline",
+      "file": "gov/record_connection_tools.sql"
+    },
+    {
+      "object": "function gov.record_material_source_read(text,text,integer,integer,text,text,jsonb,text,text,text,uuid,uuid,uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/record_material_source_read.sql"
+    },
+    {
+      "object": "function gov.record_server_answer(uuid,uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/record_server_answer.sql"
+    },
+    {
+      "object": "function gov.record_source(text,text,text,uuid,uuid,uuid,text,uuid)",
+      "version": "baseline",
+      "file": "gov/record_source.sql"
+    },
+    {
+      "object": "function gov.record_usage(uuid,bigint,bigint,bigint,bigint)",
+      "version": "baseline",
+      "file": "gov/record_usage.sql"
+    },
+    {
+      "object": "function gov.record_verifier_usage(bigint)",
+      "version": "baseline",
+      "file": "gov/record_verifier_usage.sql"
+    },
+    {
+      "object": "function gov.register_channel_account(text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_channel_account.sql"
+    },
+    {
+      "object": "function gov.register_connection(text,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_connection.sql"
+    },
+    {
+      "object": "function gov.register_first_party_connection(text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_first_party_connection.sql"
+    },
+    {
+      "object": "function gov.register_piece(jsonb)",
+      "version": "baseline",
+      "file": "gov/register_piece.sql"
+    },
+    {
+      "object": "function gov.renew_run_lease(uuid,bigint,integer)",
+      "version": "baseline",
+      "file": "gov/renew_run_lease.sql"
+    },
+    {
+      "object": "function gov.request_pairing(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/request_pairing.sql"
+    },
+    {
+      "object": "function gov.request_promotion(uuid,uuid,timestamp with time zone,timestamp with time zone)",
+      "version": "baseline",
+      "file": "gov/request_promotion.sql"
+    },
+    {
+      "object": "function gov.retract_knowledge(uuid,text)",
+      "version": "baseline",
+      "file": "gov/retract_knowledge.sql"
+    },
+    {
+      "object": "function gov.review_document(uuid)",
+      "version": "baseline",
+      "file": "gov/review_document.sql"
+    },
+    {
+      "object": "function gov.revise_document(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/revise_document.sql"
+    },
+    {
+      "object": "function gov.revoke_mandate(uuid)",
+      "version": "baseline",
+      "file": "gov/revoke_mandate.sql"
+    },
+    {
+      "object": "function gov.rewrite_task(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/rewrite_task.sql"
+    },
+    {
+      "object": "function gov.run_reasons(uuid)",
+      "version": "baseline",
+      "file": "gov/run_reasons.sql"
+    },
+    {
+      "object": "function gov.run_routine_now(uuid)",
+      "version": "baseline",
+      "file": "gov/run_routine_now.sql"
+    },
+    {
+      "object": "function gov.run_standing(uuid)",
+      "version": "baseline",
+      "file": "gov/run_standing.sql"
+    },
+    {
+      "object": "function gov.set_delay_window(integer)",
+      "version": "baseline",
+      "file": "gov/set_delay_window.sql"
+    },
+    {
+      "object": "function gov.set_verifier_allowance(bigint)",
+      "version": "baseline",
+      "file": "gov/set_verifier_allowance.sql"
+    },
+    {
+      "object": "function gov.settle_lapsed_dispatch(uuid,text,boolean,text,text)",
+      "version": "baseline",
+      "file": "gov/settle_lapsed_dispatch.sql"
+    },
+    {
+      "object": "function gov.share_task(uuid)",
+      "version": "baseline",
+      "file": "gov/share_task.sql"
+    },
+    {
+      "object": "function gov.sign_in_connection(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/sign_in_connection.sql"
+    },
+    {
+      "object": "function gov.start_channel_thread(text,text,uuid,text,text,text,uuid)",
+      "version": "baseline",
+      "file": "gov/start_channel_thread.sql"
+    },
+    {
+      "object": "function gov.task_people(uuid)",
+      "version": "baseline",
+      "file": "gov/task_people.sql"
+    },
+    {
+      "object": "function gov.task_steps(uuid)",
+      "version": "baseline",
+      "file": "gov/task_steps.sql"
+    },
+    {
+      "object": "function gov.tidy_up()",
+      "version": "baseline",
+      "file": "gov/tidy_up.sql"
+    },
+    {
+      "object": "function gov.unregister_piece(uuid)",
+      "version": "baseline",
+      "file": "gov/unregister_piece.sql"
+    },
+    {
+      "object": "function gov.verifier_allowance()",
+      "version": "baseline",
+      "file": "gov/verifier_allowance.sql"
+    },
+    {
+      "object": "function gov.verifier_answer(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/verifier_answer.sql"
+    },
+    {
+      "object": "function gov.verify_ledger()",
+      "version": "baseline",
+      "file": "gov/verify_ledger.sql"
+    },
+    {
+      "object": "function gov.verify_ledger_anchor(bigint,text)",
+      "version": "baseline",
+      "file": "gov/verify_ledger_anchor.sql"
+    },
+    {
+      "object": "function gov.whoami()",
+      "version": "baseline",
+      "file": "gov/whoami.sql"
+    },
+    {
+      "object": "function gov.withdraw_material_source(text,text,text,integer,integer,text)",
+      "version": "baseline",
+      "file": "gov/withdraw_material_source.sql"
+    },
+    {
+      "object": "function gov.write_document_by_effect(uuid,uuid,text,text,boolean,uuid)",
+      "version": "baseline",
+      "file": "gov/write_document_by_effect.sql"
+    },
+    {
+      "object": "function gov.write_memory(uuid,uuid,text,integer,uuid)",
+      "version": "baseline",
+      "file": "gov/write_memory.sql"
+    },
+    {
+      "object": "function gov.write_step(uuid,integer,text,text,jsonb,bigint)",
+      "version": "baseline",
+      "file": "gov/write_step.sql"
+    },
+    {
+      "object": "function operator.create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "operator/create_workspace.sql"
+    },
+    {
+      "object": "function operator.queue_depth()",
+      "version": "baseline",
+      "file": "operator/queue_depth.sql"
+    },
+    {
+      "object": "function sec.acting_for()",
+      "version": "baseline",
+      "file": "sec/acting_for.sql"
+    },
+    {
+      "object": "function sec.args_hash(jsonb)",
+      "version": "baseline",
+      "file": "sec/args_hash.sql"
+    },
+    {
+      "object": "function sec.attenuate(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/attenuate.sql"
+    },
+    {
+      "object": "function sec.candidate_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/candidate_visible.sql"
+    },
+    {
+      "object": "function sec.checker_independent(uuid,uuid,uuid,boolean)",
+      "version": "baseline",
+      "file": "sec/checker_independent.sql"
+    },
+    {
+      "object": "function sec.current_principal()",
+      "version": "baseline",
+      "file": "sec/current_principal.sql"
+    },
+    {
+      "object": "function sec.current_run()",
+      "version": "baseline",
+      "file": "sec/current_run.sql"
+    },
+    {
+      "object": "function sec.current_workspace()",
+      "version": "baseline",
+      "file": "sec/current_workspace.sql"
+    },
+    {
+      "object": "function sec.decision_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/decision_visible.sql"
+    },
+    {
+      "object": "function sec.delegation_tree(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/delegation_tree.sql"
+    },
+    {
+      "object": "function sec.digest(text)",
+      "version": "baseline",
+      "file": "sec/digest.sql"
+    },
+    {
+      "object": "function sec.effect_transition_allowed(text,text)",
+      "version": "baseline",
+      "file": "sec/effect_transition_allowed.sql"
+    },
+    {
+      "object": "function sec.effect_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/effect_visible.sql"
+    },
+    {
+      "object": "function sec.episode_visible(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/episode_visible.sql"
+    },
+    {
+      "object": "function sec.is_admin(uuid)",
+      "version": "baseline",
+      "file": "sec/is_admin.sql"
+    },
+    {
+      "object": "function sec.is_verifier(uuid)",
+      "version": "baseline",
+      "file": "sec/is_verifier.sql"
+    },
+    {
+      "object": "function sec.ledger_hash(text,uuid,bigint,text,uuid,text,jsonb,timestamp with time zone)",
+      "version": "baseline",
+      "file": "sec/ledger_hash.sql"
+    },
+    {
+      "object": "function sec.mandate_terms(jsonb)",
+      "version": "baseline",
+      "file": "sec/mandate_terms.sql"
+    },
+    {
+      "object": "function sec.names_run()",
+      "version": "baseline",
+      "file": "sec/names_run.sql"
+    },
+    {
+      "object": "function sec.piece_binding(uuid)",
+      "version": "baseline",
+      "file": "sec/piece_binding.sql"
+    },
+    {
+      "object": "function sec.principal_kind(uuid)",
+      "version": "baseline",
+      "file": "sec/principal_kind.sql"
+    },
+    {
+      "object": "function sec.role_of(uuid)",
+      "version": "baseline",
+      "file": "sec/role_of.sql"
+    },
+    {
+      "object": "function sec.route_effect(smallint,text,smallint,boolean,boolean,boolean,boolean)",
+      "version": "baseline",
+      "file": "sec/route_effect.sql"
+    },
+    {
+      "object": "function sec.run_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/run_visible.sql"
+    },
+    {
+      "object": "function sec.session_is_empty()",
+      "version": "baseline",
+      "file": "sec/session_is_empty.sql"
+    },
+    {
+      "object": "function sec.set_covers(jsonb,text)",
+      "version": "baseline",
+      "file": "sec/set_covers.sql"
+    },
+    {
+      "object": "function sec.set_intersect(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/set_intersect.sql"
+    },
+    {
+      "object": "function sec.set_within(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/set_within.sql"
+    },
+    {
+      "object": "function sec.system_principal()",
+      "version": "baseline",
+      "file": "sec/system_principal.sql"
+    },
+    {
+      "object": "function sec.t_candidate()",
+      "version": "baseline",
+      "file": "sec/t_candidate.sql"
+    },
+    {
+      "object": "function sec.t_connector_signature_terminal()",
+      "version": "baseline",
+      "file": "sec/t_connector_signature_terminal.sql"
+    },
+    {
+      "object": "function sec.t_decision()",
+      "version": "baseline",
+      "file": "sec/t_decision.sql"
+    },
+    {
+      "object": "function sec.t_document()",
+      "version": "baseline",
+      "file": "sec/t_document.sql"
+    },
+    {
+      "object": "function sec.t_effect()",
+      "version": "baseline",
+      "file": "sec/t_effect.sql"
+    },
+    {
+      "object": "function sec.t_effect_lineage()",
+      "version": "baseline",
+      "file": "sec/t_effect_lineage.sql"
+    },
+    {
+      "object": "function sec.t_evidence()",
+      "version": "baseline",
+      "file": "sec/t_evidence.sql"
+    },
+    {
+      "object": "function sec.t_keep_columns()",
+      "version": "baseline",
+      "file": "sec/t_keep_columns.sql"
+    },
+    {
+      "object": "function sec.t_knowledge()",
+      "version": "baseline",
+      "file": "sec/t_knowledge.sql"
+    },
+    {
+      "object": "function sec.t_ledger_append_only()",
+      "version": "baseline",
+      "file": "sec/t_ledger_append_only.sql"
+    },
+    {
+      "object": "function sec.t_mandate()",
+      "version": "baseline",
+      "file": "sec/t_mandate.sql"
+    },
+    {
+      "object": "function sec.t_material_episode_source()",
+      "version": "baseline",
+      "file": "sec/t_material_episode_source.sql"
+    },
+    {
+      "object": "function sec.t_material_promotion_guard()",
+      "version": "baseline",
+      "file": "sec/t_material_promotion_guard.sql"
+    },
+    {
+      "object": "function sec.t_memory()",
+      "version": "baseline",
+      "file": "sec/t_memory.sql"
+    },
+    {
+      "object": "function sec.t_piece()",
+      "version": "baseline",
+      "file": "sec/t_piece.sql"
+    },
+    {
+      "object": "function sec.t_principal()",
+      "version": "baseline",
+      "file": "sec/t_principal.sql"
+    },
+    {
+      "object": "function sec.t_refuse_truncate()",
+      "version": "baseline",
+      "file": "sec/t_refuse_truncate.sql"
+    },
+    {
+      "object": "function sec.t_run_marks()",
+      "version": "baseline",
+      "file": "sec/t_run_marks.sql"
+    },
+    {
+      "object": "function sec.t_run_piece()",
+      "version": "baseline",
+      "file": "sec/t_run_piece.sql"
+    },
+    {
+      "object": "function sec.t_step()",
+      "version": "baseline",
+      "file": "sec/t_step.sql"
+    },
+    {
+      "object": "function sec.task_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/task_visible.sql"
+    },
+    {
+      "object": "function sec.task_visible_to(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/task_visible_to.sql"
+    },
+    {
+      "object": "function sec.terms_within(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/terms_within.sql"
+    },
+    {
+      "object": "function sec.viewer()",
+      "version": "baseline",
+      "file": "sec/viewer.sql"
+    },
+    {
+      "object": "function sec.visible_eligible_knowledge_sources()",
+      "version": "baseline",
+      "file": "sec/visible_eligible_knowledge_sources.sql"
+    },
+    {
+      "object": "function sec.workspace_is_personal(uuid)",
+      "version": "baseline",
+      "file": "sec/workspace_is_personal.sql"
+    },
+    {
+      "object": "index app.connector_signatures_live",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "index app.decisions_one_open",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "index app.effects_run",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "index app.effects_task",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "index app.effects_undo",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "index app.episodes_run_sources",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "index app.ledger_subject",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "index app.mandates_parent",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "index app.material_source_reads_version",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "index app.memory_once_per_step",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "index app.messages_task",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "index app.pieces_standing",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "index app.principals_one_system",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "index app.runs_mandate",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "index app.runs_piece",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "index app.runs_task",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "index auth.attempts_key",
+      "version": "baseline",
+      "file": "auth/attempts.sql"
+    },
+    {
+      "object": "index ops.effect_queue_due",
+      "version": "baseline",
+      "file": "ops/effect_queue.sql"
+    },
+    {
+      "object": "index ops.run_queue_due",
+      "version": "baseline",
+      "file": "ops/run_queue.sql"
+    },
+    {
+      "object": "table app.channel_accounts",
+      "version": "baseline",
+      "file": "app/channel_accounts.sql"
+    },
+    {
+      "object": "table app.channel_identities",
+      "version": "baseline",
+      "file": "app/channel_identities.sql"
+    },
+    {
+      "object": "table app.channel_messages",
+      "version": "baseline",
+      "file": "app/channel_messages.sql"
+    },
+    {
+      "object": "table app.channel_threads",
+      "version": "baseline",
+      "file": "app/channel_threads.sql"
+    },
+    {
+      "object": "table app.commitments",
+      "version": "baseline",
+      "file": "app/commitments.sql"
+    },
+    {
+      "object": "table app.connection_tools",
+      "version": "baseline",
+      "file": "app/connection_tools.sql"
+    },
+    {
+      "object": "table app.connections",
+      "version": "baseline",
+      "file": "app/connections.sql"
+    },
+    {
+      "object": "table app.connector_signatures",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "table app.decisions",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "table app.document_versions",
+      "version": "baseline",
+      "file": "app/document_versions.sql"
+    },
+    {
+      "object": "table app.documents",
+      "version": "baseline",
+      "file": "app/documents.sql"
+    },
+    {
+      "object": "table app.effects",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "table app.episodes",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "table app.knowledge",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "table app.knowledge_candidates",
+      "version": "baseline",
+      "file": "app/knowledge_candidates.sql"
+    },
+    {
+      "object": "table app.ledger",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "table app.ledger_heads",
+      "version": "baseline",
+      "file": "app/ledger_heads.sql"
+    },
+    {
+      "object": "table app.mandates",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "table app.material_source_identities",
+      "version": "baseline",
+      "file": "app/material_source_identities.sql"
+    },
+    {
+      "object": "table app.material_source_reads",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "table app.material_source_withdrawals",
+      "version": "baseline",
+      "file": "app/material_source_withdrawals.sql"
+    },
+    {
+      "object": "table app.memory",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "table app.memory_proposals",
+      "version": "baseline",
+      "file": "app/memory_proposals.sql"
+    },
+    {
+      "object": "table app.messages",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "table app.operation_changes",
+      "version": "baseline",
+      "file": "app/operation_changes.sql"
+    },
+    {
+      "object": "table app.operations",
+      "version": "baseline",
+      "file": "app/operations.sql"
+    },
+    {
+      "object": "table app.pieces",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "table app.principals",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "table app.routines",
+      "version": "baseline",
+      "file": "app/routines.sql"
+    },
+    {
+      "object": "table app.run_steps",
+      "version": "baseline",
+      "file": "app/run_steps.sql"
+    },
+    {
+      "object": "table app.runs",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "table app.task_people",
+      "version": "baseline",
+      "file": "app/task_people.sql"
+    },
+    {
+      "object": "table app.tasks",
+      "version": "baseline",
+      "file": "app/tasks.sql"
+    },
+    {
+      "object": "table app.verifications",
+      "version": "baseline",
+      "file": "app/verifications.sql"
+    },
+    {
+      "object": "table app.verifier_usage",
+      "version": "baseline",
+      "file": "app/verifier_usage.sql"
+    },
+    {
+      "object": "table app.workspaces",
+      "version": "baseline",
+      "file": "app/workspaces.sql"
+    },
+    {
+      "object": "table auth.attempts",
+      "version": "baseline",
+      "file": "auth/attempts.sql"
+    },
+    {
+      "object": "table auth.identities",
+      "version": "baseline",
+      "file": "auth/identities.sql"
+    },
+    {
+      "object": "table auth.sessions",
+      "version": "baseline",
+      "file": "auth/sessions.sql"
+    },
+    {
+      "object": "table auth.users",
+      "version": "baseline",
+      "file": "auth/users.sql"
+    },
+    {
+      "object": "table ops.effect_queue",
+      "version": "baseline",
+      "file": "ops/effect_queue.sql"
+    },
+    {
+      "object": "table ops.installation",
+      "version": "baseline",
+      "file": "ops/installation.sql"
+    },
+    {
+      "object": "table ops.invitations",
+      "version": "baseline",
+      "file": "ops/invitations.sql"
+    },
+    {
+      "object": "table ops.run_queue",
+      "version": "baseline",
+      "file": "ops/run_queue.sql"
+    },
+    {
+      "object": "table ops.run_secrets",
+      "version": "baseline",
+      "file": "ops/run_secrets.sql"
+    },
+    {
+      "object": "table ops.schema_migrations",
+      "version": "baseline",
+      "file": "ops/schema_migrations.sql"
+    },
+    {
+      "object": "table ops.verification_queue",
+      "version": "baseline",
+      "file": "ops/verification_queue.sql"
+    },
+    {
+      "object": "table ops.workspace_keys",
+      "version": "baseline",
+      "file": "ops/workspace_keys.sql"
+    },
+    {
+      "object": "trigger app.channel_accounts.keep",
+      "version": "baseline",
+      "file": "app/channel_accounts.sql"
+    },
+    {
+      "object": "trigger app.channel_accounts.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_accounts.sql"
+    },
+    {
+      "object": "trigger app.channel_identities.keep",
+      "version": "baseline",
+      "file": "app/channel_identities.sql"
+    },
+    {
+      "object": "trigger app.channel_identities.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_identities.sql"
+    },
+    {
+      "object": "trigger app.channel_messages.evidence",
+      "version": "baseline",
+      "file": "app/channel_messages.sql"
+    },
+    {
+      "object": "trigger app.channel_messages.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_messages.sql"
+    },
+    {
+      "object": "trigger app.channel_threads.keep",
+      "version": "baseline",
+      "file": "app/channel_threads.sql"
+    },
+    {
+      "object": "trigger app.channel_threads.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_threads.sql"
+    },
+    {
+      "object": "trigger app.commitments.keep",
+      "version": "baseline",
+      "file": "app/commitments.sql"
+    },
+    {
+      "object": "trigger app.commitments.no_truncate",
+      "version": "baseline",
+      "file": "app/commitments.sql"
+    },
+    {
+      "object": "trigger app.connection_tools.keep",
+      "version": "baseline",
+      "file": "app/connection_tools.sql"
+    },
+    {
+      "object": "trigger app.connection_tools.no_truncate",
+      "version": "baseline",
+      "file": "app/connection_tools.sql"
+    },
+    {
+      "object": "trigger app.connections.keep",
+      "version": "baseline",
+      "file": "app/connections.sql"
+    },
+    {
+      "object": "trigger app.connections.no_truncate",
+      "version": "baseline",
+      "file": "app/connections.sql"
+    },
+    {
+      "object": "trigger app.connector_signatures.keep",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "trigger app.connector_signatures.no_truncate",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "trigger app.connector_signatures.terminal",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "trigger app.decisions.no_truncate",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "trigger app.decisions.rules",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "trigger app.document_versions.evidence",
+      "version": "baseline",
+      "file": "app/document_versions.sql"
+    },
+    {
+      "object": "trigger app.document_versions.no_truncate",
+      "version": "baseline",
+      "file": "app/document_versions.sql"
+    },
+    {
+      "object": "trigger app.documents.no_truncate",
+      "version": "baseline",
+      "file": "app/documents.sql"
+    },
+    {
+      "object": "trigger app.documents.versions",
+      "version": "baseline",
+      "file": "app/documents.sql"
+    },
+    {
+      "object": "trigger app.effects.lineage",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "trigger app.effects.no_truncate",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "trigger app.effects.rules",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "trigger app.episodes.evidence",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "trigger app.episodes.material_source_receipt",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "trigger app.episodes.no_truncate",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "trigger app.knowledge.material_source_guard",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "trigger app.knowledge.no_truncate",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "trigger app.knowledge.rules",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.no_truncate",
+      "version": "baseline",
+      "file": "app/knowledge_candidates.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.rules",
+      "version": "baseline",
+      "file": "app/knowledge_candidates.sql"
+    },
+    {
+      "object": "trigger app.ledger.append_only",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "trigger app.ledger.no_truncate",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "trigger app.ledger_heads.keep",
+      "version": "baseline",
+      "file": "app/ledger_heads.sql"
+    },
+    {
+      "object": "trigger app.ledger_heads.no_truncate",
+      "version": "baseline",
+      "file": "app/ledger_heads.sql"
+    },
+    {
+      "object": "trigger app.mandates.no_truncate",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "trigger app.mandates.rules",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "trigger app.material_source_identities.evidence",
+      "version": "baseline",
+      "file": "app/material_source_identities.sql"
+    },
+    {
+      "object": "trigger app.material_source_identities.no_truncate",
+      "version": "baseline",
+      "file": "app/material_source_identities.sql"
+    },
+    {
+      "object": "trigger app.material_source_reads.evidence",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "trigger app.material_source_reads.no_truncate",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "trigger app.material_source_withdrawals.evidence",
+      "version": "baseline",
+      "file": "app/material_source_withdrawals.sql"
+    },
+    {
+      "object": "trigger app.material_source_withdrawals.no_truncate",
+      "version": "baseline",
+      "file": "app/material_source_withdrawals.sql"
+    },
+    {
+      "object": "trigger app.memory.no_truncate",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "trigger app.memory.rules",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "trigger app.memory_proposals.keep",
+      "version": "baseline",
+      "file": "app/memory_proposals.sql"
+    },
+    {
+      "object": "trigger app.memory_proposals.no_truncate",
+      "version": "baseline",
+      "file": "app/memory_proposals.sql"
+    },
+    {
+      "object": "trigger app.messages.evidence",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "trigger app.messages.no_truncate",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "trigger app.operation_changes.keep",
+      "version": "baseline",
+      "file": "app/operation_changes.sql"
+    },
+    {
+      "object": "trigger app.operation_changes.no_truncate",
+      "version": "baseline",
+      "file": "app/operation_changes.sql"
+    },
+    {
+      "object": "trigger app.operations.keep",
+      "version": "baseline",
+      "file": "app/operations.sql"
+    },
+    {
+      "object": "trigger app.operations.no_truncate",
+      "version": "baseline",
+      "file": "app/operations.sql"
+    },
+    {
+      "object": "trigger app.pieces.no_truncate",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "trigger app.pieces.rules",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "trigger app.principals.keep",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "trigger app.principals.no_truncate",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "trigger app.routines.keep",
+      "version": "baseline",
+      "file": "app/routines.sql"
+    },
+    {
+      "object": "trigger app.routines.no_truncate",
+      "version": "baseline",
+      "file": "app/routines.sql"
+    },
+    {
+      "object": "trigger app.run_steps.frozen",
+      "version": "baseline",
+      "file": "app/run_steps.sql"
+    },
+    {
+      "object": "trigger app.run_steps.no_truncate",
+      "version": "baseline",
+      "file": "app/run_steps.sql"
+    },
+    {
+      "object": "trigger app.runs.marks",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "trigger app.runs.no_truncate",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "trigger app.runs.piece",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "trigger app.task_people.keep",
+      "version": "baseline",
+      "file": "app/task_people.sql"
+    },
+    {
+      "object": "trigger app.task_people.no_truncate",
+      "version": "baseline",
+      "file": "app/task_people.sql"
+    },
+    {
+      "object": "trigger app.tasks.keep",
+      "version": "baseline",
+      "file": "app/tasks.sql"
+    },
+    {
+      "object": "trigger app.tasks.no_truncate",
+      "version": "baseline",
+      "file": "app/tasks.sql"
+    },
+    {
+      "object": "trigger app.verifications.evidence",
+      "version": "baseline",
+      "file": "app/verifications.sql"
+    },
+    {
+      "object": "trigger app.verifications.no_truncate",
+      "version": "baseline",
+      "file": "app/verifications.sql"
+    },
+    {
+      "object": "trigger app.verifier_usage.keep",
+      "version": "baseline",
+      "file": "app/verifier_usage.sql"
+    },
+    {
+      "object": "trigger app.verifier_usage.no_truncate",
+      "version": "baseline",
+      "file": "app/verifier_usage.sql"
+    },
+    {
+      "object": "trigger app.workspaces.keep",
+      "version": "baseline",
+      "file": "app/workspaces.sql"
+    },
+    {
+      "object": "trigger app.workspaces.no_truncate",
+      "version": "baseline",
+      "file": "app/workspaces.sql"
+    },
+    {
+      "object": "view app.material_guard_history",
+      "version": "baseline",
+      "file": "app/material_guard_history.sql"
+    },
+    {
+      "object": "view gov.eligible_knowledge_sources",
+      "version": "baseline",
+      "file": "views/eligible_knowledge_sources.sql"
+    }
+  ],
+  "objects": [
+    {
+      "object": "function gov._admin(text)",
+      "version": "baseline",
+      "file": "gov/_admin.sql"
+    },
+    {
+      "object": "function gov._ancestors(uuid)",
+      "version": "baseline",
+      "file": "gov/_ancestors.sql"
+    },
+    {
+      "object": "function gov._append(text,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/_append.sql"
+    },
+    {
+      "object": "function gov._apply_classification(uuid)",
+      "version": "baseline",
+      "file": "gov/_apply_classification.sql"
+    },
+    {
+      "object": "function gov._ask_about_effect(uuid)",
+      "version": "baseline",
+      "file": "gov/_ask_about_effect.sql"
+    },
+    {
+      "object": "function gov._builtin(text)",
+      "version": "baseline",
+      "file": "gov/_builtin.sql"
+    },
+    {
+      "object": "function gov._cancel_effect(uuid,text)",
+      "version": "baseline",
+      "file": "gov/_cancel_effect.sql"
+    },
+    {
+      "object": "function gov._candidate_claim_digest_v1(app.knowledge_candidates)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_candidate_claim_digest_v1.sql"
+    },
+    {
+      "object": "function gov._candidate_input_manifest_v1(app.knowledge_candidates,bigint)",
+      "version": "material-closure-hardening-v1",
+      "file": "versions/material-closure-hardening-v1/gov/_candidate_input_manifest_v1.sql"
+    },
+    {
+      "object": "function gov._carry_task_marks(uuid)",
+      "version": "baseline",
+      "file": "gov/_carry_task_marks.sql"
+    },
+    {
+      "object": "function gov._claim(uuid,text,integer)",
+      "version": "baseline",
+      "file": "gov/_claim.sql"
+    },
+    {
+      "object": "function gov._claim_effect(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/_claim_effect.sql"
+    },
+    {
+      "object": "function gov._claimable(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/_claimable.sql"
+    },
+    {
+      "object": "function gov._create_workspace(text,text,text,text)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_create_workspace.sql"
+    },
+    {
+      "object": "function gov._document_audience(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/_document_audience.sql"
+    },
+    {
+      "object": "function gov._document_reasons(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_document_reasons.sql"
+    },
+    {
+      "object": "function gov._effect_payload(uuid)",
+      "version": "baseline",
+      "file": "gov/_effect_payload.sql"
+    },
+    {
+      "object": "function gov._effect_question(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_effect_question.sql"
+    },
+    {
+      "object": "function gov._enqueue_effect(uuid)",
+      "version": "baseline",
+      "file": "gov/_enqueue_effect.sql"
+    },
+    {
+      "object": "function gov._has_verifier()",
+      "version": "baseline",
+      "file": "gov/_has_verifier.sql"
+    },
+    {
+      "object": "function gov._holder(uuid,bigint)",
+      "version": "baseline",
+      "file": "gov/_holder.sql"
+    },
+    {
+      "object": "function gov._initial_marks(uuid)",
+      "version": "baseline",
+      "file": "gov/_initial_marks.sql"
+    },
+    {
+      "object": "function gov._knowledge_personal_closure_v1(uuid,uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_knowledge_personal_closure_v1.sql"
+    },
+    {
+      "object": "function gov._lock_workspace()",
+      "version": "baseline",
+      "file": "gov/_lock_workspace.sql"
+    },
+    {
+      "object": "function gov._mandate_standing(uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_mandate_standing.sql"
+    },
+    {
+      "object": "function gov._mark(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/_mark.sql"
+    },
+    {
+      "object": "function gov._material_source_projection(uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_material_source_projection.sql"
+    },
+    {
+      "object": "function gov._material_source_state(uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_material_source_state.sql"
+    },
+    {
+      "object": "function gov._may_answer(uuid,uuid,text)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_may_answer.sql"
+    },
+    {
+      "object": "function gov._names_own_connection(jsonb)",
+      "version": "baseline",
+      "file": "gov/_names_own_connection.sql"
+    },
+    {
+      "object": "function gov._open_decision(text,uuid,uuid,uuid,text,text,text,boolean,text,uuid)",
+      "version": "baseline",
+      "file": "gov/_open_decision.sql"
+    },
+    {
+      "object": "function gov._operation_class(text,smallint,boolean,uuid)",
+      "version": "baseline",
+      "file": "gov/_operation_class.sql"
+    },
+    {
+      "object": "function gov._person(text)",
+      "version": "baseline",
+      "file": "gov/_person.sql"
+    },
+    {
+      "object": "function gov._person_name(uuid)",
+      "version": "baseline",
+      "file": "gov/_person_name.sql"
+    },
+    {
+      "object": "function gov._personal_message_inputs_v1(app.knowledge_candidates,uuid,bigint)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_personal_message_inputs_v1.sql"
+    },
+    {
+      "object": "function gov._personal_message_roots_v1(uuid,uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_personal_message_roots_v1.sql"
+    },
+    {
+      "object": "function gov._piece_standing(text,uuid,text,smallint)",
+      "version": "baseline",
+      "file": "gov/_piece_standing.sql"
+    },
+    {
+      "object": "function gov._profile_reads()",
+      "version": "baseline",
+      "file": "gov/_profile_reads.sql"
+    },
+    {
+      "object": "function gov._promote(uuid,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_promote.sql"
+    },
+    {
+      "object": "function gov._promotion_sources_allowed(uuid)",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/gov/_promotion_sources_allowed.sql"
+    },
+    {
+      "object": "function gov._quote_run(uuid,uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_quote_run.sql"
+    },
+    {
+      "object": "function gov._quoted_ids(jsonb,text)",
+      "version": "baseline",
+      "file": "gov/_quoted_ids.sql"
+    },
+    {
+      "object": "function gov._route_for_run(uuid,smallint,text,smallint,boolean,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/_route_for_run.sql"
+    },
+    {
+      "object": "function gov._run_kept(uuid)",
+      "version": "baseline",
+      "file": "gov/_run_kept.sql"
+    },
+    {
+      "object": "function gov._run_person(uuid)",
+      "version": "baseline",
+      "file": "gov/_run_person.sql"
+    },
+    {
+      "object": "function gov._settle_decision(uuid,text,uuid,text)",
+      "version": "baseline",
+      "file": "gov/_settle_decision.sql"
+    },
+    {
+      "object": "function gov._settle_decision_with_basis(uuid,text,uuid,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/_settle_decision_with_basis.sql"
+    },
+    {
+      "object": "function gov._source_name(text)",
+      "version": "baseline",
+      "file": "gov/_source_name.sql"
+    },
+    {
+      "object": "function gov._stop_run(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/_stop_run.sql"
+    },
+    {
+      "object": "function gov._strip_carried(text)",
+      "version": "baseline",
+      "file": "gov/_strip_carried.sql"
+    },
+    {
+      "object": "function gov._subtree(uuid)",
+      "version": "baseline",
+      "file": "gov/_subtree.sql"
+    },
+    {
+      "object": "function gov._system(text)",
+      "version": "baseline",
+      "file": "gov/_system.sql"
+    },
+    {
+      "object": "function gov._task_read_beyond(uuid,uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_task_read_beyond.sql"
+    },
+    {
+      "object": "function gov._wake_run(uuid)",
+      "version": "baseline",
+      "file": "gov/_wake_run.sql"
+    },
+    {
+      "object": "function gov.accept_invitation(text,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/accept_invitation.sql"
+    },
+    {
+      "object": "function gov.add_person(text,text,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/add_person.sql"
+    },
+    {
+      "object": "function gov.answer_decision(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/answer_decision.sql"
+    },
+    {
+      "object": "function gov.answer_decision_with_basis(uuid,text,text,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/answer_decision_with_basis.sql"
+    },
+    {
+      "object": "function gov.answer_in_conversation(uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/answer_in_conversation.sql"
+    },
+    {
+      "object": "function gov.begin_dispatch(uuid,text)",
+      "version": "baseline",
+      "file": "gov/begin_dispatch.sql"
+    },
+    {
+      "object": "function gov.bind_account(text)",
+      "version": "baseline",
+      "file": "gov/bind_account.sql"
+    },
+    {
+      "object": "function gov.cancel_effect(uuid,text)",
+      "version": "baseline",
+      "file": "gov/cancel_effect.sql"
+    },
+    {
+      "object": "function gov.change_role(uuid,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/change_role.sql"
+    },
+    {
+      "object": "function gov.claim_effect(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/claim_effect.sql"
+    },
+    {
+      "object": "function gov.claim_next_effect(text,integer)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_next_effect.sql"
+    },
+    {
+      "object": "function gov.claim_next_run(text,integer,text,uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_next_run.sql"
+    },
+    {
+      "object": "function gov.claim_next_verification(text,integer)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_next_verification.sql"
+    },
+    {
+      "object": "function gov.claim_run(uuid,text,integer,text,uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_run.sql"
+    },
+    {
+      "object": "function gov.classify_operations(jsonb)",
+      "version": "baseline",
+      "file": "gov/classify_operations.sql"
+    },
+    {
+      "object": "function gov.complete_pairing(text)",
+      "version": "baseline",
+      "file": "gov/complete_pairing.sql"
+    },
+    {
+      "object": "function gov.complete_step(uuid,integer,jsonb)",
+      "version": "baseline",
+      "file": "gov/complete_step.sql"
+    },
+    {
+      "object": "function gov.create_agent(text,text)",
+      "version": "baseline",
+      "file": "gov/create_agent.sql"
+    },
+    {
+      "object": "function gov.create_document(uuid,text,text,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/create_document.sql"
+    },
+    {
+      "object": "function gov.create_routine(uuid,text,text,text,text,text,smallint,timestamp with time zone)",
+      "version": "baseline",
+      "file": "gov/create_routine.sql"
+    },
+    {
+      "object": "function gov.create_task(uuid,uuid,text,text,text,text,uuid)",
+      "version": "baseline",
+      "file": "gov/create_task.sql"
+    },
+    {
+      "object": "function gov.create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/create_workspace.sql"
+    },
+    {
+      "object": "function gov.decide_memory_proposal(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/decide_memory_proposal.sql"
+    },
+    {
+      "object": "function gov.decision_answer_basis(uuid)",
+      "version": "baseline",
+      "file": "gov/decision_answer_basis.sql"
+    },
+    {
+      "object": "function gov.end_connector_signature(uuid,text)",
+      "version": "baseline",
+      "file": "gov/end_connector_signature.sql"
+    },
+    {
+      "object": "function gov.escalate_decision(uuid,text)",
+      "version": "baseline",
+      "file": "gov/escalate_decision.sql"
+    },
+    {
+      "object": "function gov.finish_run(uuid,bigint,text)",
+      "version": "baseline",
+      "file": "gov/finish_run.sql"
+    },
+    {
+      "object": "function gov.forget_memory(uuid)",
+      "version": "baseline",
+      "file": "gov/forget_memory.sql"
+    },
+    {
+      "object": "function gov.give_connector_signature(uuid,text,text)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/give_connector_signature.sql"
+    },
+    {
+      "object": "function gov.held_claims()",
+      "version": "baseline",
+      "file": "gov/held_claims.sql"
+    },
+    {
+      "object": "function gov.identity_accept(text,text,text,text,text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_accept.sql"
+    },
+    {
+      "object": "function gov.identity_accept_legacy(text,text)",
+      "version": "identity-invitation-closure-v1",
+      "file": "versions/identity-invitation-closure-v1/gov/identity_accept_legacy.sql"
+    },
+    {
+      "object": "function gov.identity_add_person(text,text,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/identity_add_person.sql"
+    },
+    {
+      "object": "function gov.identity_automation_create(uuid,uuid,text,uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_automation_create.sql"
+    },
+    {
+      "object": "function gov.identity_automation_revoke(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_automation_revoke.sql"
+    },
+    {
+      "object": "function gov.identity_automations()",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_automations.sql"
+    },
+    {
+      "object": "function gov.identity_bind_new_task()",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/gov/identity_bind_new_task.sql"
+    },
+    {
+      "object": "function gov.identity_bind_task(uuid,uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_bind_task.sql"
+    },
+    {
+      "object": "function gov.identity_budget_totals(uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_budget_totals.sql"
+    },
+    {
+      "object": "function gov.identity_cancel_mandate_work(uuid[],uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_cancel_mandate_work.sql"
+    },
+    {
+      "object": "function gov.identity_change_role(uuid,text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_change_role.sql"
+    },
+    {
+      "object": "function gov.identity_create_task(uuid,text)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_create_task.sql"
+    },
+    {
+      "object": "function gov.identity_directory_create(text,text,text,text)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_directory_create.sql"
+    },
+    {
+      "object": "function gov.identity_directory_delete(text,uuid,bigint)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_directory_delete.sql"
+    },
+    {
+      "object": "function gov.identity_directory_list(text)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_directory_list.sql"
+    },
+    {
+      "object": "function gov.identity_directory_update(text,uuid,text,boolean,bigint)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_directory_update.sql"
+    },
+    {
+      "object": "function gov.identity_document_access(uuid,boolean)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_document_access.sql"
+    },
+    {
+      "object": "function gov.identity_document_version(uuid,uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_document_version.sql"
+    },
+    {
+      "object": "function gov.identity_effect_decider_access(uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_effect_decider_access.sql"
+    },
+    {
+      "object": "function gov.identity_effect_owner(uuid)",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/gov/identity_effect_owner.sql"
+    },
+    {
+      "object": "function gov.identity_invite(text,text,timestamp with time zone)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_invite.sql"
+    },
+    {
+      "object": "function gov.identity_material_scope(uuid,boolean)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_material_scope.sql"
+    },
+    {
+      "object": "function gov.identity_people()",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_people.sql"
+    },
+    {
+      "object": "function gov.identity_person_task_access(uuid,uuid,boolean)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_person_task_access.sql"
+    },
+    {
+      "object": "function gov.identity_project_access(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_project_access.sql"
+    },
+    {
+      "object": "function gov.identity_project_create(uuid)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_project_create.sql"
+    },
+    {
+      "object": "function gov.identity_project_share(uuid,uuid,text)",
+      "version": "identity-native-turn-v1",
+      "file": "versions/identity-native-turn-v1/gov/identity_project_share.sql"
+    },
+    {
+      "object": "function gov.identity_project_sharing(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_project_sharing.sql"
+    },
+    {
+      "object": "function gov.identity_register_project(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_register_project.sql"
+    },
+    {
+      "object": "function gov.identity_remove(uuid)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_remove.sql"
+    },
+    {
+      "object": "function gov.identity_revise_document(uuid,uuid,text,integer)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_revise_document.sql"
+    },
+    {
+      "object": "function gov.identity_run_access(uuid,boolean)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_run_access.sql"
+    },
+    {
+      "object": "function gov.identity_run_accounting(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_run_accounting.sql"
+    },
+    {
+      "object": "function gov.identity_run_decider_access(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_run_decider_access.sql"
+    },
+    {
+      "object": "function gov.identity_run_lookup(uuid,bigint)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_run_lookup.sql"
+    },
+    {
+      "object": "function gov.identity_runtime(uuid)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_runtime.sql"
+    },
+    {
+      "object": "function gov.identity_session(text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_session.sql"
+    },
+    {
+      "object": "function gov.identity_sign_in(text,text,text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_sign_in.sql"
+    },
+    {
+      "object": "function gov.identity_sign_out(text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_sign_out.sql"
+    },
+    {
+      "object": "function gov.identity_task_access(uuid,boolean)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_task_access.sql"
+    },
+    {
+      "object": "function gov.identity_task_exists(uuid)",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/gov/identity_task_exists.sql"
+    },
+    {
+      "object": "function gov.import_material(uuid,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/import_material.sql"
+    },
+    {
+      "object": "function gov.invitation_info(text)",
+      "version": "baseline",
+      "file": "gov/invitation_info.sql"
+    },
+    {
+      "object": "function gov.issue_mandate(uuid,uuid,jsonb,jsonb,jsonb,jsonb,smallint,bigint,bigint,bigint,bigint,timestamp with time zone,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/issue_mandate.sql"
+    },
+    {
+      "object": "function gov.join_channel_thread(uuid,uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/join_channel_thread.sql"
+    },
+    {
+      "object": "function gov.ledger_head()",
+      "version": "baseline",
+      "file": "gov/ledger_head.sql"
+    },
+    {
+      "object": "function gov.ledger_words_match(bigint,text,text)",
+      "version": "baseline",
+      "file": "gov/ledger_words_match.sql"
+    },
+    {
+      "object": "function gov.list_documents(uuid,text[],integer)",
+      "version": "baseline",
+      "file": "gov/list_documents.sql"
+    },
+    {
+      "object": "function gov.mark_connection(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/mark_connection.sql"
+    },
+    {
+      "object": "function gov.mark_document(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/mark_document.sql"
+    },
+    {
+      "object": "function gov.may_decide(uuid)",
+      "version": "baseline",
+      "file": "gov/may_decide.sql"
+    },
+    {
+      "object": "function gov.observe_effect(uuid,text,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/observe_effect.sql"
+    },
+    {
+      "object": "function gov.park_run(uuid,bigint)",
+      "version": "baseline",
+      "file": "gov/park_run.sql"
+    },
+    {
+      "object": "function gov.post_message(uuid,uuid,text,uuid)",
+      "version": "baseline",
+      "file": "gov/post_message.sql"
+    },
+    {
+      "object": "function gov.propose_candidate(text,jsonb,uuid,text)",
+      "version": "identity-lookup-closure-v1",
+      "file": "versions/identity-lookup-closure-v1/gov/propose_candidate.sql"
+    },
+    {
+      "object": "function gov.propose_effect(uuid,bigint,integer,text,text,text,text,smallint,boolean,jsonb,text,text,text)",
+      "version": "baseline",
+      "file": "gov/propose_effect.sql"
+    },
+    {
+      "object": "function gov.propose_undo(uuid,jsonb,text,text,text)",
+      "version": "identity-lookup-closure-v1",
+      "file": "versions/identity-lookup-closure-v1/gov/propose_undo.sql"
+    },
+    {
+      "object": "function gov.queue_run(uuid,uuid,uuid,uuid,uuid)",
+      "version": "identity-lookup-closure-v1",
+      "file": "versions/identity-lookup-closure-v1/gov/queue_run.sql"
+    },
+    {
+      "object": "function gov.quote_marks(uuid,jsonb)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/quote_marks.sql"
+    },
+    {
+      "object": "function gov.read_document(uuid,uuid,integer,text)",
+      "version": "baseline",
+      "file": "gov/read_document.sql"
+    },
+    {
+      "object": "function gov.recall_knowledge(uuid,text[],integer)",
+      "version": "baseline",
+      "file": "gov/recall_knowledge.sql"
+    },
+    {
+      "object": "function gov.recall_knowledge_traced_v1(uuid,bigint,text[],integer)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/recall_knowledge_traced_v1.sql"
+    },
+    {
+      "object": "function gov.recall_memory(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/recall_memory.sql"
+    },
+    {
+      "object": "function gov.reconcile_effect(uuid,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/reconcile_effect.sql"
+    },
+    {
+      "object": "function gov.record_commitment(uuid,uuid,uuid,text,date,smallint)",
+      "version": "baseline",
+      "file": "gov/record_commitment.sql"
+    },
+    {
+      "object": "function gov.record_connection_tools(uuid,text,jsonb,text)",
+      "version": "baseline",
+      "file": "gov/record_connection_tools.sql"
+    },
+    {
+      "object": "function gov.record_material_source_read(text,text,integer,integer,text,text,jsonb,text,text,text,uuid,uuid,uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/record_material_source_read.sql"
+    },
+    {
+      "object": "function gov.record_server_answer(uuid,uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/record_server_answer.sql"
+    },
+    {
+      "object": "function gov.record_source(text,text,text,uuid,uuid,uuid,text,uuid)",
+      "version": "baseline",
+      "file": "gov/record_source.sql"
+    },
+    {
+      "object": "function gov.record_usage(uuid,bigint,bigint,bigint,bigint)",
+      "version": "baseline",
+      "file": "gov/record_usage.sql"
+    },
+    {
+      "object": "function gov.record_verifier_usage(bigint)",
+      "version": "baseline",
+      "file": "gov/record_verifier_usage.sql"
+    },
+    {
+      "object": "function gov.register_channel_account(text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_channel_account.sql"
+    },
+    {
+      "object": "function gov.register_connection(text,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_connection.sql"
+    },
+    {
+      "object": "function gov.register_first_party_connection(text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_first_party_connection.sql"
+    },
+    {
+      "object": "function gov.register_piece(jsonb)",
+      "version": "baseline",
+      "file": "gov/register_piece.sql"
+    },
+    {
+      "object": "function gov.renew_run_lease(uuid,bigint,integer)",
+      "version": "baseline",
+      "file": "gov/renew_run_lease.sql"
+    },
+    {
+      "object": "function gov.request_pairing(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/request_pairing.sql"
+    },
+    {
+      "object": "function gov.request_promotion(uuid,uuid,timestamp with time zone,timestamp with time zone)",
+      "version": "baseline",
+      "file": "gov/request_promotion.sql"
+    },
+    {
+      "object": "function gov.retract_knowledge(uuid,text)",
+      "version": "baseline",
+      "file": "gov/retract_knowledge.sql"
+    },
+    {
+      "object": "function gov.review_document(uuid)",
+      "version": "baseline",
+      "file": "gov/review_document.sql"
+    },
+    {
+      "object": "function gov.revise_document(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/revise_document.sql"
+    },
+    {
+      "object": "function gov.revoke_mandate(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/revoke_mandate.sql"
+    },
+    {
+      "object": "function gov.rewrite_task(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/rewrite_task.sql"
+    },
+    {
+      "object": "function gov.run_reasons(uuid)",
+      "version": "baseline",
+      "file": "gov/run_reasons.sql"
+    },
+    {
+      "object": "function gov.run_routine_now(uuid)",
+      "version": "baseline",
+      "file": "gov/run_routine_now.sql"
+    },
+    {
+      "object": "function gov.run_standing(uuid)",
+      "version": "baseline",
+      "file": "gov/run_standing.sql"
+    },
+    {
+      "object": "function gov.set_delay_window(integer)",
+      "version": "baseline",
+      "file": "gov/set_delay_window.sql"
+    },
+    {
+      "object": "function gov.set_verifier_allowance(bigint)",
+      "version": "baseline",
+      "file": "gov/set_verifier_allowance.sql"
+    },
+    {
+      "object": "function gov.settle_lapsed_dispatch(uuid,text,boolean,text,text)",
+      "version": "baseline",
+      "file": "gov/settle_lapsed_dispatch.sql"
+    },
+    {
+      "object": "function gov.share_task(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/share_task.sql"
+    },
+    {
+      "object": "function gov.sign_in_connection(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/sign_in_connection.sql"
+    },
+    {
+      "object": "function gov.start_channel_thread(text,text,uuid,text,text,text,uuid)",
+      "version": "baseline",
+      "file": "gov/start_channel_thread.sql"
+    },
+    {
+      "object": "function gov.task_people(uuid)",
+      "version": "baseline",
+      "file": "gov/task_people.sql"
+    },
+    {
+      "object": "function gov.task_steps(uuid)",
+      "version": "baseline",
+      "file": "gov/task_steps.sql"
+    },
+    {
+      "object": "function gov.tidy_up()",
+      "version": "baseline",
+      "file": "gov/tidy_up.sql"
+    },
+    {
+      "object": "function gov.unregister_piece(uuid)",
+      "version": "identity-piece-admission-v1",
+      "file": "versions/identity-piece-admission-v1/gov/unregister_piece.sql"
+    },
+    {
+      "object": "function gov.verifier_allowance()",
+      "version": "baseline",
+      "file": "gov/verifier_allowance.sql"
+    },
+    {
+      "object": "function gov.verifier_answer(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/verifier_answer.sql"
+    },
+    {
+      "object": "function gov.verify_ledger()",
+      "version": "baseline",
+      "file": "gov/verify_ledger.sql"
+    },
+    {
+      "object": "function gov.verify_ledger_anchor(bigint,text)",
+      "version": "baseline",
+      "file": "gov/verify_ledger_anchor.sql"
+    },
+    {
+      "object": "function gov.whoami()",
+      "version": "baseline",
+      "file": "gov/whoami.sql"
+    },
+    {
+      "object": "function gov.withdraw_material_source(text,text,text,integer,integer,text)",
+      "version": "baseline",
+      "file": "gov/withdraw_material_source.sql"
+    },
+    {
+      "object": "function gov.write_document_by_effect(uuid,uuid,text,text,boolean,uuid)",
+      "version": "baseline",
+      "file": "gov/write_document_by_effect.sql"
+    },
+    {
+      "object": "function gov.write_memory(uuid,uuid,text,integer,uuid)",
+      "version": "baseline",
+      "file": "gov/write_memory.sql"
+    },
+    {
+      "object": "function gov.write_step(uuid,integer,text,text,jsonb,bigint)",
+      "version": "baseline",
+      "file": "gov/write_step.sql"
+    },
+    {
+      "object": "function operator.create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "operator/create_workspace.sql"
+    },
+    {
+      "object": "function operator.identity_device_only(uuid)",
+      "version": "identity-device-current-v1",
+      "file": "versions/identity-device-current-v1/operator/identity_device_only.sql"
+    },
+    {
+      "object": "function operator.identity_restore_device_access(uuid)",
+      "version": "identity-device-subject-v1",
+      "file": "versions/identity-device-subject-v1/operator/identity_restore_device_access.sql"
+    },
+    {
+      "object": "function operator.queue_depth()",
+      "version": "baseline",
+      "file": "operator/queue_depth.sql"
+    },
+    {
+      "object": "function sec.acting_for()",
+      "version": "baseline",
+      "file": "sec/acting_for.sql"
+    },
+    {
+      "object": "function sec.args_hash(jsonb)",
+      "version": "baseline",
+      "file": "sec/args_hash.sql"
+    },
+    {
+      "object": "function sec.attenuate(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/attenuate.sql"
+    },
+    {
+      "object": "function sec.candidate_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/candidate_visible.sql"
+    },
+    {
+      "object": "function sec.checker_independent(uuid,uuid,uuid,boolean)",
+      "version": "baseline",
+      "file": "sec/checker_independent.sql"
+    },
+    {
+      "object": "function sec.current_principal()",
+      "version": "baseline",
+      "file": "sec/current_principal.sql"
+    },
+    {
+      "object": "function sec.current_run()",
+      "version": "baseline",
+      "file": "sec/current_run.sql"
+    },
+    {
+      "object": "function sec.current_workspace()",
+      "version": "baseline",
+      "file": "sec/current_workspace.sql"
+    },
+    {
+      "object": "function sec.decision_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/decision_visible.sql"
+    },
+    {
+      "object": "function sec.delegation_tree(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/delegation_tree.sql"
+    },
+    {
+      "object": "function sec.digest(text)",
+      "version": "baseline",
+      "file": "sec/digest.sql"
+    },
+    {
+      "object": "function sec.effect_transition_allowed(text,text)",
+      "version": "baseline",
+      "file": "sec/effect_transition_allowed.sql"
+    },
+    {
+      "object": "function sec.effect_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/effect_visible.sql"
+    },
+    {
+      "object": "function sec.episode_visible(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/episode_visible.sql"
+    },
+    {
+      "object": "function sec.is_admin(uuid)",
+      "version": "baseline",
+      "file": "sec/is_admin.sql"
+    },
+    {
+      "object": "function sec.is_verifier(uuid)",
+      "version": "baseline",
+      "file": "sec/is_verifier.sql"
+    },
+    {
+      "object": "function sec.ledger_hash(text,uuid,bigint,text,uuid,text,jsonb,timestamp with time zone)",
+      "version": "baseline",
+      "file": "sec/ledger_hash.sql"
+    },
+    {
+      "object": "function sec.mandate_terms(jsonb)",
+      "version": "baseline",
+      "file": "sec/mandate_terms.sql"
+    },
+    {
+      "object": "function sec.names_run()",
+      "version": "baseline",
+      "file": "sec/names_run.sql"
+    },
+    {
+      "object": "function sec.piece_binding(uuid)",
+      "version": "baseline",
+      "file": "sec/piece_binding.sql"
+    },
+    {
+      "object": "function sec.principal_kind(uuid)",
+      "version": "baseline",
+      "file": "sec/principal_kind.sql"
+    },
+    {
+      "object": "function sec.role_of(uuid)",
+      "version": "baseline",
+      "file": "sec/role_of.sql"
+    },
+    {
+      "object": "function sec.route_effect(smallint,text,smallint,boolean,boolean,boolean,boolean)",
+      "version": "baseline",
+      "file": "sec/route_effect.sql"
+    },
+    {
+      "object": "function sec.run_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/run_visible.sql"
+    },
+    {
+      "object": "function sec.session_is_empty()",
+      "version": "baseline",
+      "file": "sec/session_is_empty.sql"
+    },
+    {
+      "object": "function sec.set_covers(jsonb,text)",
+      "version": "baseline",
+      "file": "sec/set_covers.sql"
+    },
+    {
+      "object": "function sec.set_intersect(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/set_intersect.sql"
+    },
+    {
+      "object": "function sec.set_within(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/set_within.sql"
+    },
+    {
+      "object": "function sec.system_principal()",
+      "version": "baseline",
+      "file": "sec/system_principal.sql"
+    },
+    {
+      "object": "function sec.t_candidate()",
+      "version": "baseline",
+      "file": "sec/t_candidate.sql"
+    },
+    {
+      "object": "function sec.t_candidate_input_capture_v1()",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/sec/t_candidate_input_capture_v1.sql"
+    },
+    {
+      "object": "function sec.t_candidate_input_structure()",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/sec/t_candidate_input_structure.sql"
+    },
+    {
+      "object": "function sec.t_connector_signature_terminal()",
+      "version": "baseline",
+      "file": "sec/t_connector_signature_terminal.sql"
+    },
+    {
+      "object": "function sec.t_decision()",
+      "version": "baseline",
+      "file": "sec/t_decision.sql"
+    },
+    {
+      "object": "function sec.t_document()",
+      "version": "baseline",
+      "file": "sec/t_document.sql"
+    },
+    {
+      "object": "function sec.t_effect()",
+      "version": "baseline",
+      "file": "sec/t_effect.sql"
+    },
+    {
+      "object": "function sec.t_effect_lineage()",
+      "version": "baseline",
+      "file": "sec/t_effect_lineage.sql"
+    },
+    {
+      "object": "function sec.t_evidence()",
+      "version": "baseline",
+      "file": "sec/t_evidence.sql"
+    },
+    {
+      "object": "function sec.t_identity_mutation_context()",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/sec/t_identity_mutation_context.sql"
+    },
+    {
+      "object": "function sec.t_keep_columns()",
+      "version": "baseline",
+      "file": "sec/t_keep_columns.sql"
+    },
+    {
+      "object": "function sec.t_knowledge()",
+      "version": "baseline",
+      "file": "sec/t_knowledge.sql"
+    },
+    {
+      "object": "function sec.t_ledger_append_only()",
+      "version": "baseline",
+      "file": "sec/t_ledger_append_only.sql"
+    },
+    {
+      "object": "function sec.t_mandate()",
+      "version": "baseline",
+      "file": "sec/t_mandate.sql"
+    },
+    {
+      "object": "function sec.t_material_episode_source()",
+      "version": "baseline",
+      "file": "sec/t_material_episode_source.sql"
+    },
+    {
+      "object": "function sec.t_material_promotion_guard()",
+      "version": "baseline",
+      "file": "sec/t_material_promotion_guard.sql"
+    },
+    {
+      "object": "function sec.t_memory()",
+      "version": "baseline",
+      "file": "sec/t_memory.sql"
+    },
+    {
+      "object": "function sec.t_piece()",
+      "version": "baseline",
+      "file": "sec/t_piece.sql"
+    },
+    {
+      "object": "function sec.t_principal()",
+      "version": "baseline",
+      "file": "sec/t_principal.sql"
+    },
+    {
+      "object": "function sec.t_refuse_truncate()",
+      "version": "baseline",
+      "file": "sec/t_refuse_truncate.sql"
+    },
+    {
+      "object": "function sec.t_run_marks()",
+      "version": "baseline",
+      "file": "sec/t_run_marks.sql"
+    },
+    {
+      "object": "function sec.t_run_piece()",
+      "version": "baseline",
+      "file": "sec/t_run_piece.sql"
+    },
+    {
+      "object": "function sec.t_step()",
+      "version": "baseline",
+      "file": "sec/t_step.sql"
+    },
+    {
+      "object": "function sec.task_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/task_visible.sql"
+    },
+    {
+      "object": "function sec.task_visible_to(uuid,uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/task_visible_to.sql"
+    },
+    {
+      "object": "function sec.terms_within(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/terms_within.sql"
+    },
+    {
+      "object": "function sec.viewer()",
+      "version": "baseline",
+      "file": "sec/viewer.sql"
+    },
+    {
+      "object": "function sec.visible_eligible_knowledge_sources()",
+      "version": "baseline",
+      "file": "sec/visible_eligible_knowledge_sources.sql"
+    },
+    {
+      "object": "function sec.workspace_is_personal(uuid)",
+      "version": "baseline",
+      "file": "sec/workspace_is_personal.sql"
+    },
+    {
+      "object": "index app.connector_signatures_live",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "index app.decisions_one_open",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "index app.effects_run",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "index app.effects_task",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "index app.effects_undo",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "index app.episodes_run_sources",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "index app.knowledge_reads_receiver_cut",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_reads.sql"
+    },
+    {
+      "object": "index app.knowledge_traced_scan",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_reads.sql"
+    },
+    {
+      "object": "index app.ledger_subject",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "index app.mandates_parent",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "index app.material_source_reads_version",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "index app.memory_once_per_step",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "index app.messages_task",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "index app.pieces_standing",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "index app.principals_one_system",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "index app.runs_mandate",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "index app.runs_piece",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "index app.runs_task",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "index auth.attempts_key",
+      "version": "baseline",
+      "file": "auth/attempts.sql"
+    },
+    {
+      "object": "index ops.effect_queue_due",
+      "version": "baseline",
+      "file": "ops/effect_queue.sql"
+    },
+    {
+      "object": "index ops.run_queue_due",
+      "version": "baseline",
+      "file": "ops/run_queue.sql"
+    },
+    {
+      "object": "policy app.documents.identity_project_crossing_read",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.documents.identity_project_insert",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.documents.identity_project_read",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.documents.identity_project_update",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.episodes.identity_project_crossing_read",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.episodes.identity_project_insert",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.episodes.identity_project_read",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.episodes.identity_project_update",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/app/identity_document_policies.sql"
+    },
+    {
+      "object": "policy app.identity_accounts.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_agents.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_directory.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_directory_deleted.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_invitations.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_project_people.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_projects.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_sessions.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_task_projects.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "policy app.identity_workspace_projects.tenant_wall",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "table app.channel_accounts",
+      "version": "baseline",
+      "file": "app/channel_accounts.sql"
+    },
+    {
+      "object": "table app.channel_identities",
+      "version": "baseline",
+      "file": "app/channel_identities.sql"
+    },
+    {
+      "object": "table app.channel_messages",
+      "version": "baseline",
+      "file": "app/channel_messages.sql"
+    },
+    {
+      "object": "table app.channel_threads",
+      "version": "baseline",
+      "file": "app/channel_threads.sql"
+    },
+    {
+      "object": "table app.commitments",
+      "version": "baseline",
+      "file": "app/commitments.sql"
+    },
+    {
+      "object": "table app.connection_tools",
+      "version": "baseline",
+      "file": "app/connection_tools.sql"
+    },
+    {
+      "object": "table app.connections",
+      "version": "baseline",
+      "file": "app/connections.sql"
+    },
+    {
+      "object": "table app.connector_signatures",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "table app.decisions",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "table app.document_versions",
+      "version": "baseline",
+      "file": "app/document_versions.sql"
+    },
+    {
+      "object": "table app.documents",
+      "version": "baseline",
+      "file": "app/documents.sql"
+    },
+    {
+      "object": "table app.effects",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "table app.episodes",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "table app.identity_accounts",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_accounts.sql"
+    },
+    {
+      "object": "table app.identity_agents",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_agents.sql"
+    },
+    {
+      "object": "table app.identity_directory",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/app/identity_directory.sql"
+    },
+    {
+      "object": "table app.identity_directory_deleted",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/app/identity_directory_deleted.sql"
+    },
+    {
+      "object": "table app.identity_invitations",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_invitations.sql"
+    },
+    {
+      "object": "table app.identity_project_people",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_project_people.sql"
+    },
+    {
+      "object": "table app.identity_projects",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_projects.sql"
+    },
+    {
+      "object": "table app.identity_sessions",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_sessions.sql"
+    },
+    {
+      "object": "table app.identity_task_projects",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/app/identity_task_projects.sql"
+    },
+    {
+      "object": "table app.identity_workspace_projects",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/app/identity_workspace_projects.sql"
+    },
+    {
+      "object": "table app.knowledge",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "table app.knowledge_candidate_inputs",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_candidate_inputs.sql"
+    },
+    {
+      "object": "table app.knowledge_candidates",
+      "version": "baseline",
+      "file": "app/knowledge_candidates.sql"
+    },
+    {
+      "object": "table app.knowledge_reads",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_reads.sql"
+    },
+    {
+      "object": "table app.ledger",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "table app.ledger_heads",
+      "version": "baseline",
+      "file": "app/ledger_heads.sql"
+    },
+    {
+      "object": "table app.mandates",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "table app.material_source_identities",
+      "version": "baseline",
+      "file": "app/material_source_identities.sql"
+    },
+    {
+      "object": "table app.material_source_reads",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "table app.material_source_withdrawals",
+      "version": "baseline",
+      "file": "app/material_source_withdrawals.sql"
+    },
+    {
+      "object": "table app.memory",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "table app.memory_proposals",
+      "version": "baseline",
+      "file": "app/memory_proposals.sql"
+    },
+    {
+      "object": "table app.messages",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "table app.operation_changes",
+      "version": "baseline",
+      "file": "app/operation_changes.sql"
+    },
+    {
+      "object": "table app.operations",
+      "version": "baseline",
+      "file": "app/operations.sql"
+    },
+    {
+      "object": "table app.pieces",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "table app.principals",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "table app.routines",
+      "version": "baseline",
+      "file": "app/routines.sql"
+    },
+    {
+      "object": "table app.run_steps",
+      "version": "baseline",
+      "file": "app/run_steps.sql"
+    },
+    {
+      "object": "table app.runs",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "table app.task_people",
+      "version": "baseline",
+      "file": "app/task_people.sql"
+    },
+    {
+      "object": "table app.tasks",
+      "version": "baseline",
+      "file": "app/tasks.sql"
+    },
+    {
+      "object": "table app.verifications",
+      "version": "baseline",
+      "file": "app/verifications.sql"
+    },
+    {
+      "object": "table app.verifier_usage",
+      "version": "baseline",
+      "file": "app/verifier_usage.sql"
+    },
+    {
+      "object": "table app.workspaces",
+      "version": "baseline",
+      "file": "app/workspaces.sql"
+    },
+    {
+      "object": "table auth.attempts",
+      "version": "baseline",
+      "file": "auth/attempts.sql"
+    },
+    {
+      "object": "table auth.identities",
+      "version": "baseline",
+      "file": "auth/identities.sql"
+    },
+    {
+      "object": "table auth.sessions",
+      "version": "baseline",
+      "file": "auth/sessions.sql"
+    },
+    {
+      "object": "table auth.users",
+      "version": "baseline",
+      "file": "auth/users.sql"
+    },
+    {
+      "object": "table ops.effect_queue",
+      "version": "baseline",
+      "file": "ops/effect_queue.sql"
+    },
+    {
+      "object": "table ops.installation",
+      "version": "baseline",
+      "file": "ops/installation.sql"
+    },
+    {
+      "object": "table ops.invitations",
+      "version": "baseline",
+      "file": "ops/invitations.sql"
+    },
+    {
+      "object": "table ops.run_queue",
+      "version": "baseline",
+      "file": "ops/run_queue.sql"
+    },
+    {
+      "object": "table ops.run_secrets",
+      "version": "baseline",
+      "file": "ops/run_secrets.sql"
+    },
+    {
+      "object": "table ops.schema_migrations",
+      "version": "baseline",
+      "file": "ops/schema_migrations.sql"
+    },
+    {
+      "object": "table ops.verification_queue",
+      "version": "baseline",
+      "file": "ops/verification_queue.sql"
+    },
+    {
+      "object": "table ops.workspace_keys",
+      "version": "baseline",
+      "file": "ops/workspace_keys.sql"
+    },
+    {
+      "object": "trigger app.channel_accounts.keep",
+      "version": "baseline",
+      "file": "app/channel_accounts.sql"
+    },
+    {
+      "object": "trigger app.channel_accounts.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_accounts.sql"
+    },
+    {
+      "object": "trigger app.channel_identities.keep",
+      "version": "baseline",
+      "file": "app/channel_identities.sql"
+    },
+    {
+      "object": "trigger app.channel_identities.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_identities.sql"
+    },
+    {
+      "object": "trigger app.channel_messages.evidence",
+      "version": "baseline",
+      "file": "app/channel_messages.sql"
+    },
+    {
+      "object": "trigger app.channel_messages.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_messages.sql"
+    },
+    {
+      "object": "trigger app.channel_threads.keep",
+      "version": "baseline",
+      "file": "app/channel_threads.sql"
+    },
+    {
+      "object": "trigger app.channel_threads.no_truncate",
+      "version": "baseline",
+      "file": "app/channel_threads.sql"
+    },
+    {
+      "object": "trigger app.commitments.keep",
+      "version": "baseline",
+      "file": "app/commitments.sql"
+    },
+    {
+      "object": "trigger app.commitments.no_truncate",
+      "version": "baseline",
+      "file": "app/commitments.sql"
+    },
+    {
+      "object": "trigger app.connection_tools.keep",
+      "version": "baseline",
+      "file": "app/connection_tools.sql"
+    },
+    {
+      "object": "trigger app.connection_tools.no_truncate",
+      "version": "baseline",
+      "file": "app/connection_tools.sql"
+    },
+    {
+      "object": "trigger app.connections.keep",
+      "version": "baseline",
+      "file": "app/connections.sql"
+    },
+    {
+      "object": "trigger app.connections.no_truncate",
+      "version": "baseline",
+      "file": "app/connections.sql"
+    },
+    {
+      "object": "trigger app.connector_signatures.keep",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "trigger app.connector_signatures.no_truncate",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "trigger app.connector_signatures.terminal",
+      "version": "baseline",
+      "file": "app/connector_signatures.sql"
+    },
+    {
+      "object": "trigger app.decisions.no_truncate",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "trigger app.decisions.rules",
+      "version": "baseline",
+      "file": "app/decisions.sql"
+    },
+    {
+      "object": "trigger app.document_versions.evidence",
+      "version": "baseline",
+      "file": "app/document_versions.sql"
+    },
+    {
+      "object": "trigger app.document_versions.no_truncate",
+      "version": "baseline",
+      "file": "app/document_versions.sql"
+    },
+    {
+      "object": "trigger app.documents.no_truncate",
+      "version": "baseline",
+      "file": "app/documents.sql"
+    },
+    {
+      "object": "trigger app.documents.versions",
+      "version": "baseline",
+      "file": "app/documents.sql"
+    },
+    {
+      "object": "trigger app.effects.lineage",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "trigger app.effects.no_truncate",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "trigger app.effects.rules",
+      "version": "baseline",
+      "file": "app/effects.sql"
+    },
+    {
+      "object": "trigger app.episodes.evidence",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "trigger app.episodes.identity_mutation_context",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/owner/identity_mutation_triggers.sql"
+    },
+    {
+      "object": "trigger app.episodes.material_source_receipt",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "trigger app.episodes.no_truncate",
+      "version": "baseline",
+      "file": "app/episodes.sql"
+    },
+    {
+      "object": "trigger app.identity_accounts.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_agents.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_directory.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_directory_deleted.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_invitations.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_project_people.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_projects.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_sessions.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_task_projects.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.identity_workspace_projects.no_truncate",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/owner/identity_store_guarantees.sql"
+    },
+    {
+      "object": "trigger app.knowledge.material_source_guard",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "trigger app.knowledge.no_truncate",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "trigger app.knowledge.rules",
+      "version": "baseline",
+      "file": "app/knowledge.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidate_inputs.evidence",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_candidate_inputs.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidate_inputs.no_truncate",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_candidate_inputs.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.candidate_input_capture",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/candidate_input_capture.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.candidate_input_structure",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/candidate_input_structure.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.identity_mutation_context",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/owner/identity_mutation_triggers.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.no_truncate",
+      "version": "baseline",
+      "file": "app/knowledge_candidates.sql"
+    },
+    {
+      "object": "trigger app.knowledge_candidates.rules",
+      "version": "baseline",
+      "file": "app/knowledge_candidates.sql"
+    },
+    {
+      "object": "trigger app.knowledge_reads.evidence",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_reads.sql"
+    },
+    {
+      "object": "trigger app.knowledge_reads.no_truncate",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/app/knowledge_reads.sql"
+    },
+    {
+      "object": "trigger app.ledger.append_only",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "trigger app.ledger.identity_mutation_context",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/owner/identity_mutation_triggers.sql"
+    },
+    {
+      "object": "trigger app.ledger.no_truncate",
+      "version": "baseline",
+      "file": "app/ledger.sql"
+    },
+    {
+      "object": "trigger app.ledger_heads.keep",
+      "version": "baseline",
+      "file": "app/ledger_heads.sql"
+    },
+    {
+      "object": "trigger app.ledger_heads.no_truncate",
+      "version": "baseline",
+      "file": "app/ledger_heads.sql"
+    },
+    {
+      "object": "trigger app.mandates.no_truncate",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "trigger app.mandates.rules",
+      "version": "baseline",
+      "file": "app/mandates.sql"
+    },
+    {
+      "object": "trigger app.material_source_identities.evidence",
+      "version": "baseline",
+      "file": "app/material_source_identities.sql"
+    },
+    {
+      "object": "trigger app.material_source_identities.no_truncate",
+      "version": "baseline",
+      "file": "app/material_source_identities.sql"
+    },
+    {
+      "object": "trigger app.material_source_reads.evidence",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "trigger app.material_source_reads.no_truncate",
+      "version": "baseline",
+      "file": "app/material_source_reads.sql"
+    },
+    {
+      "object": "trigger app.material_source_withdrawals.evidence",
+      "version": "baseline",
+      "file": "app/material_source_withdrawals.sql"
+    },
+    {
+      "object": "trigger app.material_source_withdrawals.no_truncate",
+      "version": "baseline",
+      "file": "app/material_source_withdrawals.sql"
+    },
+    {
+      "object": "trigger app.memory.no_truncate",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "trigger app.memory.rules",
+      "version": "baseline",
+      "file": "app/memory.sql"
+    },
+    {
+      "object": "trigger app.memory_proposals.keep",
+      "version": "baseline",
+      "file": "app/memory_proposals.sql"
+    },
+    {
+      "object": "trigger app.memory_proposals.no_truncate",
+      "version": "baseline",
+      "file": "app/memory_proposals.sql"
+    },
+    {
+      "object": "trigger app.messages.evidence",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "trigger app.messages.no_truncate",
+      "version": "baseline",
+      "file": "app/messages.sql"
+    },
+    {
+      "object": "trigger app.operation_changes.keep",
+      "version": "baseline",
+      "file": "app/operation_changes.sql"
+    },
+    {
+      "object": "trigger app.operation_changes.no_truncate",
+      "version": "baseline",
+      "file": "app/operation_changes.sql"
+    },
+    {
+      "object": "trigger app.operations.keep",
+      "version": "baseline",
+      "file": "app/operations.sql"
+    },
+    {
+      "object": "trigger app.operations.no_truncate",
+      "version": "baseline",
+      "file": "app/operations.sql"
+    },
+    {
+      "object": "trigger app.pieces.no_truncate",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "trigger app.pieces.rules",
+      "version": "baseline",
+      "file": "app/pieces.sql"
+    },
+    {
+      "object": "trigger app.principals.keep",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "trigger app.principals.no_truncate",
+      "version": "baseline",
+      "file": "app/principals.sql"
+    },
+    {
+      "object": "trigger app.routines.keep",
+      "version": "baseline",
+      "file": "app/routines.sql"
+    },
+    {
+      "object": "trigger app.routines.no_truncate",
+      "version": "baseline",
+      "file": "app/routines.sql"
+    },
+    {
+      "object": "trigger app.run_steps.frozen",
+      "version": "baseline",
+      "file": "app/run_steps.sql"
+    },
+    {
+      "object": "trigger app.run_steps.no_truncate",
+      "version": "baseline",
+      "file": "app/run_steps.sql"
+    },
+    {
+      "object": "trigger app.runs.marks",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "trigger app.runs.no_truncate",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "trigger app.runs.piece",
+      "version": "baseline",
+      "file": "app/runs.sql"
+    },
+    {
+      "object": "trigger app.task_people.keep",
+      "version": "baseline",
+      "file": "app/task_people.sql"
+    },
+    {
+      "object": "trigger app.task_people.no_truncate",
+      "version": "baseline",
+      "file": "app/task_people.sql"
+    },
+    {
+      "object": "trigger app.tasks.identity_task_project_binding",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/app/identity_resource_policies.sql"
+    },
+    {
+      "object": "trigger app.tasks.keep",
+      "version": "baseline",
+      "file": "app/tasks.sql"
+    },
+    {
+      "object": "trigger app.tasks.no_truncate",
+      "version": "baseline",
+      "file": "app/tasks.sql"
+    },
+    {
+      "object": "trigger app.verifications.evidence",
+      "version": "baseline",
+      "file": "app/verifications.sql"
+    },
+    {
+      "object": "trigger app.verifications.no_truncate",
+      "version": "baseline",
+      "file": "app/verifications.sql"
+    },
+    {
+      "object": "trigger app.verifier_usage.keep",
+      "version": "baseline",
+      "file": "app/verifier_usage.sql"
+    },
+    {
+      "object": "trigger app.verifier_usage.no_truncate",
+      "version": "baseline",
+      "file": "app/verifier_usage.sql"
+    },
+    {
+      "object": "trigger app.workspaces.keep",
+      "version": "baseline",
+      "file": "app/workspaces.sql"
+    },
+    {
+      "object": "trigger app.workspaces.no_truncate",
+      "version": "baseline",
+      "file": "app/workspaces.sql"
+    },
+    {
+      "object": "view app.material_guard_history",
+      "version": "baseline",
+      "file": "app/material_guard_history.sql"
+    },
+    {
+      "object": "view gov.eligible_knowledge_sources",
+      "version": "baseline",
+      "file": "views/eligible_knowledge_sources.sql"
+    }
+  ],
+  "functions": [
+    {
+      "signature": "gov._admin(text)",
+      "version": "baseline",
+      "file": "gov/_admin.sql"
+    },
+    {
+      "signature": "gov._ancestors(uuid)",
+      "version": "baseline",
+      "file": "gov/_ancestors.sql"
+    },
+    {
+      "signature": "gov._append(text,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/_append.sql"
+    },
+    {
+      "signature": "gov._apply_classification(uuid)",
+      "version": "baseline",
+      "file": "gov/_apply_classification.sql"
+    },
+    {
+      "signature": "gov._ask_about_effect(uuid)",
+      "version": "baseline",
+      "file": "gov/_ask_about_effect.sql"
+    },
+    {
+      "signature": "gov._builtin(text)",
+      "version": "baseline",
+      "file": "gov/_builtin.sql"
+    },
+    {
+      "signature": "gov._cancel_effect(uuid,text)",
+      "version": "baseline",
+      "file": "gov/_cancel_effect.sql"
+    },
+    {
+      "signature": "gov._candidate_claim_digest_v1(app.knowledge_candidates)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_candidate_claim_digest_v1.sql"
+    },
+    {
+      "signature": "gov._candidate_input_manifest_v1(app.knowledge_candidates,bigint)",
+      "version": "material-closure-hardening-v1",
+      "file": "versions/material-closure-hardening-v1/gov/_candidate_input_manifest_v1.sql"
+    },
+    {
+      "signature": "gov._carry_task_marks(uuid)",
+      "version": "baseline",
+      "file": "gov/_carry_task_marks.sql"
+    },
+    {
+      "signature": "gov._claim(uuid,text,integer)",
+      "version": "baseline",
+      "file": "gov/_claim.sql"
+    },
+    {
+      "signature": "gov._claim_effect(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/_claim_effect.sql"
+    },
+    {
+      "signature": "gov._claimable(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/_claimable.sql"
+    },
+    {
+      "signature": "gov._create_workspace(text,text,text,text)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_create_workspace.sql"
+    },
+    {
+      "signature": "gov._document_audience(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/_document_audience.sql"
+    },
+    {
+      "signature": "gov._document_reasons(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_document_reasons.sql"
+    },
+    {
+      "signature": "gov._effect_payload(uuid)",
+      "version": "baseline",
+      "file": "gov/_effect_payload.sql"
+    },
+    {
+      "signature": "gov._effect_question(uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_effect_question.sql"
+    },
+    {
+      "signature": "gov._enqueue_effect(uuid)",
+      "version": "baseline",
+      "file": "gov/_enqueue_effect.sql"
+    },
+    {
+      "signature": "gov._has_verifier()",
+      "version": "baseline",
+      "file": "gov/_has_verifier.sql"
+    },
+    {
+      "signature": "gov._holder(uuid,bigint)",
+      "version": "baseline",
+      "file": "gov/_holder.sql"
+    },
+    {
+      "signature": "gov._initial_marks(uuid)",
+      "version": "baseline",
+      "file": "gov/_initial_marks.sql"
+    },
+    {
+      "signature": "gov._knowledge_personal_closure_v1(uuid,uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_knowledge_personal_closure_v1.sql"
+    },
+    {
+      "signature": "gov._lock_workspace()",
+      "version": "baseline",
+      "file": "gov/_lock_workspace.sql"
+    },
+    {
+      "signature": "gov._mandate_standing(uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_mandate_standing.sql"
+    },
+    {
+      "signature": "gov._mark(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/_mark.sql"
+    },
+    {
+      "signature": "gov._material_source_projection(uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_material_source_projection.sql"
+    },
+    {
+      "signature": "gov._material_source_state(uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_material_source_state.sql"
+    },
+    {
+      "signature": "gov._may_answer(uuid,uuid,text)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_may_answer.sql"
+    },
+    {
+      "signature": "gov._names_own_connection(jsonb)",
+      "version": "baseline",
+      "file": "gov/_names_own_connection.sql"
+    },
+    {
+      "signature": "gov._open_decision(text,uuid,uuid,uuid,text,text,text,boolean,text,uuid)",
+      "version": "baseline",
+      "file": "gov/_open_decision.sql"
+    },
+    {
+      "signature": "gov._operation_class(text,smallint,boolean,uuid)",
+      "version": "baseline",
+      "file": "gov/_operation_class.sql"
+    },
+    {
+      "signature": "gov._person(text)",
+      "version": "baseline",
+      "file": "gov/_person.sql"
+    },
+    {
+      "signature": "gov._person_name(uuid)",
+      "version": "baseline",
+      "file": "gov/_person_name.sql"
+    },
+    {
+      "signature": "gov._personal_message_inputs_v1(app.knowledge_candidates,uuid,bigint)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_personal_message_inputs_v1.sql"
+    },
+    {
+      "signature": "gov._personal_message_roots_v1(uuid,uuid)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/_personal_message_roots_v1.sql"
+    },
+    {
+      "signature": "gov._piece_standing(text,uuid,text,smallint)",
+      "version": "baseline",
+      "file": "gov/_piece_standing.sql"
+    },
+    {
+      "signature": "gov._profile_reads()",
+      "version": "baseline",
+      "file": "gov/_profile_reads.sql"
+    },
+    {
+      "signature": "gov._promote(uuid,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/_promote.sql"
+    },
+    {
+      "signature": "gov._promotion_sources_allowed(uuid)",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/gov/_promotion_sources_allowed.sql"
+    },
+    {
+      "signature": "gov._quote_run(uuid,uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_quote_run.sql"
+    },
+    {
+      "signature": "gov._quoted_ids(jsonb,text)",
+      "version": "baseline",
+      "file": "gov/_quoted_ids.sql"
+    },
+    {
+      "signature": "gov._route_for_run(uuid,smallint,text,smallint,boolean,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/_route_for_run.sql"
+    },
+    {
+      "signature": "gov._run_kept(uuid)",
+      "version": "baseline",
+      "file": "gov/_run_kept.sql"
+    },
+    {
+      "signature": "gov._run_person(uuid)",
+      "version": "baseline",
+      "file": "gov/_run_person.sql"
+    },
+    {
+      "signature": "gov._settle_decision(uuid,text,uuid,text)",
+      "version": "baseline",
+      "file": "gov/_settle_decision.sql"
+    },
+    {
+      "signature": "gov._settle_decision_with_basis(uuid,text,uuid,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/_settle_decision_with_basis.sql"
+    },
+    {
+      "signature": "gov._source_name(text)",
+      "version": "baseline",
+      "file": "gov/_source_name.sql"
+    },
+    {
+      "signature": "gov._stop_run(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/_stop_run.sql"
+    },
+    {
+      "signature": "gov._strip_carried(text)",
+      "version": "baseline",
+      "file": "gov/_strip_carried.sql"
+    },
+    {
+      "signature": "gov._subtree(uuid)",
+      "version": "baseline",
+      "file": "gov/_subtree.sql"
+    },
+    {
+      "signature": "gov._system(text)",
+      "version": "baseline",
+      "file": "gov/_system.sql"
+    },
+    {
+      "signature": "gov._task_read_beyond(uuid,uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/_task_read_beyond.sql"
+    },
+    {
+      "signature": "gov._wake_run(uuid)",
+      "version": "baseline",
+      "file": "gov/_wake_run.sql"
+    },
+    {
+      "signature": "gov.accept_invitation(text,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/accept_invitation.sql"
+    },
+    {
+      "signature": "gov.add_person(text,text,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/add_person.sql"
+    },
+    {
+      "signature": "gov.answer_decision(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/answer_decision.sql"
+    },
+    {
+      "signature": "gov.answer_decision_with_basis(uuid,text,text,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/answer_decision_with_basis.sql"
+    },
+    {
+      "signature": "gov.answer_in_conversation(uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/answer_in_conversation.sql"
+    },
+    {
+      "signature": "gov.begin_dispatch(uuid,text)",
+      "version": "baseline",
+      "file": "gov/begin_dispatch.sql"
+    },
+    {
+      "signature": "gov.bind_account(text)",
+      "version": "baseline",
+      "file": "gov/bind_account.sql"
+    },
+    {
+      "signature": "gov.cancel_effect(uuid,text)",
+      "version": "baseline",
+      "file": "gov/cancel_effect.sql"
+    },
+    {
+      "signature": "gov.change_role(uuid,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/change_role.sql"
+    },
+    {
+      "signature": "gov.claim_effect(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/claim_effect.sql"
+    },
+    {
+      "signature": "gov.claim_next_effect(text,integer)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_next_effect.sql"
+    },
+    {
+      "signature": "gov.claim_next_run(text,integer,text,uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_next_run.sql"
+    },
+    {
+      "signature": "gov.claim_next_verification(text,integer)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_next_verification.sql"
+    },
+    {
+      "signature": "gov.claim_run(uuid,text,integer,text,uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/claim_run.sql"
+    },
+    {
+      "signature": "gov.classify_operations(jsonb)",
+      "version": "baseline",
+      "file": "gov/classify_operations.sql"
+    },
+    {
+      "signature": "gov.complete_pairing(text)",
+      "version": "baseline",
+      "file": "gov/complete_pairing.sql"
+    },
+    {
+      "signature": "gov.complete_step(uuid,integer,jsonb)",
+      "version": "baseline",
+      "file": "gov/complete_step.sql"
+    },
+    {
+      "signature": "gov.create_agent(text,text)",
+      "version": "baseline",
+      "file": "gov/create_agent.sql"
+    },
+    {
+      "signature": "gov.create_document(uuid,text,text,uuid,uuid)",
+      "version": "baseline",
+      "file": "gov/create_document.sql"
+    },
+    {
+      "signature": "gov.create_routine(uuid,text,text,text,text,text,smallint,timestamp with time zone)",
+      "version": "baseline",
+      "file": "gov/create_routine.sql"
+    },
+    {
+      "signature": "gov.create_task(uuid,uuid,text,text,text,text,uuid)",
+      "version": "baseline",
+      "file": "gov/create_task.sql"
+    },
+    {
+      "signature": "gov.create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/create_workspace.sql"
+    },
+    {
+      "signature": "gov.decide_memory_proposal(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/decide_memory_proposal.sql"
+    },
+    {
+      "signature": "gov.decision_answer_basis(uuid)",
+      "version": "baseline",
+      "file": "gov/decision_answer_basis.sql"
+    },
+    {
+      "signature": "gov.end_connector_signature(uuid,text)",
+      "version": "baseline",
+      "file": "gov/end_connector_signature.sql"
+    },
+    {
+      "signature": "gov.escalate_decision(uuid,text)",
+      "version": "baseline",
+      "file": "gov/escalate_decision.sql"
+    },
+    {
+      "signature": "gov.finish_run(uuid,bigint,text)",
+      "version": "baseline",
+      "file": "gov/finish_run.sql"
+    },
+    {
+      "signature": "gov.forget_memory(uuid)",
+      "version": "baseline",
+      "file": "gov/forget_memory.sql"
+    },
+    {
+      "signature": "gov.give_connector_signature(uuid,text,text)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/give_connector_signature.sql"
+    },
+    {
+      "signature": "gov.held_claims()",
+      "version": "baseline",
+      "file": "gov/held_claims.sql"
+    },
+    {
+      "signature": "gov.identity_accept(text,text,text,text,text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_accept.sql"
+    },
+    {
+      "signature": "gov.identity_accept_legacy(text,text)",
+      "version": "identity-invitation-closure-v1",
+      "file": "versions/identity-invitation-closure-v1/gov/identity_accept_legacy.sql"
+    },
+    {
+      "signature": "gov.identity_add_person(text,text,text)",
+      "version": "identity-role-closure-v1",
+      "file": "versions/identity-role-closure-v1/gov/identity_add_person.sql"
+    },
+    {
+      "signature": "gov.identity_automation_create(uuid,uuid,text,uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_automation_create.sql"
+    },
+    {
+      "signature": "gov.identity_automation_revoke(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_automation_revoke.sql"
+    },
+    {
+      "signature": "gov.identity_automations()",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_automations.sql"
+    },
+    {
+      "signature": "gov.identity_bind_new_task()",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/gov/identity_bind_new_task.sql"
+    },
+    {
+      "signature": "gov.identity_bind_task(uuid,uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_bind_task.sql"
+    },
+    {
+      "signature": "gov.identity_budget_totals(uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_budget_totals.sql"
+    },
+    {
+      "signature": "gov.identity_cancel_mandate_work(uuid[],uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_cancel_mandate_work.sql"
+    },
+    {
+      "signature": "gov.identity_change_role(uuid,text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_change_role.sql"
+    },
+    {
+      "signature": "gov.identity_create_task(uuid,text)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_create_task.sql"
+    },
+    {
+      "signature": "gov.identity_directory_create(text,text,text,text)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_directory_create.sql"
+    },
+    {
+      "signature": "gov.identity_directory_delete(text,uuid,bigint)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_directory_delete.sql"
+    },
+    {
+      "signature": "gov.identity_directory_list(text)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_directory_list.sql"
+    },
+    {
+      "signature": "gov.identity_directory_update(text,uuid,text,boolean,bigint)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_directory_update.sql"
+    },
+    {
+      "signature": "gov.identity_document_access(uuid,boolean)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_document_access.sql"
+    },
+    {
+      "signature": "gov.identity_document_version(uuid,uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_document_version.sql"
+    },
+    {
+      "signature": "gov.identity_effect_decider_access(uuid)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_effect_decider_access.sql"
+    },
+    {
+      "signature": "gov.identity_effect_owner(uuid)",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/gov/identity_effect_owner.sql"
+    },
+    {
+      "signature": "gov.identity_invite(text,text,timestamp with time zone)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_invite.sql"
+    },
+    {
+      "signature": "gov.identity_material_scope(uuid,boolean)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/identity_material_scope.sql"
+    },
+    {
+      "signature": "gov.identity_people()",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_people.sql"
+    },
+    {
+      "signature": "gov.identity_person_task_access(uuid,uuid,boolean)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_person_task_access.sql"
+    },
+    {
+      "signature": "gov.identity_project_access(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_project_access.sql"
+    },
+    {
+      "signature": "gov.identity_project_create(uuid)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_project_create.sql"
+    },
+    {
+      "signature": "gov.identity_project_share(uuid,uuid,text)",
+      "version": "identity-native-turn-v1",
+      "file": "versions/identity-native-turn-v1/gov/identity_project_share.sql"
+    },
+    {
+      "signature": "gov.identity_project_sharing(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_project_sharing.sql"
+    },
+    {
+      "signature": "gov.identity_register_project(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_register_project.sql"
+    },
+    {
+      "signature": "gov.identity_remove(uuid)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_remove.sql"
+    },
+    {
+      "signature": "gov.identity_revise_document(uuid,uuid,text,integer)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_revise_document.sql"
+    },
+    {
+      "signature": "gov.identity_run_access(uuid,boolean)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_run_access.sql"
+    },
+    {
+      "signature": "gov.identity_run_accounting(uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/identity_run_accounting.sql"
+    },
+    {
+      "signature": "gov.identity_run_decider_access(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_run_decider_access.sql"
+    },
+    {
+      "signature": "gov.identity_run_lookup(uuid,bigint)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_run_lookup.sql"
+    },
+    {
+      "signature": "gov.identity_runtime(uuid)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_runtime.sql"
+    },
+    {
+      "signature": "gov.identity_session(text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_session.sql"
+    },
+    {
+      "signature": "gov.identity_sign_in(text,text,text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_sign_in.sql"
+    },
+    {
+      "signature": "gov.identity_sign_out(text)",
+      "version": "identity-v1",
+      "file": "versions/identity-v1/gov/identity_sign_out.sql"
+    },
+    {
+      "signature": "gov.identity_task_access(uuid,boolean)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/identity_task_access.sql"
+    },
+    {
+      "signature": "gov.identity_task_exists(uuid)",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/gov/identity_task_exists.sql"
+    },
+    {
+      "signature": "gov.import_material(uuid,text,jsonb)",
+      "version": "baseline",
+      "file": "gov/import_material.sql"
+    },
+    {
+      "signature": "gov.invitation_info(text)",
+      "version": "baseline",
+      "file": "gov/invitation_info.sql"
+    },
+    {
+      "signature": "gov.issue_mandate(uuid,uuid,jsonb,jsonb,jsonb,jsonb,smallint,bigint,bigint,bigint,bigint,timestamp with time zone,text,jsonb,uuid)",
+      "version": "baseline",
+      "file": "gov/issue_mandate.sql"
+    },
+    {
+      "signature": "gov.join_channel_thread(uuid,uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/join_channel_thread.sql"
+    },
+    {
+      "signature": "gov.ledger_head()",
+      "version": "baseline",
+      "file": "gov/ledger_head.sql"
+    },
+    {
+      "signature": "gov.ledger_words_match(bigint,text,text)",
+      "version": "baseline",
+      "file": "gov/ledger_words_match.sql"
+    },
+    {
+      "signature": "gov.list_documents(uuid,text[],integer)",
+      "version": "baseline",
+      "file": "gov/list_documents.sql"
+    },
+    {
+      "signature": "gov.mark_connection(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/mark_connection.sql"
+    },
+    {
+      "signature": "gov.mark_document(uuid,boolean)",
+      "version": "baseline",
+      "file": "gov/mark_document.sql"
+    },
+    {
+      "signature": "gov.may_decide(uuid)",
+      "version": "baseline",
+      "file": "gov/may_decide.sql"
+    },
+    {
+      "signature": "gov.observe_effect(uuid,text,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/observe_effect.sql"
+    },
+    {
+      "signature": "gov.park_run(uuid,bigint)",
+      "version": "baseline",
+      "file": "gov/park_run.sql"
+    },
+    {
+      "signature": "gov.post_message(uuid,uuid,text,uuid)",
+      "version": "baseline",
+      "file": "gov/post_message.sql"
+    },
+    {
+      "signature": "gov.propose_candidate(text,jsonb,uuid,text)",
+      "version": "identity-lookup-closure-v1",
+      "file": "versions/identity-lookup-closure-v1/gov/propose_candidate.sql"
+    },
+    {
+      "signature": "gov.propose_effect(uuid,bigint,integer,text,text,text,text,smallint,boolean,jsonb,text,text,text)",
+      "version": "baseline",
+      "file": "gov/propose_effect.sql"
+    },
+    {
+      "signature": "gov.propose_undo(uuid,jsonb,text,text,text)",
+      "version": "identity-lookup-closure-v1",
+      "file": "versions/identity-lookup-closure-v1/gov/propose_undo.sql"
+    },
+    {
+      "signature": "gov.queue_run(uuid,uuid,uuid,uuid,uuid)",
+      "version": "identity-lookup-closure-v1",
+      "file": "versions/identity-lookup-closure-v1/gov/queue_run.sql"
+    },
+    {
+      "signature": "gov.quote_marks(uuid,jsonb)",
+      "version": "identity-admission-closure-v1",
+      "file": "versions/identity-admission-closure-v1/gov/quote_marks.sql"
+    },
+    {
+      "signature": "gov.read_document(uuid,uuid,integer,text)",
+      "version": "baseline",
+      "file": "gov/read_document.sql"
+    },
+    {
+      "signature": "gov.recall_knowledge(uuid,text[],integer)",
+      "version": "baseline",
+      "file": "gov/recall_knowledge.sql"
+    },
+    {
+      "signature": "gov.recall_knowledge_traced_v1(uuid,bigint,text[],integer)",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/gov/recall_knowledge_traced_v1.sql"
+    },
+    {
+      "signature": "gov.recall_memory(uuid,integer)",
+      "version": "baseline",
+      "file": "gov/recall_memory.sql"
+    },
+    {
+      "signature": "gov.reconcile_effect(uuid,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/reconcile_effect.sql"
+    },
+    {
+      "signature": "gov.record_commitment(uuid,uuid,uuid,text,date,smallint)",
+      "version": "baseline",
+      "file": "gov/record_commitment.sql"
+    },
+    {
+      "signature": "gov.record_connection_tools(uuid,text,jsonb,text)",
+      "version": "baseline",
+      "file": "gov/record_connection_tools.sql"
+    },
+    {
+      "signature": "gov.record_material_source_read(text,text,integer,integer,text,text,jsonb,text,text,text,uuid,uuid,uuid,uuid,text)",
+      "version": "baseline",
+      "file": "gov/record_material_source_read.sql"
+    },
+    {
+      "signature": "gov.record_server_answer(uuid,uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/record_server_answer.sql"
+    },
+    {
+      "signature": "gov.record_source(text,text,text,uuid,uuid,uuid,text,uuid)",
+      "version": "baseline",
+      "file": "gov/record_source.sql"
+    },
+    {
+      "signature": "gov.record_usage(uuid,bigint,bigint,bigint,bigint)",
+      "version": "baseline",
+      "file": "gov/record_usage.sql"
+    },
+    {
+      "signature": "gov.record_verifier_usage(bigint)",
+      "version": "baseline",
+      "file": "gov/record_verifier_usage.sql"
+    },
+    {
+      "signature": "gov.register_channel_account(text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_channel_account.sql"
+    },
+    {
+      "signature": "gov.register_connection(text,text,text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_connection.sql"
+    },
+    {
+      "signature": "gov.register_first_party_connection(text,text,text)",
+      "version": "baseline",
+      "file": "gov/register_first_party_connection.sql"
+    },
+    {
+      "signature": "gov.register_piece(jsonb)",
+      "version": "baseline",
+      "file": "gov/register_piece.sql"
+    },
+    {
+      "signature": "gov.renew_run_lease(uuid,bigint,integer)",
+      "version": "baseline",
+      "file": "gov/renew_run_lease.sql"
+    },
+    {
+      "signature": "gov.request_pairing(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/request_pairing.sql"
+    },
+    {
+      "signature": "gov.request_promotion(uuid,uuid,timestamp with time zone,timestamp with time zone)",
+      "version": "baseline",
+      "file": "gov/request_promotion.sql"
+    },
+    {
+      "signature": "gov.retract_knowledge(uuid,text)",
+      "version": "baseline",
+      "file": "gov/retract_knowledge.sql"
+    },
+    {
+      "signature": "gov.review_document(uuid)",
+      "version": "baseline",
+      "file": "gov/review_document.sql"
+    },
+    {
+      "signature": "gov.revise_document(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/revise_document.sql"
+    },
+    {
+      "signature": "gov.revoke_mandate(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/revoke_mandate.sql"
+    },
+    {
+      "signature": "gov.rewrite_task(uuid,text,text,text)",
+      "version": "baseline",
+      "file": "gov/rewrite_task.sql"
+    },
+    {
+      "signature": "gov.run_reasons(uuid)",
+      "version": "baseline",
+      "file": "gov/run_reasons.sql"
+    },
+    {
+      "signature": "gov.run_routine_now(uuid)",
+      "version": "baseline",
+      "file": "gov/run_routine_now.sql"
+    },
+    {
+      "signature": "gov.run_standing(uuid)",
+      "version": "baseline",
+      "file": "gov/run_standing.sql"
+    },
+    {
+      "signature": "gov.set_delay_window(integer)",
+      "version": "baseline",
+      "file": "gov/set_delay_window.sql"
+    },
+    {
+      "signature": "gov.set_verifier_allowance(bigint)",
+      "version": "baseline",
+      "file": "gov/set_verifier_allowance.sql"
+    },
+    {
+      "signature": "gov.settle_lapsed_dispatch(uuid,text,boolean,text,text)",
+      "version": "baseline",
+      "file": "gov/settle_lapsed_dispatch.sql"
+    },
+    {
+      "signature": "gov.share_task(uuid)",
+      "version": "identity-resource-guard-v1",
+      "file": "versions/identity-resource-guard-v1/gov/share_task.sql"
+    },
+    {
+      "signature": "gov.sign_in_connection(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/sign_in_connection.sql"
+    },
+    {
+      "signature": "gov.start_channel_thread(text,text,uuid,text,text,text,uuid)",
+      "version": "baseline",
+      "file": "gov/start_channel_thread.sql"
+    },
+    {
+      "signature": "gov.task_people(uuid)",
+      "version": "baseline",
+      "file": "gov/task_people.sql"
+    },
+    {
+      "signature": "gov.task_steps(uuid)",
+      "version": "baseline",
+      "file": "gov/task_steps.sql"
+    },
+    {
+      "signature": "gov.tidy_up()",
+      "version": "baseline",
+      "file": "gov/tidy_up.sql"
+    },
+    {
+      "signature": "gov.unregister_piece(uuid)",
+      "version": "identity-piece-admission-v1",
+      "file": "versions/identity-piece-admission-v1/gov/unregister_piece.sql"
+    },
+    {
+      "signature": "gov.verifier_allowance()",
+      "version": "baseline",
+      "file": "gov/verifier_allowance.sql"
+    },
+    {
+      "signature": "gov.verifier_answer(uuid,text,text)",
+      "version": "baseline",
+      "file": "gov/verifier_answer.sql"
+    },
+    {
+      "signature": "gov.verify_ledger()",
+      "version": "baseline",
+      "file": "gov/verify_ledger.sql"
+    },
+    {
+      "signature": "gov.verify_ledger_anchor(bigint,text)",
+      "version": "baseline",
+      "file": "gov/verify_ledger_anchor.sql"
+    },
+    {
+      "signature": "gov.whoami()",
+      "version": "baseline",
+      "file": "gov/whoami.sql"
+    },
+    {
+      "signature": "gov.withdraw_material_source(text,text,text,integer,integer,text)",
+      "version": "baseline",
+      "file": "gov/withdraw_material_source.sql"
+    },
+    {
+      "signature": "gov.write_document_by_effect(uuid,uuid,text,text,boolean,uuid)",
+      "version": "baseline",
+      "file": "gov/write_document_by_effect.sql"
+    },
+    {
+      "signature": "gov.write_memory(uuid,uuid,text,integer,uuid)",
+      "version": "baseline",
+      "file": "gov/write_memory.sql"
+    },
+    {
+      "signature": "gov.write_step(uuid,integer,text,text,jsonb,bigint)",
+      "version": "baseline",
+      "file": "gov/write_step.sql"
+    },
+    {
+      "signature": "operator.create_workspace(text,text,text,text)",
+      "version": "baseline",
+      "file": "operator/create_workspace.sql"
+    },
+    {
+      "signature": "operator.identity_device_only(uuid)",
+      "version": "identity-device-current-v1",
+      "file": "versions/identity-device-current-v1/operator/identity_device_only.sql"
+    },
+    {
+      "signature": "operator.identity_restore_device_access(uuid)",
+      "version": "identity-device-subject-v1",
+      "file": "versions/identity-device-subject-v1/operator/identity_restore_device_access.sql"
+    },
+    {
+      "signature": "operator.queue_depth()",
+      "version": "baseline",
+      "file": "operator/queue_depth.sql"
+    },
+    {
+      "signature": "sec.acting_for()",
+      "version": "baseline",
+      "file": "sec/acting_for.sql"
+    },
+    {
+      "signature": "sec.args_hash(jsonb)",
+      "version": "baseline",
+      "file": "sec/args_hash.sql"
+    },
+    {
+      "signature": "sec.attenuate(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/attenuate.sql"
+    },
+    {
+      "signature": "sec.candidate_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/candidate_visible.sql"
+    },
+    {
+      "signature": "sec.checker_independent(uuid,uuid,uuid,boolean)",
+      "version": "baseline",
+      "file": "sec/checker_independent.sql"
+    },
+    {
+      "signature": "sec.current_principal()",
+      "version": "baseline",
+      "file": "sec/current_principal.sql"
+    },
+    {
+      "signature": "sec.current_run()",
+      "version": "baseline",
+      "file": "sec/current_run.sql"
+    },
+    {
+      "signature": "sec.current_workspace()",
+      "version": "baseline",
+      "file": "sec/current_workspace.sql"
+    },
+    {
+      "signature": "sec.decision_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/decision_visible.sql"
+    },
+    {
+      "signature": "sec.delegation_tree(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/delegation_tree.sql"
+    },
+    {
+      "signature": "sec.digest(text)",
+      "version": "baseline",
+      "file": "sec/digest.sql"
+    },
+    {
+      "signature": "sec.effect_transition_allowed(text,text)",
+      "version": "baseline",
+      "file": "sec/effect_transition_allowed.sql"
+    },
+    {
+      "signature": "sec.effect_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/effect_visible.sql"
+    },
+    {
+      "signature": "sec.episode_visible(uuid,uuid)",
+      "version": "baseline",
+      "file": "sec/episode_visible.sql"
+    },
+    {
+      "signature": "sec.is_admin(uuid)",
+      "version": "baseline",
+      "file": "sec/is_admin.sql"
+    },
+    {
+      "signature": "sec.is_verifier(uuid)",
+      "version": "baseline",
+      "file": "sec/is_verifier.sql"
+    },
+    {
+      "signature": "sec.ledger_hash(text,uuid,bigint,text,uuid,text,jsonb,timestamp with time zone)",
+      "version": "baseline",
+      "file": "sec/ledger_hash.sql"
+    },
+    {
+      "signature": "sec.mandate_terms(jsonb)",
+      "version": "baseline",
+      "file": "sec/mandate_terms.sql"
+    },
+    {
+      "signature": "sec.names_run()",
+      "version": "baseline",
+      "file": "sec/names_run.sql"
+    },
+    {
+      "signature": "sec.piece_binding(uuid)",
+      "version": "baseline",
+      "file": "sec/piece_binding.sql"
+    },
+    {
+      "signature": "sec.principal_kind(uuid)",
+      "version": "baseline",
+      "file": "sec/principal_kind.sql"
+    },
+    {
+      "signature": "sec.role_of(uuid)",
+      "version": "baseline",
+      "file": "sec/role_of.sql"
+    },
+    {
+      "signature": "sec.route_effect(smallint,text,smallint,boolean,boolean,boolean,boolean)",
+      "version": "baseline",
+      "file": "sec/route_effect.sql"
+    },
+    {
+      "signature": "sec.run_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/run_visible.sql"
+    },
+    {
+      "signature": "sec.session_is_empty()",
+      "version": "baseline",
+      "file": "sec/session_is_empty.sql"
+    },
+    {
+      "signature": "sec.set_covers(jsonb,text)",
+      "version": "baseline",
+      "file": "sec/set_covers.sql"
+    },
+    {
+      "signature": "sec.set_intersect(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/set_intersect.sql"
+    },
+    {
+      "signature": "sec.set_within(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/set_within.sql"
+    },
+    {
+      "signature": "sec.system_principal()",
+      "version": "baseline",
+      "file": "sec/system_principal.sql"
+    },
+    {
+      "signature": "sec.t_candidate()",
+      "version": "baseline",
+      "file": "sec/t_candidate.sql"
+    },
+    {
+      "signature": "sec.t_candidate_input_capture_v1()",
+      "version": "identity-guarantees-v1",
+      "file": "versions/identity-guarantees-v1/sec/t_candidate_input_capture_v1.sql"
+    },
+    {
+      "signature": "sec.t_candidate_input_structure()",
+      "version": "material-closure-foundation-v1",
+      "file": "versions/material-closure-foundation-v1/sec/t_candidate_input_structure.sql"
+    },
+    {
+      "signature": "sec.t_connector_signature_terminal()",
+      "version": "baseline",
+      "file": "sec/t_connector_signature_terminal.sql"
+    },
+    {
+      "signature": "sec.t_decision()",
+      "version": "baseline",
+      "file": "sec/t_decision.sql"
+    },
+    {
+      "signature": "sec.t_document()",
+      "version": "baseline",
+      "file": "sec/t_document.sql"
+    },
+    {
+      "signature": "sec.t_effect()",
+      "version": "baseline",
+      "file": "sec/t_effect.sql"
+    },
+    {
+      "signature": "sec.t_effect_lineage()",
+      "version": "baseline",
+      "file": "sec/t_effect_lineage.sql"
+    },
+    {
+      "signature": "sec.t_evidence()",
+      "version": "baseline",
+      "file": "sec/t_evidence.sql"
+    },
+    {
+      "signature": "sec.t_identity_mutation_context()",
+      "version": "identity-platform-v1",
+      "file": "versions/identity-platform-v1/sec/t_identity_mutation_context.sql"
+    },
+    {
+      "signature": "sec.t_keep_columns()",
+      "version": "baseline",
+      "file": "sec/t_keep_columns.sql"
+    },
+    {
+      "signature": "sec.t_knowledge()",
+      "version": "baseline",
+      "file": "sec/t_knowledge.sql"
+    },
+    {
+      "signature": "sec.t_ledger_append_only()",
+      "version": "baseline",
+      "file": "sec/t_ledger_append_only.sql"
+    },
+    {
+      "signature": "sec.t_mandate()",
+      "version": "baseline",
+      "file": "sec/t_mandate.sql"
+    },
+    {
+      "signature": "sec.t_material_episode_source()",
+      "version": "baseline",
+      "file": "sec/t_material_episode_source.sql"
+    },
+    {
+      "signature": "sec.t_material_promotion_guard()",
+      "version": "baseline",
+      "file": "sec/t_material_promotion_guard.sql"
+    },
+    {
+      "signature": "sec.t_memory()",
+      "version": "baseline",
+      "file": "sec/t_memory.sql"
+    },
+    {
+      "signature": "sec.t_piece()",
+      "version": "baseline",
+      "file": "sec/t_piece.sql"
+    },
+    {
+      "signature": "sec.t_principal()",
+      "version": "baseline",
+      "file": "sec/t_principal.sql"
+    },
+    {
+      "signature": "sec.t_refuse_truncate()",
+      "version": "baseline",
+      "file": "sec/t_refuse_truncate.sql"
+    },
+    {
+      "signature": "sec.t_run_marks()",
+      "version": "baseline",
+      "file": "sec/t_run_marks.sql"
+    },
+    {
+      "signature": "sec.t_run_piece()",
+      "version": "baseline",
+      "file": "sec/t_run_piece.sql"
+    },
+    {
+      "signature": "sec.t_step()",
+      "version": "baseline",
+      "file": "sec/t_step.sql"
+    },
+    {
+      "signature": "sec.task_visible(uuid)",
+      "version": "baseline",
+      "file": "sec/task_visible.sql"
+    },
+    {
+      "signature": "sec.task_visible_to(uuid,uuid)",
+      "version": "identity-work-v1",
+      "file": "versions/identity-work-v1/gov/task_visible_to.sql"
+    },
+    {
+      "signature": "sec.terms_within(jsonb,jsonb)",
+      "version": "baseline",
+      "file": "sec/terms_within.sql"
+    },
+    {
+      "signature": "sec.viewer()",
+      "version": "baseline",
+      "file": "sec/viewer.sql"
+    },
+    {
+      "signature": "sec.visible_eligible_knowledge_sources()",
+      "version": "baseline",
+      "file": "sec/visible_eligible_knowledge_sources.sql"
+    },
+    {
+      "signature": "sec.workspace_is_personal(uuid)",
+      "version": "baseline",
+      "file": "sec/workspace_is_personal.sql"
+    }
+  ]
+}

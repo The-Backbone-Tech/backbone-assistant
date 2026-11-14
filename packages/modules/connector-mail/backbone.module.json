@@ -1,0 +1,90 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/connector-mail",
+  "kind": "module",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "MailConnector",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      1,
+      2,
+      3
+    ],
+    "operations": [
+      "mail.list",
+      "mail.read",
+      "mail.labels",
+      "mail.label",
+      "mail.move",
+      "workspace.write_document"
+    ],
+    "network": [],
+    "secrets": "none"
+  },
+  "data": {
+    "owns": [
+      "the sample mailbox's provider state (<data home>/mailbox/sample.json)"
+    ],
+    "migrations": [],
+    "export": "the sample mailbox's state is a JSON file; drafts, receipts and notes belong to the core and the platform"
+  },
+  "dependsOn": [
+    {
+      "name": "@modelcontextprotocol/server",
+      "version": "2.4.0",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "zod",
+      "version": "4.6.7",
+      "licence": "MIT"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/modules/connector-mail/test/classify.test.ts",
+      "packages/modules/connector-mail/test/fake.test.ts",
+      "packages/modules/connector-mail/test/gmail-mcp.test.ts",
+      "packages/platform/test/triage.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "a real provider adapter",
+          "reason": "only the sample mailbox is built; a real mailbox needs an OAuth client and an account the owner creates (README, The real adapters)"
+        },
+        {
+          "rule": "shared connector port conformance suite",
+          "reason": "the MailConnector port has one adapter; its characterisation tests stand in until a second adapter shares them"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "allowed once the triage capability is revoked and no mailbox change it carried is UNKNOWN; drafts and receipts stay with the core"
+  },
+  "swap": "the vendor's official remote MCP server where it is generally available (Gmail: Google Workspace MCP; Outlook: Work IQ MCP), else a direct API adapter (Gmail API, Microsoft Graph); chosen by the entitlement check",
+  "digest": "sha256:90fd1114e0fb10266226c5ed3db2232328ea8fc4514593c0d9006ccdab542a43"
+}

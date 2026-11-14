@@ -1,0 +1,19 @@
+{
+  "name": "@backbone-next/harness-hermes",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Hermes hosted behind the Harness port: every tool call passes the plugin hook and Backbone's gate; writes cross through the ToolHost.",
+  "backbone": { "layer": "modules" },
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

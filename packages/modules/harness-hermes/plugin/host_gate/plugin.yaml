@@ -1,0 +1,9 @@
+name: host_gate
+version: 0.0.0
+description: Every tool call asks the gate; the door tools cross through the host's ToolHost.
+provides_hooks:
+  - pre_tool_call
+provides_tools:
+  - door_list_files
+  - door_read_file
+  - door_write_file

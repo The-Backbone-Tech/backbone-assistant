@@ -1,0 +1,81 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/harness-codex",
+  "kind": "module",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Harness",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "ToolHost",
+      "range": "0.x"
+    },
+    {
+      "port": "ModelRoute",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "nativeTools": "account",
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      2,
+      6
+    ],
+    "operations": [
+      "workspace.write_document",
+      "native.account_tools"
+    ],
+    "network": [
+      "native-codex-managed",
+      "provider-web-search-in-full",
+      "native-codex-account-tools-in-full"
+    ],
+    "secrets": "none"
+  },
+  "data": {
+    "owns": [],
+    "migrations": [],
+    "export": "Temporary native drafts are removed; canonical documents and receipts belong to the core. Native account activity is observed without gateway receipts."
+  },
+  "dependsOn": [],
+  "conformance": {
+    "suite": [
+      "packages/modules/harness-codex/test/harness.test.ts",
+      "packages/modules/harness-codex/test/events.test.ts",
+      "packages/modules/harness-codex/test/native-connectors.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "shared harness port conformance suite",
+          "reason": "transport tests use a fake native executable; native, atomic crossing and app journey acceptance remain separately required"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "stop active native attempts first; held UNKNOWNs remain with the core gateway"
+  },
+  "swap": "another HarnessV1 adapter selected by the owning composition; no automatic route fallback",
+  "digest": "sha256:697ef4e55c021b856ac5087fc61a59035be27da46c1847a9a6a486d6bde393ef"
+}

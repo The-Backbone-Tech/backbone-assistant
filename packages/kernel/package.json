@@ -1,0 +1,32 @@
+{
+  "name": "@backbone-next/kernel",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The v0.8 kernel (L0): its SQL vendored at a pinned, independently accepted commit, the provisioner that installs it, and the embedded PostgreSQL 18 primitives every cluster here starts from.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "backbone": {
+    "layer": "core"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./cluster": "./src/cluster.ts",
+    "./files": "./src/durable.ts",
+    "./testing": "./src/testing.ts",
+    "./home-lock": "./src/home-lock.ts"
+  },
+  "scripts": {
+    "test": "node ../../scripts/no-leftovers.mjs node --test --test-concurrency=1 test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "embedded-postgres": "18.4.0-beta.17",
+    "pg": "8.23.0",
+    "fs-native-extensions": "1.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/pg": "8.23.1",
+    "typescript": "7.0.2"
+  }
+}

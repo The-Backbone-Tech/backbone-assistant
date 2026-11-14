@@ -1,0 +1,31 @@
+{
+  "name": "@backbone-next/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "The MCP door (spec 2026-07-28, stdio): Backbone's effect gateway, receipts and accepted knowledge for Claude Code, Codex, Hermes and OpenClaw.",
+  "backbone": {
+    "layer": "surfaces"
+  },
+  "bin": {
+    "backbone-mcp": "./src/main.ts"
+  },
+  "exports": {
+    ".": "./src/server.ts"
+  },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node ../../../scripts/with-test-cluster.mjs node --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

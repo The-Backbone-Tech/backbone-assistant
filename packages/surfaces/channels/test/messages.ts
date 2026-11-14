@@ -1,0 +1,2 @@
+export const slackMessage = (id: number, text: string) => ({ type:'event_callback',team_id:'T1',event_id:`E${id}`,event:{type:'message',channel:'D1',channel_type:'im',user:'U1',text,ts:`1000.${id}`,event_ts:`1000.${id}`} });
+export const telegramMessage = (id: number, text: string) => ({update_id:id,message:{message_id:id,date:Math.floor(Date.now()/1000),from:{id:7,is_bot:false,first_name:'Person'},chat:{id:1,type:'private'},text}});

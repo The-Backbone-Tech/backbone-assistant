@@ -1,0 +1,18 @@
+# One daemon, one data home in a named volume, restarted unless you stop it. Nothing is published:
+# build the image here with `docker compose -f deploy/docker/compose.yaml build`.
+services:
+  daemon:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    image: backbone-daemon:local
+    restart: unless-stopped
+    environment:
+      # A model route for the Pi engine. Leave unset for the stand-ins only. Never put a key here in
+      # the file: pass it from your shell or a secrets file.
+      BACKBONE_MODEL_ENDPOINT: ${BACKBONE_MODEL_ENDPOINT:-}
+      BACKBONE_MODEL_ID: ${BACKBONE_MODEL_ID:-}
+    volumes:
+      - backbone-home:/data
+volumes:
+  backbone-home:

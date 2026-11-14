@@ -1,0 +1,201 @@
+{
+  "$schema": "../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/platform",
+  "kind": "platform",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "api (projection in, command out, receipt back)",
+      "range": "0.x"
+    },
+    {
+      "port": "Gateway",
+      "range": "0.x"
+    },
+    {
+      "port": "door socket (the Gateway for doors that hold no secret, over the data home's user-only socket)",
+      "range": "0.x"
+    },
+    {
+      "port": "ToolHost",
+      "range": "0.x"
+    },
+    {
+      "port": "ModelRoute",
+      "range": "0.x"
+    },
+    {
+      "port": "Channel credential kinds (trusted in-process)",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "gov crossings (SQL functions on PostgreSQL 18)",
+      "range": "0.x"
+    },
+    {
+      "port": "Harness",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      2,
+      3
+    ],
+    "operations": [
+      "workspace.write_document",
+      "outbox.write"
+    ],
+    "network": [
+      "model-route"
+    ],
+    "secrets": "surrogate"
+  },
+  "data": {
+    "owns": [
+      "the data home's files: work material bytes, thread projections, unsent drafts, viewer preferences",
+      "the vault of the home's secrets (keys/vault.json: the cluster's passwords and credentials' master key, sealed under a data key wrapped by Electron safeStorage, a system-store wrapping key, or explicit plaintext); keys/system-id is the system account's nonsecret identity and keys/system-protected records protection intent; the system store holds that account's wrapping key; credentials/ holds sealed model credentials",
+      "door grants, the outbox and the doors' socket (doors/, outbox/, run/)",
+      "connected AI tools: their state, a save point before each change to a tool's settings, the door's launcher and bundles (tools/, bin/)"
+    ],
+    "migrations": [],
+    "export": "backup.export: the person's work as plain files (projects with every version, chats and receipts as history, memory, skills), no credential, database row or authority; importHome brings it into a new, empty home through its api"
+  },
+  "dependsOn": [
+    {
+      "name": "@backbone/core",
+      "version": "workspace"
+    },
+    {
+      "name": "pg",
+      "version": "8.23.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@backbone-next/harness-pi",
+      "version": "workspace"
+    },
+    {
+      "name": "jsonc-parser",
+      "version": "3.3.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "@decimalturn/toml-patch",
+      "version": "3.3.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@backbone-next/connector-mail",
+      "version": "workspace"
+    },
+    {
+      "name": "@backbone-next/kernel",
+      "version": "workspace"
+    },
+    {
+      "name": "@modelcontextprotocol/client",
+      "version": "2.4.0",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "@backbone-next/telemetry-otel",
+      "version": "workspace"
+    },
+    {
+      "name": "minisearch",
+      "version": "7.2.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "standardwebhooks",
+      "version": "1.1.1"
+    },
+    {
+      "name": "yaml",
+      "version": "2.9.1"
+    },
+    {
+      "name": "openid-client",
+      "version": "6.8.9"
+    },
+    {
+      "name": "scimmy",
+      "version": "1.3.5"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/platform/test/threads.test.ts",
+      "packages/platform/test/work-material.test.ts",
+      "packages/platform/test/gateway.test.ts",
+      "packages/platform/test/pieces.test.ts",
+      "packages/platform/test/digest.test.ts",
+      "packages/platform/test/snapshot.test.ts",
+      "packages/platform/test/harness-pi.test.ts",
+      "packages/platform/test/personal-mode.test.ts",
+      "packages/platform/test/tools.test.ts",
+      "packages/platform/test/jsonc.test.ts",
+      "packages/platform/test/tools-safety.test.ts",
+      "packages/platform/test/home-lock.test.ts",
+      "packages/platform/test/keys.test.ts",
+      "packages/platform/test/doors.test.ts",
+      "packages/platform/test/triage.test.ts",
+      "packages/platform/test/document-recovery.test.ts",
+      "packages/platform/test/thread-custody.test.ts",
+      "packages/platform/test/document-recovery-db.test.ts",
+      "packages/platform/test/harness-messages.test.ts",
+      "packages/platform/test/system-keys.test.ts",
+      "packages/platform/test/system-key-selection.test.ts",
+      "packages/platform/test/system-key-tools.test.ts",
+      "packages/platform/test/system-key-process.test.ts",
+      "packages/platform/test/system-key-host.test.ts",
+      "packages/platform/test/system-key-real.test.ts",
+      "packages/platform/test/system-key-lookup.test.ts",
+      "packages/platform/test/system-key-cleanup.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "secrets: surrogate",
+          "reason": "modules and models see credential handles only, but the platform itself seals the person's model keys in the data home, under its vault's master key, until the core has a sealed-secrets store"
+        },
+        {
+          "rule": "composition from a distribution",
+          "reason": "only the harness is chosen by configuration; the other ports (Environment, Connector, Channel, HostAgent, Documents and the rest) are planned"
+        },
+        {
+          "rule": "modules only through the composition root",
+          "reason": "platform depends on harness-pi and connector-mail (it loads each only by path, after checking it), exceptions recorded in scripts/structure-exceptions.json"
+        },
+        {
+          "rule": "suite in pnpm check",
+          "reason": "its tests run per package and in CI after pnpm check; the example runs in pnpm check through the how-to"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "not removable while a surface uses it; replaced by another implementation of the api and Gateway ports, once its UNKNOWN effects are settled"
+  },
+  "swap": "another implementation of the api port (src/api.ts) and the Gateway port (src/gateway.ts) over the same core crossings",
+  "digest": "sha256:c2c4d1842da7463b487054678d2df8501d32560bcd20cd8e4655dc6d322df989"
+}

@@ -1,0 +1,104 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": {{ printf "%s-rollout" .Release.Name | toJson }},
+    "annotations": {
+      "helm.sh/hook": "post-install,post-upgrade,post-rollback",
+      "helm.sh/hook-weight": "0",
+      "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+    }
+  },
+  "spec": {
+    "backoffLimit": 0,
+    "activeDeadlineSeconds": {{ mul (add (len .Values.homes) 1) (mul .Values.rollout.timeoutSeconds 4) }},
+    "template": {
+      "spec": {
+        "serviceAccountName": {{ printf "%s-rollout" .Release.Name | toJson }},
+        "restartPolicy": "Never",
+        "securityContext": {
+          "runAsUser": 1000,
+          "runAsNonRoot": true,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "containers": [
+          {
+            "name": "rollout",
+            "image": {{ printf "%s@%s" .Values.image.repository .Values.image.digest | toJson }},
+            "command": [
+              "node",
+              "/fleet/rollout.mjs",
+              "rollout"
+            ],
+            "securityContext": {
+              "runAsUser": 1000,
+              "runAsGroup": 1000,
+              "runAsNonRoot": true,
+              "allowPrivilegeEscalation": false,
+              "readOnlyRootFilesystem": true,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "env": [
+              {
+                "name": "NAMESPACE",
+                "value": {{ .Release.Namespace | toJson }}
+              },
+              {
+                "name": "RELEASE",
+                "value": {{ .Release.Name | toJson }}
+              },
+              {
+                "name": "REVISION",
+                "value": {{ .Release.Revision | quote }}
+              },
+              {
+                "name": "TIMEOUT",
+                "value": {{ .Values.rollout.timeoutSeconds | quote }}
+              },
+              {
+                "name": "HOMES",
+                "value": {{ include "fleet.homeNames" . | toJson }}
+              },
+              {
+                "name": "RUNTIME_CONFIGMAP",
+                "value": {{ include "fleet.runtime" . | toJson }}
+              },
+              {
+                "name": "RETENTION",
+                "value": {{ .Values.backups.retention.maxArchives | quote }}
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "runtime",
+                "mountPath": "/fleet",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "runtime",
+            "configMap": {
+              "name": {{ include "fleet.runtime" . | toJson }}
+            }
+          }
+        ],
+        "automountServiceAccountToken": true
+      },
+      "metadata": {
+        "labels": {
+          "app.kubernetes.io/instance": {{ .Release.Name | toJson }},
+          "app.kubernetes.io/component": "rollout"
+        }
+      }
+    }
+  }
+}

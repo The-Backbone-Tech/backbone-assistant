@@ -1,0 +1,112 @@
+{
+  "exclusions": [
+    {
+      "path": "docs/history/",
+      "reason": "Private operational history, account records, owner quotations and coordination evidence stay in the private repository."
+    }
+  ],
+  "replacements": {
+    "AGENTS.md": "public/AGENTS.md.txt",
+    "CLAUDE.md": "public/CLAUDE.md.txt",
+    "GOAL.md": "public/GOAL.md.txt",
+    "docs/execution.md": "public/docs/execution.md.txt",
+    "README.md": "public/README.md.txt",
+    "CONTRIBUTING.md": "public/CONTRIBUTING.md.txt",
+    "NOTICE": "public/NOTICE.txt",
+    "docs/development-map.md": "public/docs/development-map.md.txt",
+    "docs/decisions-and-references.md": "public/docs/decisions-and-references.md.txt",
+    "docs/backbone-explained.md": "public/docs/backbone-explained.md.txt",
+    "TRADEMARKS.md": "public/TRADEMARKS.md.txt",
+    "oracle/AMENDMENTS.md": "public/oracle/AMENDMENTS.md.txt",
+    "docs/references-2026-11.md": "public/docs/references-2026-11.md.txt",
+    "docs/shape.md": "public/docs/shape.md.txt",
+    "docs/method.md": "public/docs/method.md.txt",
+    "docs/map.md": "public/docs/map.md.txt",
+    "docs/scorecard.md": "public/docs/scorecard.md.txt",
+    "docs/repo-design.md": "public/docs/repo-design.md.txt",
+    "acceptance/README.md": "public/acceptance/README.md.txt",
+    "distributions/backbone/README.md": "public/distributions/backbone/README.md.txt",
+    "packages/modules/harness-codex/README.md": "public/packages/modules/harness-codex/README.md.txt",
+    "packages/surfaces/app/CONTRACT.md": "public/packages/surfaces/app/CONTRACT.md.txt",
+    "packages/surfaces/app/README.md": "public/packages/surfaces/app/README.md.txt",
+    "packages/platform/src/system-keys/README.md": "public/packages/platform/src/system-keys/README.md.txt",
+    "acceptance/J-solution/job.md": "public/acceptance/J-solution/job.md.txt",
+    "acceptance/J-triage/job.md": "public/acceptance/J-triage/job.md.txt",
+    "acceptance/J-co/job.md": "public/acceptance/J-co/job.md.txt",
+    "acceptance/J-ma/job.md": "public/acceptance/J-ma/job.md.txt",
+    "acceptance/J-01/job.md": "public/acceptance/J-01/job.md.txt",
+    "acceptance/J-solution/method-v1/method.md": "public/acceptance/J-solution/method-v1/method.md.txt",
+    "docs/adr/0005-lgpl-native-libraries.md": "public/docs/adr/0005-lgpl-native-libraries.md.txt",
+    "docs/adr/0002-api-line.md": "public/docs/adr/0002-api-line.md.txt",
+    "docs/specs/company-context.md": "public/docs/specs/company-context.md.txt",
+    "docs/specs/continuing-work.md": "public/docs/specs/continuing-work.md.txt",
+    "docs/specs/solution-selection.md": "public/docs/specs/solution-selection.md.txt",
+    "docs/contracts/managed-policy.md": "public/docs/contracts/managed-policy.md.txt",
+    "docs/contracts/readonly-home.md": "public/docs/contracts/readonly-home.md.txt",
+    "docs/contracts/routines-scheduler.md": "public/docs/contracts/routines-scheduler.md.txt",
+    "docs/contracts/connectors.md": "public/docs/contracts/connectors.md.txt",
+    "docs/contracts/harness.md": "public/docs/contracts/harness.md.txt",
+    "docs/how-to/continue-long-conversations-and-browse.md": "public/docs/how-to/continue-long-conversations-and-browse.md.txt",
+    "docs/how-to/run-the-daemon.md": "public/docs/how-to/run-the-daemon.md.txt",
+    "docs/how-to/manage-homes-with-a-policy.md": "public/docs/how-to/manage-homes-with-a-policy.md.txt",
+    "docs/how-to/use-native-codex.md": "public/docs/how-to/use-native-codex.md.txt",
+    "docs/reports/naming-and-repos-2026-11.md": "public/docs/reports/naming-and-repos-2026-11.md.txt",
+    "docs/reports/Desarrollo con agentes frontier 2026.md": "public/docs/reports/Desarrollo con agentes frontier 2026.md.txt",
+    ".claude/skills/task-brief/SKILL.md": "public/.claude/skills/task-brief/SKILL.md.txt",
+    "scripts/lib/repo.mjs": "public/scripts/lib/repo.mjs.txt",
+    "scripts/lib/docker-context.mjs": "public/scripts/lib/docker-context.mjs.txt",
+    "scripts/vocabulary.mjs": "public/scripts/vocabulary.mjs.txt",
+    "scripts/docs.mjs": "public/scripts/docs.mjs.txt",
+    "scripts/managed-policy-hunks.test.mjs": "public/scripts/managed-policy-hunks.test.mjs.txt",
+    "scripts/paths.mjs": "public/scripts/paths.mjs.txt",
+    "scripts/checks.test.mjs": "public/scripts/checks.test.mjs.txt",
+    "packages/platform/test/harness-messages.test.ts": "public/packages/platform/test/harness-messages.test.ts.txt",
+    "packages/platform/test/keys.test.ts": "public/packages/platform/test/keys.test.ts.txt",
+    "packages/platform/test/memory-judge.test.ts": "public/packages/platform/test/memory-judge.test.ts.txt",
+    "packages/platform/test/plugin-parts.test.ts": "public/packages/platform/test/plugin-parts.test.ts.txt",
+    "packages/platform/test/redaction.test.ts": "public/packages/platform/test/redaction.test.ts.txt",
+    "packages/platform/test/telemetry-settings.test.ts": "public/packages/platform/test/telemetry-settings.test.ts.txt",
+    "packages/surfaces/mcp/test/door.test.ts": "public/packages/surfaces/mcp/test/door.test.ts.txt",
+    "scripts/notices/licenses/react-remove-scroll-bar_2.3.8.txt": "public/scripts/notices/licenses/react-remove-scroll-bar_2.3.8.txt.txt",
+    "scripts/notices/native/ICU.txt": "public/scripts/notices/native/ICU.txt.txt",
+    "scripts/notices/prebundled/get-tsconfig.txt": "public/scripts/notices/prebundled/get-tsconfig.txt.txt",
+    "scripts/notices/prebundled/resolve-pkg-maps.txt": "public/scripts/notices/prebundled/resolve-pkg-maps.txt.txt",
+    "scripts/notices/prebundled/supports-color.txt": "public/scripts/notices/prebundled/supports-color.txt.txt",
+    "scripts/notices/native.json": "public/scripts/notices/native.json.txt",
+    "scripts/notices/prebundled.json": "public/scripts/notices/prebundled.json.txt",
+    "scripts/notices/sources.json": "public/scripts/notices/sources.json.txt",
+    "scripts/notices/README.md": "public/scripts/notices/README.md.txt",
+    "docs/how-to/install-and-open-the-app.md": "public/docs/how-to/install-and-open-the-app.md.txt",
+    "packages/platform/README.md": "public/packages/platform/README.md.txt",
+    "docs/how-to/share-with-a-team.md": "public/docs/how-to/share-with-a-team.md.txt"
+  },
+  "forbiddenPatterns": [
+    {
+      "id": "personal-email",
+      "source": "\\b[A-Z0-9._%+-]+@gmail\\.com\\b"
+    },
+    {
+      "id": "owner-surname",
+      "source": "\\b[a]ngulo\\b|[A-Z0-9._%+-]*[a]ngulo[A-Z0-9._%+-]*@[A-Z0-9.-]+\\.[A-Z]{2,}"
+    },
+    {
+      "id": "home-path",
+      "source": "(?<![A-Z0-9_/.-])(?:/Users/|/home/|[A-Z]:\\\\Users\\\\)[A-Z0-9._-]+",
+      "syntheticAllowed": true
+    },
+    {
+      "id": "private-evidence",
+      "source": "\\b(?:backbone-owner|owner-private):",
+      "syntheticAllowed": true
+    },
+    {
+      "id": "client-session",
+      "source": "\\blocal_[a-z0-9_-]{12,}\\b|\\b(?:session|thread|chat)\\b.{0,100}\\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\\b|\\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\\b.{0,100}\\b(?:session|thread|chat)\\b"
+    },
+    {
+      "id": "token",
+      "source": "\\b(?:sk-(?:proj-|ant-)?[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|xox[baprs]-[A-Za-z0-9-]{20,}|AIza[A-Za-z0-9_-]{30,}|AKIA[A-Z0-9]{16})\\b|-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----|\\bBearer\\s+[A-Za-z0-9._~+/-]{20,}={0,2}",
+      "syntheticAllowed": true
+    }
+  ]
+}

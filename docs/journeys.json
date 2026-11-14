@@ -1,0 +1,1359 @@
+[
+  {
+    "id": 1, "name": "Parallel work and subagents",
+    "journeys": [
+      {
+        "id": "parallel-board",
+        "sentence": "A person completes independent cards concurrently in one chat.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/task-board.test.ts","name":"a pool of N workers runs N cards at once and no more, each a child of the chat","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"H10 kanban"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"agent teams"}]
+      },
+      {
+        "id": "parallel-interruption",
+        "sentence": "A person recovers interrupted parallel work without resending an uncertain write.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/task-board.test.ts","name":"a kill while a worker writes does not resend the write: the card is held as UNKNOWN","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"H9 (interrupted child recorded unknown)"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth: lost answer","sourceKeys":"P5, P6"}]
+      },
+      {
+        "id": "delegate-child-report",
+        "sentence": "A person's chat hands a focused subtask to a helper with its own context and gets back its report with receipts, never with more authority than the parent.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/parallel.spec.ts","name":"a person starts a child and a reviewer, follows them and returns to the parent","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"C10 subagents"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"subagents"}]
+      },
+      {
+        "id": "custom-agent-role",
+        "sentence": "A person saves a named role with instructions, a model and tools, then reuses it for helpers after restarting the installed app.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/agent-roles.electron.spec.ts","name":"a person saves, edits, restarts and reuses a custom agent role with its model and tool ceiling","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"C10 custom agents in $CODEX_HOME/agents"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"General/Explore/custom subagents"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"G6 .gemini/agents"}]
+      },
+      {
+        "id": "team-on-one-board",
+        "sentence": "A person sets several named agents to claim cards from one board and message each other until the work is done.",
+        "kind": "configuration", "configuration": ["team","company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"H10 kanban across named agents"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"agent teams"}]
+      },
+      {
+        "id": "rerunnable-workflow",
+        "sentence": "A person saves an orchestration (fan out, branch, combine) as a script and reruns it on new input.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 4 leaves saved orchestrations optional; task-board orchestration remains required.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"workflows"},{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"dynamic workflows"}]
+      },
+      {
+        "id": "remote-fanout",
+        "sentence": "A person launches many tasks at once on remote or cloud workers, each isolated, and collects the results with the laptop closed.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 4 leaves cloud workers optional; continued work and team collaboration remain required.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"1 Parallel work","sourceKeys":"C21 one VM per cloud task"},{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"1 Parallel work","sourceKeys":"self-hosted workers claim queue"}]
+      }
+    ]
+  },
+  {
+    "id": 2, "name": "Threads and sessions",
+    "journeys": [
+      {
+        "id": "thread-fork",
+        "sentence": "A person branches a conversation at a chosen turn.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/goals.spec.ts","name":"a chat branches from any turn, and search finds words in any chat","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/platform/test/goal-runs.test.ts","name":"a thread forks from any turn, keeping the history up to it","suite":"platform","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C18 thread/fork"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"fork"}]
+      },
+      {
+        "id": "thread-search",
+        "sentence": "A person finds any previous conversation, including channel ones, by its words, ranked, without a cap.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/thread-search.electron.spec.ts","name":"thread search: ranked words, every result, archived titles and channel conversations survive a cold start","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"H11 FTS5 across every session"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"search past text"}]
+      },
+      {
+        "id": "thread-restart",
+        "sentence": "A person restarts stuck work or reopens an interrupted conversation, preserving history and never resending an uncertain write.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/thread-control.electron.spec.ts","name":"a person restarts a stuck conversation from its menu without replaying its write or losing history","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/thread-control.electron.spec.ts","name":"a person reopens an interrupted goal with its original history and sees it complete","suite":"app-e2e","level":"installed"},{"file":"packages/surfaces/app/e2e/thread-control.electron.spec.ts","name":"reopening after a write crash preserves history and never resends the uncertain write","suite":"app-e2e","level":"installed"},{"file":"packages/surfaces/app/e2e/restart.spec.ts","name":"killed while a goal works, the app carries the turn on when it opens again, and the goal is met","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C18 thread/resume"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"resume; interrupted tools not rerun"}]
+      },
+      {
+        "id": "thread-organise",
+        "sentence": "A person renames, pins, marks unread, moves, archives and deletes conversations.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/threads.test.ts","name":"R-UX-SIDEBAR-01: rows can be renamed, pinned, marked unread, moved to a section or project, archived and deleted","suite":"platform","level":"test"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C18 thread/archive"},{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"projects"}]
+      },
+      {
+        "id": "steer-running-turn",
+        "sentence": "A person steers a running turn through its engine or visibly queues follow-ups for the next turn, each sent once.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/thread-control.electron.spec.ts","name":"a person steers the same running turn and queues follow-ups visibly when the engine cannot steer","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/parallel.spec.ts","name":"a message typed while a turn runs waits, can be changed or removed, survives a reload and goes once","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C18 turns"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"session management"}]
+      },
+      {
+        "id": "thread-compact",
+        "sentence": "A person keeps working in a long conversation past the model's context limit, and the compacted history stays linked and readable.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/long-conversations.spec.ts","name":"a person continues past the context limit and reopens linked compacted history after reload","suite":"app-installed","level":"installed"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C18 thread/compact/start"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"H11 /compress child session"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"background compaction"}]
+      },
+      {
+        "id": "thread-rewind",
+        "sentence": "A person rewinds a conversation to an earlier turn and the files the agent changed since go back too.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform. Current file restore refuses linked folders and project paths outside the data folder; this remains a product limit.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/rewind.electron.spec.ts","name":"a person rewinds conversation and agent files, keeps their own edit and inspects receipts after restart","suite":"app-installed","level":"installed"},
+        "supportingTests": [{"file":"packages/platform/test/thread-rewind.test.ts","name":"rewind restores agent versions, preserves later person edits and refuses silent overwrite","suite":"platform","level":"test"}],
+        "references": [{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"G17 /rewind reverts files"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C18 thread/revert (no file restore)"}]
+      },
+      {
+        "id": "thread-other-device",
+        "sentence": "A person starts work on the desktop and continues the same conversation from a phone or another computer.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"2 Threads","sourceKeys":"reopen across web/desktop/mobile"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"2 Threads","sourceKeys":"C17 move thread between hosts"}]
+      }
+    ]
+  },
+  {
+    "id": 3, "name": "Goals and long-running work",
+    "journeys": [
+      {
+        "id": "goal-complete",
+        "sentence": "A person gives a goal and receives completion evidence from its judge.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real engine", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/goals.spec.ts","name":"/goal runs until a check finds it met, and the card ends with the evidence","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/platform/test/goal-runs.test.ts","name":"a goal runs until the judge finds it met, and closes with the evidence","suite":"platform","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"CS ext/goal completion audit"},{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"3 Goals","sourceKeys":"separate-context grader"}]
+      },
+      {
+        "id": "goal-bound",
+        "sentence": "A person gets a bounded stop or a decision request when the goal cannot finish.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/goals.spec.ts","name":"a blocked goal waits in Needs you, one click from its chat","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/platform/test/goal-runs.test.ts","name":"not met stops at the turn budget, and blocked waits for the person","suite":"platform","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"status blocked/budgetLimited"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"H5 judge blocked/wait"}]
+      },
+      {
+        "id": "goal-steer",
+        "sentence": "A person pauses, resumes, edits and clears a goal, and the change is on the thread's record.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/parallel.spec.ts","name":"a person sets, changes and clears a goal, and it stays visible on the thread","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"C11 pause, resume, edit, clear"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"3 Goals","sourceKeys":"pause/resume durable goal"}]
+      },
+      {
+        "id": "goal-token-budget",
+        "sentence": "A person sets a goal token allowance, watches reported usage and stops further turns when it is spent.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/goals.spec.ts","name":"a person sets a token budget, sees usage, and the goal stops before another turn","suite":"app-installed","level":"installed"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"tokenBudget, budgetLimited"},{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"3 Goals","sourceKeys":"budgets"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"3 Goals","sourceKeys":"token use and budget"}]
+      },
+      {
+        "id": "goal-no-progress",
+        "sentence": "A person sees a stalled goal stop after repeated unchanged work and findings instead of spending the remaining budget.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/goal-runs.test.ts","name":"three unchanged work/check pairs stop for no progress before spending the remaining budget","suite":"platform","level":"test"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"continuation no-progress check"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"P19 liveness states"}]
+      },
+      {
+        "id": "goal-rubric-gates",
+        "sentence": "A person attaches a rubric and the goal cannot complete until every criterion has passing evidence.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/goals.spec.ts","name":"a person attaches a rubric and a premature MET waits for every criterion to pass","suite":"app-installed","level":"installed"},
+        "references": [{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"3 Goals","sourceKeys":"outcome rubric"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"H5 quality gates exit 0"}]
+      },
+      {
+        "id": "goal-app-closed",
+        "sentence": "A person closes the desktop app and the background service keeps working toward their goal, then reports on return.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/platform/test/proactivity.test.ts","name":"a goal schedule works toward the chat goal; a paused one waits; a deleted one is gone","suite":"platform","level":"test"},
+        "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"3 Goals","sourceKeys":"cloud work continues with laptop closed"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"P19 continuations"}]
+      },
+      {
+        "id": "goal-check-commands",
+        "sentence": "A person attaches executable check commands that must pass before the goal may complete.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 4 marks check commands for goals optional; the separate required rubric journey is retained.",
+        "evidenceRequired": "installed",
+        "provingTest": null
+      }
+    ]
+  },
+  {
+    "id": 4, "name": "CLI",
+    "journeys": [
+      {
+        "id": "terminal-work",
+        "sentence": "A person creates a project, completes a turn and reads its files from the terminal.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/cli/test/cli.test.ts","name":"projects, a turn, threads, files, now, models and doctor, one process each","suite":"cli","level":"test"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"C20"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"H1"}]
+      },
+      {
+        "id": "cli-interactive-chat",
+        "sentence": "A person chats in a full-screen terminal session with slash commands and stops a running turn with Ctrl-C.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/surfaces/cli/test/chat.test.ts","name":"Ctrl-C while a turn runs stops that turn, and the session goes on","suite":"cli","level":"test"},
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"4 Command line","sourceKeys":"interactive"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"terminal UI"}]
+      },
+      {
+        "id": "cli-pipe",
+        "sentence": "A person pipes a list of prompts into the CLI and they run in order in one thread.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/cli/test/cli.test.ts","name":"chat: lines piped in run one after another in one thread, and the session ends with its input","suite":"cli","level":"test"},
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"4 Command line","sourceKeys":"pipe prompts"}]
+      },
+      {
+        "id": "cli-unknown-exit",
+        "sentence": "A script running a turn gets a non-zero exit and the word UNKNOWN whenever a write's outcome is unknown.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/cli/test/commands.test.ts","name":"a turn that reads as done with an UNKNOWN write prints UNKNOWN and is never exit 0","suite":"cli","level":"test"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth: lost answer","sourceKeys":"P5"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"G9 exit codes"}]
+      },
+      {
+        "id": "cli-headless-json",
+        "sentence": "A developer runs a headless turn, consumes JSONL events and receives a final answer validated against their schema.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/cli/test/exec.test.ts","name":"exec streams schema-valid JSON events and a final answer validated against the supplied schema","suite":"cli","level":"test"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"C20 exec --json, --output-schema"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"4 Command line","sourceKeys":"stream JSON"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"G9"}]
+      },
+      {
+        "id": "cli-install",
+        "sentence": "A person installs the CLI with npm or Homebrew on a clean machine and `backbone doctor` says it is ready.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"scripts/cli-install.test.mjs","name":"npm installs the CLI away from its checkout","suite":"check","level":"installed","scope":"partial"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"npm or standalone installer"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"npm package"}]
+      },
+      {
+        "id": "cli-policy-check",
+        "sentence": "An admin checks a command or tool call against the permission rules from the terminal before rolling them out.",
+        "kind": "optional", "configuration": ["company"],
+        "kindReason": "Execution outcome 1 leaves terminal rule checking optional; enforcement at the action boundary remains required.",
+        "evidenceRequired": "test",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"4 Command line","sourceKeys":"codex execpolicy check"}]
+      }
+    ]
+  },
+  {
+    "id": 5, "name": "Messaging channels",
+    "journeys": [
+      {
+        "id": "slack-work",
+        "sentence": "A person completes channel turns in Slack and continues the same work from another surface.",
+        "kind": "configuration", "configuration": ["slack"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/surfaces/channels/test/host.test.ts","name":"slack channel turns are ordinary threads and another surface continues with channel replies","suite":"channels","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"H12"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"5 Messaging","sourceKeys":"Slack"}]
+      },
+      {
+        "id": "telegram-work",
+        "sentence": "A person completes channel turns in Telegram and continues the same work from another surface.",
+        "kind": "configuration", "configuration": ["telegram"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/surfaces/channels/test/host.test.ts","name":"telegram channel turns are ordinary threads and another surface continues with channel replies","suite":"channels","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"H12"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"5 Messaging","sourceKeys":"Telegram"}]
+      },
+      {
+        "id": "channel-pairing",
+        "sentence": "A stranger who messages the bot gets no work done until the owner pairs them; other bots are ignored.",
+        "kind": "configuration", "configuration": ["messaging"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/channels/test/protections.test.ts","name":"Slack HTTP verifies signatures and freshness, pairs through rendered text, and filters bots","suite":"channels","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"H2 allowlists and DM pairing codes"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"P18 unlinked people off"}]
+      },
+      {
+        "id": "channel-decision",
+        "sentence": "A person whose channel turn needs a decision is sent to Needs you, once, and decides it there or in the chat.",
+        "kind": "configuration", "configuration": ["messaging"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/surfaces/channels/test/connector-decision.test.ts","name":"slack directs an unresolved connector read to Needs you in the app, once and only for its thread","suite":"channels","level":"test","scope":"partial"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"H12 approvals answered in chat"}]
+      },
+      {
+        "id": "channel-delivery-unknown",
+        "sentence": "A person sees a reply whose delivery is unknown marked as such, and it is never sent twice after a restart.",
+        "kind": "configuration", "configuration": ["messaging"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/channels/test/delivery.test.ts","name":"slack silent delivery is recorded and restart never repeats unknown","suite":"channels","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"observed limit: redelivery may duplicate"}]
+      },
+      {
+        "id": "channel-breadth",
+        "sentence": "A person reaches the same assistant from WhatsApp, Microsoft Teams, Discord, Signal, iMessage or email.",
+        "kind": "configuration", "configuration": ["messaging"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"25+ adapters"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"5 Messaging","sourceKeys":"Teams, WhatsApp, Discord, Signal, iMessage"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"C14 Teams, iMessage"}]
+      },
+      {
+        "id": "channel-team-group",
+        "sentence": "A team mentions the assistant in a group channel; it answers in the thread and each request runs as the person who asked.",
+        "kind": "configuration", "configuration": ["team","company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"5 Messaging","sourceKeys":"C35 @ChatGPT in Slack/Teams runs as requester"},{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"5 Messaging","sourceKeys":"Slack channel to managed Agent"}]
+      }
+    ]
+  },
+  {
+    "id": 6, "name": "Memory",
+    "journeys": [
+      {
+        "id": "memory-edit",
+        "sentence": "A person asks the assistant to remember something and edits or forgets it on the Memory page.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/memory-controls.electron.spec.ts","name":"a person edits and forgets a remembered fact and the next turn uses the current memory","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/memory.electron.spec.ts","name":"a chat says what it remembered, and the Memory page shows it to change or forget","suite":"app-e2e","level":"installed"},{"file":"packages/surfaces/app/e2e/memory.spec.ts","name":"a chat says what it remembered, and the Memory page shows it to change or forget","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"6 Memory","sourceKeys":"H8 readable MEMORY.md"},{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"editable memory topics"}]
+      },
+      {
+        "id": "memory-recall",
+        "sentence": "A person gets relevant recalled information with sources and without withdrawn material.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/memory-search-tool.test.ts","name":"memory_search gives the lines that bear on it, with their sources read first, and none withdrawn or holding a credential","suite":"platform","level":"test"},
+        "references": [{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"hybrid text/vector search with provenance"}]
+      },
+      {
+        "id": "memory-proposal-undo",
+        "sentence": "A person sees what the assistant kept on its own after a turn, with its sources, and undoes it in one step.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/memory-judge.test.ts","name":"an engine's proposal is kept by itself unless the model holds it, or names the person's line it contradicts","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"6 Memory","sourceKeys":"H8 write_approval staging"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"6 Memory","sourceKeys":"C13 extraction then consolidation"}]
+      },
+      {
+        "id": "memory-trust-tier",
+        "sentence": "A person sees personal, imported and engine-derived memory retain their provenance after acceptance, restart and mid-turn search.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/memory.electron.spec.ts","name":"memory trust tiers remain visible after accepting engine words, restarting and searching mid-turn","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"origin and trust tier"}]
+      },
+      {
+        "id": "memory-injection-scan",
+        "sentence": "A person sees clear injection and exfiltration patterns refused while safe later memories and engine proposals continue and survive restart.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/memory.electron.spec.ts","name":"memory scanning refuses unsafe person and engine proposals while safe later work survives restart","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"6 Memory","sourceKeys":"H8 entries scanned for injection and exfiltration"}]
+      },
+      {
+        "id": "memory-import",
+        "sentence": "A person brings their memories from Codex or another assistant in as a copy they can review.",
+        "kind": "configuration", "configuration": ["assistant-migration"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/memory.spec.ts","name":"a skill drafted from a chat waits for an OK; memories from Codex come in as a copy","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"6 Memory","sourceKeys":"C13 memories_v2"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"auto-memory notes"}]
+      },
+      {
+        "id": "memory-scope-off",
+        "sentence": "A person turns memory off for one task or project.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/memory-controls.electron.spec.ts","name":"memory off for one task survives restart and neither reads nor writes memory","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"disable memory for a new task"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"enable/disable at org/role scope"}]
+      },
+      {
+        "id": "memory-role-off",
+        "sentence": "An admin turns memory off for a role.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Split from memory-scope-off: a company role control is required when company identity is active; the task switch remains platform scope.",
+        "evidenceRequired": "installed",
+        "provingTest": null
+      }
+    ]
+  },
+  {
+    "id": 7, "name": "Skills, plugins and MCP",
+    "journeys": [
+      {
+        "id": "connect-own-tool",
+        "sentence": "A person connects their own AI tool, uses it and disconnects it.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/tools.electron.spec.ts","name":"connect a tool from Settings with one click in main’s confirmation, use it, and disconnect it","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"7 Skills, plugins, MCP","sourceKeys":"MCP servers"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"H15"}]
+      },
+      {
+        "id": "enable-plugin-part",
+        "sentence": "A person enables a skill or plugin command from their Claude Code plugins, uses it from the composer, and a later change to its text turns it off until they look again.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/plugins.spec.ts","name":"a person enables a plugin command in Settings and invokes it from the composer; a hook is never run","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"7 Skills, plugins, MCP","sourceKeys":"plugins"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"G12 extensions"}]
+      },
+      {
+        "id": "sign-tool-once",
+        "sentence": "A person signs a tool once, later calls go without asking and each leaves a receipt, and one click ends the signature.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/signed-tools.spec.ts","name":"Signed tools lists a Host signature and ends it with one click","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"P4 grants, trust rules bound to schema hash"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"always allow"}]
+      },
+      {
+        "id": "door-from-other-client",
+        "sentence": "A person uses Backbone's tools from Codex or Claude Code through MCP and every effect returns a receipt.",
+        "kind": "configuration", "configuration": ["external-client"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/surfaces/mcp/test/door.test.ts","name":"the README recipe: grant from the command line, use the door, revoke it, and every later call is refused","suite":"mcp","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"Hermes as MCP server"}]
+      },
+      {
+        "id": "catalogue-install-scan",
+        "sentence": "A person browses a catalogue, installs a skill or MCP server, and it is scanned and quarantined before first use.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"H14 hub install scanned in quarantine"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"skills store"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"7 Skills, plugins, MCP","sourceKeys":"install/share"}]
+      },
+      {
+        "id": "company-marketplace",
+        "sentence": "An admin publishes a company marketplace of approved skills and servers, and people can install only from it.",
+        "kind": "optional", "configuration": ["company"],
+        "kindReason": "Execution outcome 2 leaves a private marketplace optional; required catalogue installation and company restrictions remain separate.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"7 Skills, plugins, MCP","sourceKeys":"company marketplace"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"7 Skills, plugins, MCP","sourceKeys":"allow/block marketplaces"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"C7 restrict marketplaces"}]
+      },
+      {
+        "id": "hook-trust",
+        "sentence": "A person trusts a hook bound to its exact content; it runs at its lifecycle point and a changed hook stops until trusted again.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 2 leaves trusted hooks optional; the current product deliberately refuses enabling them.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"7 Skills, plugins, MCP","sourceKeys":"C33 hooks trusted by hash"}]
+      }
+    ]
+  },
+  {
+    "id": 8, "name": "Proactivity",
+    "journeys": [
+      {
+        "id": "schedule-catch-up",
+        "sentence": "A person returns after the app was closed and missed scheduled work runs once.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/proactivity.test.ts","name":"runs missed while the app was closed are caught up once, then the schedule goes on","suite":"platform","level":"test"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"P14 catchUpPolicy"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"H7"}]
+      },
+      {
+        "id": "schedule-from-words",
+        "sentence": "A person asks in words for recurring work, sees it on the Scheduled page with its runs, and runs it now.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/away-work.electron.spec.ts","name":"a person confirms a schedule from words, edits it without losing work, runs it and stops it after restart","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/scheduled.spec.ts","name":"a chat gets a schedule, runs it now, and the Scheduled page lists it with its runs","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"H7 natural-language schedules"},{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"8 Proactivity","sourceKeys":"recurring work with run history"}]
+      },
+      {
+        "id": "heartbeat-brief",
+        "sentence": "A person gets one daily brief of what needs them, and an emergency at once, while the heartbeat otherwise stays quiet.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/away-work.electron.spec.ts","name":"the heartbeat keeps quiet, collects a daily brief once and interrupts only for an emergency","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/proactive.spec.ts","name":"the daily brief waits in Needs you, and each item is one click","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"H6 heartbeat"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"C15 dot suggests"}]
+      },
+      {
+        "id": "event-trigger",
+        "sentence": "A person sets a file change, a local webhook or new mail to start exactly one run.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/triggers.test.ts","name":"a webhook starts exactly one run, and its body arrives only as quoted data","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"C12 Gmail/Slack/GitHub triggers"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"8 Proactivity","sourceKeys":"inbound webhooks"}]
+      },
+      {
+        "id": "runs-with-app-closed",
+        "sentence": "A person's schedule runs while the desktop app is closed, through the background service.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/surfaces/cli/test/daemon.test.ts","name":"with the app closed, the daemon runs a schedule that came due, once, as a turn in its own chat","suite":"cli","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"gateway as a service"}]
+      },
+      {
+        "id": "wake-gate-script-job",
+        "sentence": "A person schedules a script check and wakes the model only when it reports a change.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/proactivity-triggers.test.ts","name":"a wake gate script decides whether a scheduled job runs without waking the model otherwise","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"H7 wakeAgent:false, script-only jobs"}]
+      },
+      {
+        "id": "signed-external-trigger",
+        "sentence": "A company system starts work through a signed delivery from outside the machine and a repeat runs once.",
+        "kind": "configuration", "configuration": ["team","company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"8 Proactivity","sourceKeys":"P14 HMAC with replay window, Idempotency-Key"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"8 Proactivity","sourceKeys":"GitHub events"}],
+        "supportingTests": [{"file":"packages/platform/test/proactivity-triggers.test.ts","name":"signed triggers accept one delivery and refuse unsigned, replayed, expired and altered requests","suite":"platform","level":"test"}],
+        "remaining": "An operator must qualify HTTPS relay reachability and a real external sender; local tests do not prove this journey."
+      },
+      {
+        "id": "cloud-routine",
+        "sentence": "A person's routine runs in the cloud on schedule with their computer off, and they read its history from any device.",
+        "kind": "configuration", "configuration": ["cloud"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"8 Proactivity","sourceKeys":"cloud tasks on cadence"},{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"8 Proactivity","sourceKeys":"cron deployments"}]
+      }
+    ]
+  },
+  {
+    "id": 9, "name": "Self-improvement and learning",
+    "journeys": [
+      {
+        "id": "review-learned-skill",
+        "sentence": "A person reviews a skill drafted from a chat before allowing its use.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/memory-controls.electron.spec.ts","name":"a person reviews a drafted skill with its source turn, edits before accepting and rejects another draft","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/memory.electron.spec.ts","name":"a person reviews a skill drafted from a chat before accepting it for use","suite":"app-e2e","level":"installed"},{"file":"packages/surfaces/app/e2e/memory.spec.ts","name":"a skill drafted from a chat waits for an OK; memories from Codex come in as a copy","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"9 Learning","sourceKeys":"review proposals first"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"G8 auto memory drafts skills"}]
+      },
+      {
+        "id": "skill-edit-from-correction",
+        "sentence": "A person corrects a turn that used a skill and is offered the skill edit as a diff to accept.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/skill-learning.test.ts","name":"a correction to a turn that used an accepted skill proposes an edit, held with its diff","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"H13 skill_manage patches"}]
+      },
+      {
+        "id": "skill-edit-undo",
+        "sentence": "A person undoes an accepted skill edit and the earlier text comes back.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/memory-controls.electron.spec.ts","name":"a person undoes an accepted skill edit and a removal after restarting the app","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"H13 append-only ledger with rollback"}]
+      },
+      {
+        "id": "curator-archive-restore",
+        "sentence": "A person finds unused skills archived by the configured curator and restores one on request.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/skill-learning.test.ts","name":"the daily curator archives a skill unused for 30 days, keeps a used one, and restores on request","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"H13 curator"}]
+      },
+      {
+        "id": "learning-switch",
+        "sentence": "A person turns automatic skill drafting off and on.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/skill-learning.test.ts","name":"the person can turn automatic drafting off, and on again","suite":"platform","level":"test"},
+        "references": [{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"9 Learning","sourceKeys":"learned skills or review first"}]
+      },
+      {
+        "id": "draft-reviewed-against-evidence",
+        "sentence": "A person receives a drafted skill already checked by a reviewer against the turns it came from, with what the reviewer found.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"H13 background review"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"9 Learning","sourceKeys":"corrections to learned skills"}]
+      },
+      {
+        "id": "skill-benefit-shown",
+        "sentence": "A person sees whether a learned skill made later work better, from the same jobs run with and without it.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"21 Evaluation","sourceKeys":"compare against no-plugin baseline"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"observed limit: no measurement"}]
+      },
+      {
+        "id": "approval-suggestions",
+        "sentence": "A person is offered rules mined from approvals they gave repeatedly, and keeps only those they accept.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 3 leaves mined approval rules optional; explicit standing grants and revocation remain required.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"hermes approvals suggest"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"9 Learning","sourceKeys":"C6 smart approvals prefix_rule"}]
+      }
+    ]
+  },
+  {
+    "id": 10, "name": "Model and provider freedom",
+    "journeys": [
+      {
+        "id": "own-agent-route",
+        "sentence": "A person configures an ACP agent using named environment variables and its own route.",
+        "kind": "configuration", "configuration": ["own-agent"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real engine",
+        "provingTest": {"file":"packages/platform/test/harnesses-config.test.ts","name":"per-home ACP configuration resolves only named variables and identifies an agent-owned route","suite":"platform","level":"test"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/acp.electron.spec.ts","name":"own-agent-route: installed ACP setup survives restart and writes a document with a versioned receipt","suite":"app-installed","level":"installed"}],
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"harness-level freedom"},{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"10 Models","sourceKeys":"supported harnesses"}]
+      },
+      {
+        "id": "engine-swap",
+        "sentence": "A person changes engine in the middle of a conversation and keeps history, signatures and pending effects.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/engine-swap.test.ts","name":"harness-pi to harness-acp retains the person's work","suite":"platform","level":"test"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"choose harness per agent"}]
+      },
+      {
+        "id": "local-model",
+        "sentence": "A person picks a model running on their own computer after one-click detection and works with no key.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real engine",
+        "provingTest": {"file":"packages/surfaces/app/e2e/local-models.electron.spec.ts","name":"detect Ollama and LM Studio, choose a keyless model, continue after restart and refuse a stopped server","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"10 Models","sourceKeys":"local-compatible models"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"Ollama, vLLM, llama.cpp"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"--oss"}],
+        "requiresInstalled": true,
+        "supportingTests": [{"file":"packages/platform/test/local-models.test.ts","name":"a Pi turn on the stored local route reaches the local model, with no key, after one click from detection","suite":"platform","level":"test"}]
+      },
+      {
+        "id": "own-key-or-gateway",
+        "sentence": "A person uses their own provider key or a gateway such as OpenRouter, and clearing the key moves to the gateway without a silent fallback.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real engine",
+        "provingTest": {"file":"packages/platform/test/harness-pi.test.ts","name":"R-MODEL-02: the person’s own key comes before a gateway; clearing it moves to the gateway; there is no silent fallback","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"30+ providers"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"C31 model_providers"}]
+      },
+      {
+        "id": "model-per-helper",
+        "sentence": "A person runs a helper on a different model from the main conversation, and an unknown model is refused rather than replaced.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/child-model.test.ts","name":"a child on a different model reaches its turn with that model, and keeps it on a later turn","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"10 Models","sourceKeys":"per-agent models"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"per-task auxiliary models"}]
+      },
+      {
+        "id": "claude-engine",
+        "sentence": "A person uses Claude Code or a Claude model as the engine with the same receipts as any other engine.",
+        "kind": "configuration", "configuration": ["claude"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real engine",
+        "provingTest": null,
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"10 Models","sourceKeys":"Anthropic/cloud/gateway routes"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"claude_local adapter"}]
+      },
+      {
+        "id": "provider-fallback",
+        "sentence": "A person chooses an ordered list of providers and, when one fails, sees the turn move to the next and which answered.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 2 leaves an ordered fallback list optional; provider freedom and truthful route selection remain required.",
+        "evidenceRequired": "test",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"10 Models","sourceKeys":"fallback_providers"}]
+      },
+      {
+        "id": "selection-cli",
+        "sentence": "A person compares routes, runs a local task and verifies its own written deliverable from the CLI.",
+        "provingTest": {"file":"packages/surfaces/cli/test/selection.test.ts","name":"CLI selection compares options, runs the chosen local route and verifies its own deliverable","suite":"cli","level":"test"},
+        "kind": "platform",
+        "kindReason": "Outcome 6 requires selection from every surface; this bounded public-adapter journey is proved with a disposable Host and scripted loopback model.",
+        "evidenceRequired": "test",
+        "references": [{"product":"Backbone","file":"backbone:docs/specs/solution-selection.md","section":"Task-level solution selection","sourceKeys":"effective access; execute and verify"}]
+      },
+      {
+        "id": "selection-mcp",
+        "sentence": "A person uses an MCP client to compare routes, run one task through the app confirmation boundary and verify the result.",
+        "provingTest": {"file":"packages/surfaces/mcp/test/selection.test.ts","name":"MCP selection compares, runs and verifies through the same app line with an observed local route","suite":"mcp","level":"test"},
+        "kind": "platform",
+        "kindReason": "Outcome 6 requires selection from every surface; this bounded public-adapter journey is proved with a disposable Host and scripted loopback model.",
+        "evidenceRequired": "test",
+        "references": [{"product":"Backbone","file":"backbone:docs/specs/solution-selection.md","section":"Task-level solution selection","sourceKeys":"effective access; execute and verify"}]
+      }
+    ]
+  },
+  {
+    "id": 11, "name": "Permissions and sandboxing",
+    "journeys": [
+      {
+        "id": "uncertain-write",
+        "sentence": "A person sees uncertain work held for resolution without an automatic retry.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/task-board.test.ts","name":"an UNKNOWN write holds the card: it is never retried","suite":"platform","level":"test"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth: lost answer","sourceKeys":"P5, P6"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth: lost answer","sourceKeys":"cloud-client turns.rs"}]
+      },
+      {
+        "id": "preserve-person-edit",
+        "sentence": "A person edits a document after an agent reads it and the stale agent write is refused.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/harness-continuity.test.ts","name":"a person edit after the read survives and is refused before proposal","suite":"platform","level":"test"},
+        "references": [{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"11 Permissions","sourceKeys":"saved approvals by project"}]
+      },
+      {
+        "id": "release-one-send",
+        "sentence": "A person releases exactly the send they were shown, it goes once, and they get a receipt.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/platform/test/connectors-person-release.test.ts","name":"a person releases one listed send with exactly the displayed arguments once, with a Core receipt","suite":"platform","level":"test"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"approval bound to hash of exact arguments"}]
+      },
+      {
+        "id": "permission-mode",
+        "sentence": "A person picks how much the assistant may do unasked (read-only, ask, edits allowed, full) for a chat, and it holds.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/readonly-turns.test.ts","name":"a read-only turn writes nothing through either write path, and no effect is dispatched","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"11 Permissions","sourceKeys":"default/acceptEdits/plan/auto/dontAsk/bypass"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 Permissions","sourceKeys":"G2 default/auto_edit/plan/YOLO"}]
+      },
+      {
+        "id": "os-sandbox",
+        "sentence": "A person runs Pi shell commands in a private macOS workspace; the OS denies protected home and peer-scratch reads, outside writes and network access. A denied outside write fails visibly without promoting scratch. Windows execution is not covered.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/pi-sandbox.electron.spec.ts","name":"Pi shell is confined on macOS and a denied outside write is recorded as a failed command without promoting scratch","suite":"app-e2e","level":"installed"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"Seatbelt, bubblewrap+seccomp, Windows MXC"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"11 Permissions","sourceKeys":"OS sandbox for shell"}]
+      },
+      {
+        "id": "os-sandbox-linux",
+        "sentence": "A person runs Pi shell commands in an OS-confined Linux arm64 workspace with outside reads, writes and network access denied; execution refuses missing namespace or cgroup prerequisites.",
+        "kind": "platform",
+        "kindReason": "The separate Linux journey keeps its native package proof distinct from macOS and installed-app qualification.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/workspace-linux-turn.test.ts","name":"Pi through the Linux Host calculates an attached CSV, retains SQLite and proposes the result through the document gateway","suite":"platform","level":"test"},
+        "prerequisites": ["Linux arm64","unprivileged user namespaces, bubblewrap, Python 3, util-linux unshare and libseccomp","delegated cgroup v2 memory and pids controls","BACKBONE_EXPERIMENTAL_LINUX_HOME_LOCK=1 for the Host proof; production Linux home writing is not qualified by this journey"],
+        "supportingTests": [{"file":"packages/platform/test/workspace-linux.test.ts","name":"Linux kills detached nondumpable descendants after Host death and recovers the retained workspace","suite":"platform","level":"test"},{"file":"packages/platform/test/workspace-linux.test.ts","name":"Linux command results preserve w6 done, failed and unknown classification with retained scratch","suite":"platform","level":"test"}]
+      },
+      {
+        "id": "rule-narrowed-signature",
+        "sentence": "A person narrows what a signature allows with a rule (this folder, this recipient, this command prefix) and a call outside it asks again.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"C6 prefix_rule"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"11 Permissions","sourceKeys":"ordered allow/ask/deny rules"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"trust rules"}]
+      },
+      {
+        "id": "human-only-class",
+        "sentence": "A company marks a class of actions that always needs a fresh answer from the person, which no saved signature or reviewer can give.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"managed prompt-user rules"}]
+      },
+      {
+        "id": "auto-reviewer",
+        "sentence": "A person lets a reviewer agent answer eligible approvals, reads each rationale, and a reviewer failure stops rather than allows.",
+        "kind": "optional",
+        "kindReason": "Execution outcome 3 leaves agent approval review optional; the supported person-release route remains required.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"C4 auto_review fails closed"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"11 Permissions","sourceKeys":"auto mode classifier"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"smart approvals"}]
+      },
+      {
+        "id": "os-sandbox-portability",
+        "sentence": "A person runs confined shell work on Linux and Windows, and operating-system escape attempts are refused.",
+        "kind": "platform",
+        "kindReason": "Split from the inventory os-sandbox journey: the existing proving test covers macOS only; GOAL keeps other supported systems in scope.",
+        "evidenceRequired": "installed",
+        "provingTest": null
+      }
+    ]
+  },
+  {
+    "id": 12, "name": "File and workspace UI",
+    "journeys": [
+      {
+        "id": "save-while-editing",
+        "sentence": "A person keeps editing while Save runs and recovers that later edit after reload.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/continuity.electron.spec.ts","name":"ordinary quit joins an in-flight Save before draining the newer edit","suite":"app-e2e","level":"installed"},
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/continuity.workspace.spec.ts","name":"typing after Save starts survives its response and reload, then saves as the next version","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"edit files"}]
+      },
+      {
+        "id": "open-result-version",
+        "sentence": "A person opens an older result at its exact version while their newer save stays current.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/continuity.workspace.spec.ts","name":"an older result link reopens its exact version while the human save stays current","suite":"app-e2e","level":"test"},{"file":"packages/surfaces/app/e2e/export.electron.spec.ts","name":"a shown version exports to PDF and HTML where the person chooses, and records nothing","suite":"app-e2e","level":"installed","scope":"partial"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"12 Workspace","sourceKeys":"C34 artifact viewer"}]
+      },
+      {
+        "id": "review-changes",
+        "sentence": "A person reviews what the agent changed in a repository or folder as diffs before keeping it.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/threads.test.ts","name":"R-UX-PANES-01, R-WT-01: Changes offers every scope on a repository and last turn on a folder","suite":"platform","level":"test"},
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"review diffs"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"12 Workspace","sourceKeys":"H17 Git review"}]
+      },
+      {
+        "id": "export-document",
+        "sentence": "A person exports the version they are looking at as PDF, HTML, Markdown or slides.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed", "requiresInstalled": true,
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/export.electron.spec.ts","name":"a shown version exports to PDF and HTML where the person chooses, and records nothing","suite":"app-e2e","level":"installed","scope":"partial"}],
+        "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"formatted documents/reports"}]
+      },
+      {
+        "id": "browser-task",
+        "sentence": "A person asks the assistant to look something up or fill a web page under their existing grant, sees what it did, and receives a receipt for any outside effect.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"12 Workspace","sourceKeys":"built-in browser"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"12 Workspace","sourceKeys":"browser tool"},{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"browse/click/type"}]
+      },
+      {
+        "id": "computer-use",
+        "sentence": "A person lets the assistant operate a desktop app, approving each app once, and can stop it at any time.",
+        "kind": "configuration", "configuration": ["desktop-automation"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"12 Workspace","sourceKeys":"C34 computer use, per-app approval"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"12 Workspace","sourceKeys":"H22 background computer use"}]
+      },
+      {
+        "id": "editable-deck-sheet",
+        "sentence": "A person asks for a deck or spreadsheet, edits it in place, and the next turn reads their edit.",
+        "kind": "configuration", "configuration": ["office"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"formatted documents"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"interactive HTML artifacts"}]
+      }
+    ]
+  },
+  {
+    "id": 13, "name": "Connectors",
+    "journeys": [
+      {
+        "id": "browser-action-uncertainty",
+        "sentence": "A person does not retry a submission whose browser action times out after the site receives it.",
+        "kind": "platform",
+        "kindReason": "UNKNOWN outside effects must block dependent work in every platform route; this proof uses a local browser fixture.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/browser-work.test.ts","name":"a browser action timeout after a delivered submission remains UNKNOWN instead of a retryable failure","suite":"platform","level":"test"}
+      },
+      {
+        "id": "browser-form-work",
+        "sentence": "A person looks up a local page, fills a form and submits through the connector door without resending an uncertain submission.",
+        "kind": "platform",
+        "kindReason": "The shared connector door supports local browser work; this backend proof does not qualify the separate installed browser-task journey.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/browser-work.test.ts","name":"a person looks up a page and fills a form with Playwright; signed submission has a receipt and UNKNOWN is never resent","suite":"platform","level":"test"}
+      },
+      {
+        "id": "gmail-read-draft",
+        "sentence": "A person reads their mail with completeness stated and sees drafts and sends held unsigned.",
+        "kind": "configuration", "configuration": ["mail"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/platform/test/connectors-gmail.test.ts","name":"Gmail through its MCP server: reads say how complete they are, and drafts and sends are held unsent","suite":"platform","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"13 Connectors","sourceKeys":"Google Workspace skills"},{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"13 Connectors","sourceKeys":"email connectors"}]
+      },
+      {
+        "id": "gmail-signed-send",
+        "sentence": "A person signs one send on their real mailbox, exactly one mail goes out, and the receipt says so.",
+        "kind": "configuration", "configuration": ["mail"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/platform/test/gmail-send-turn.test.ts","name":"harness-pi: a local Gmail stand-in sends only the reviewed recipients, body and inline attachment once","suite":"platform","level":"test","scope":"partial"},
+        "supportingTests": [{"file":"packages/platform/test/gmail-send-turn.test.ts","name":"harness-codex: a local Gmail stand-in sends only the reviewed recipients, body and inline attachment once","suite":"platform","level":"test"},{"file":"packages/platform/test/gmail-send-turn.test.ts","name":"harness-pi: UNKNOWN Gmail send stops the turn, leaves its standing receipt and is never replayed","suite":"platform","level":"test"},{"file":"packages/surfaces/app/e2e/connector-approval.electron.spec.ts","name":"a person releases one send, signs the tool, inspects UNKNOWN evidence and resumes only that tool","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"13 Connectors","sourceKeys":"every call audited"}]
+      },
+      {
+        "id": "withdraw-source",
+        "sentence": "A person withdraws a connected source and everything made from it leaves memory, drafts and skills.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/skill-learning.test.ts","name":"a draft from a turn whose document is withdrawn is purged","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"6 Memory","sourceKeys":"forget tracked origins"}]
+      },
+      {
+        "id": "connector-catalogue",
+        "sentence": "A person connects Calendar, Drive, GitHub or Slack from a catalogue with OAuth in a few clicks.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/platform/test/connector-catalogue.test.ts","name":"a person connects all four catalogue entries with fake OAuth, chooses tools and disconnects without losing other config","suite":"platform","level":"test","scope":"partial"},
+        "supportingTests": [{"file":"packages/platform/test/connector-catalogue-oauth.test.ts","name":"fake OAuth binds state and PKCE, rejects a foreign callback and redeems the exact code once","suite":"platform","level":"test"},{"file":"packages/platform/test/connector-catalogue-presets.test.ts","name":"presets never lower effect hints, missing annotations, unknown tools or the name floor","suite":"platform","level":"test"},{"file":"packages/surfaces/app/e2e/connector-catalogue.spec.ts","name":"the catalogue shows four providers and configuration needs while browser grants stay closed","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"13 Connectors","sourceKeys":"apps catalogue"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"13 Connectors","sourceKeys":"C32 plugins with connections"}]
+      },
+      {
+        "id": "per-person-vault",
+        "sentence": "Each member of a team connects their own account, and the assistant acts with the requester's credentials only.",
+        "kind": "configuration", "configuration": ["team","company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": null,
+        "references": [{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"13 Connectors","sourceKeys":"per-user credential vaults"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"13 Connectors","sourceKeys":"instance vault with grants"}]
+      },
+      {
+        "id": "company-managed-connection",
+        "sentence": "An admin sets up a company account connection and grants which people and agents may use it.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"13 Connectors","sourceKeys":"C30 workspace connections"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"13 Connectors","sourceKeys":"govern connectors centrally"}]
+      }
+    ]
+  },
+  {
+    "id": 14, "name": "Deployment",
+    "journeys": [
+      {
+        "id": "move-home",
+        "sentence": "A person exports their work, checks the restore and moves it into a new home without importing authority.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/surfaces/cli/test/backup.test.ts","name":"export, a dry run, then restore into a new home: the work comes in as the person would add it, nothing live","suite":"cli","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"profiles with own home"}]
+      },
+      {
+        "id": "signed-mac-install",
+        "sentence": "A person downloads the Mac app, opens it without a security warning, and it updates itself later.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"14 Deployment","sourceKeys":"signed desktop builds"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"desktop on macOS/Windows/Linux"}]
+      },
+      {
+        "id": "background-service",
+        "sentence": "A person installs the background service so their assistant runs at login and survives a crash.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/surfaces/cli/test/daemon.test.ts","name":"the launchd agent runs the daemon for one home, at login, and is kept alive only after a failure","suite":"cli","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"systemd, launchd, Task Scheduler"}]
+      },
+      {
+        "id": "self-host-container",
+        "sentence": "An operator runs Backbone as a non-root container with one data volume and reaches it from the CLI.",
+        "kind": "configuration", "configuration": ["self-hosting"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"scripts/docker-context.test.mjs","name":"Docker check catches missing package copies and stale context","suite":"check","level":"test","scope":"partial"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"Docker, ECS"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"Docker, Nix"}]
+      },
+      {
+        "id": "linux-windows-install",
+        "sentence": "A person installs and opens Backbone on Linux and on Windows.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"MSIX"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"Windows, Termux"}]
+      },
+      {
+        "id": "phone-browser-access",
+        "sentence": "A person pairs their phone with a one-use link and works with their own home from the phone browser.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"Webapp in any browser"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"14 Deployment","sourceKeys":"pair phone/browser"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"14 Deployment","sourceKeys":"C17 remote control by QR"}]
+      }
+    ]
+  },
+  {
+    "id": 15, "name": "Licence",
+    "journeys": [
+      {
+        "id": "check-piece-licence",
+        "sentence": "A distributor checks a piece against the dependency licence policy before adopting it.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"scripts/checks.test.mjs","name":"a manifest follows the licence policy: OFL-1.1 only for a font package","suite":"check","level":"test"},
+        "references": [{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"15 Licence","sourceKeys":"MIT whole product"},{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"15 Licence","sourceKeys":"MIT"}]
+      },
+      {
+        "id": "read-notices",
+        "sentence": "A person or distributor reads, from the installed product, the licence and notice of every bundled piece.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/notices.electron.spec.ts","name":"read every bundled notice from Settings in the installed product","suite":"app-installed","level":"installed"},
+        "supportingTests": [
+          {"file":"scripts/notices.test.mjs","name":"output inventory retains every licence and NOTICE and rejects uncovered shipped bytes","suite":"check","level":"test"},
+          {"file":"scripts/cli-install.test.mjs","name":"npm installs the CLI away from its checkout","suite":"cli-install","level":"installed"},
+          {"file":"packages/surfaces/cli/test/notices.test.ts","name":"notices is a local read command without a data folder","suite":"cli","level":"test"}
+        ],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"15 Licence","sourceKeys":"Apache-2.0 NOTICE"}]
+      },
+      {
+        "id": "build-own-distribution",
+        "sentence": "A company builds its own branded distribution from source and the build refuses a missing brand profile.",
+        "kind": "configuration", "configuration": ["distribution"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"scripts/checks.test.mjs","name":"distributions: the schema, real modules and the brand profile; a build never guesses a brand","suite":"check","level":"test","scope":"partial"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"15 Licence","sourceKeys":"adopt/fork control plane"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"15 Licence","sourceKeys":"MIT"}]
+      }
+    ]
+  },
+  {
+    "id": 16, "name": "Identity and roles",
+    "journeys": [
+      {
+        "id": "invite-role",
+        "sentence": "An admin invites a second person and verifies that different roles can see and do different things.",
+        "kind": "configuration", "configuration": ["team","company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/identity.electron.spec.ts","name":"an admin invites a second person, shares one project as viewer and removes their live access","suite":"app-installed","level":"installed","scope":"full"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"exact-resource roles"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"16 Identity","sourceKeys":"company memberships"}]
+      },
+      {
+        "id": "company-sign-in",
+        "sentence": "A person signs in with the company identity provider (OpenID Connect or SAML) and lands in their workspace.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/platform/test/identity-keycloak-docker.ts","name":"a disposable Keycloak verifies a company authorization-code sign-in with PKCE and prevents callback reuse","suite":"identity-keycloak","level":"test","scope":"partial"}],
+        "references": [{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"SAML/OIDC"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"Console SAML/OIDC"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"16 Identity","sourceKeys":"H18 OIDC with PKCE"}]
+      },
+      {
+        "id": "directory-provisioning",
+        "sentence": "An admin adds and removes people through directory sync, and a removed person loses access at once.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/platform/test/identity-keycloak-docker.ts","name":"a disposable Keycloak verifies a company authorization-code sign-in with PKCE and prevents callback reuse","suite":"identity-keycloak","level":"test","scope":"partial"}],
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"16 Identity","sourceKeys":"C23 SCIM, dynamic groups"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"JIT/SCIM"}]
+      },
+      {
+        "id": "custom-role",
+        "sentence": "An admin defines a role that grants chosen capabilities, connectors and models, and assigns it to a group.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"custom roles"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"16 Identity","sourceKeys":"C22 custom roles"}]
+      },
+      {
+        "id": "share-one-project",
+        "sentence": "A person shares one project with a colleague as viewer only, and the colleague cannot change or run anything in it.",
+        "kind": "configuration", "configuration": ["team"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/identity.electron.spec.ts","name":"an admin invites a second person, shares one project as viewer and removes their live access","suite":"app-installed","level":"installed","scope":"full"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"roles on exact resources"}]
+      },
+      {
+        "id": "shared-service-second-computer",
+        "sentence": "A colleague joins the owner's app from their own app, reads shared projects and sends through their own identity until access ends.",
+        "kind": "configuration", "configuration": ["team"],
+        "kindReason": "Team members need access from their own computer through a pinned authenticated service.",
+        "evidenceRequired": "installed",
+        "requiresInstalled": true,
+        "provingTest": {"file":"packages/surfaces/app/e2e/shared-app.electron.spec.ts","name":"two apps share a project, join, read and send, restore the session, then enforce viewer access and removal","suite":"app-installed","level":"installed","scope":"full"},
+        "supportingTests": [{"file":"packages/platform/test/shared-service.test.ts","name":"a colleague joins a TLS daemon from a second process and completes shared work with live revocation","suite":"platform","level":"test"}],
+        "references": []
+      },
+      {
+        "id": "service-identity",
+        "sentence": "An admin creates an identity for an automation that acts for a named person, and revoking it stops a running job at once.",
+        "kind": "configuration", "configuration": ["team","company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/identity-host.test.ts","name":"an admin runs an automation for a named member and revocation stops the live engine without dispatching its late answer","suite":"platform","level":"test","scope":"full"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"16 Identity","sourceKeys":"service principals"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"16 Identity","sourceKeys":"short-lived run tokens"}]
+      }
+    ]
+  },
+  {
+    "id": 17, "name": "Audit export",
+    "journeys": [
+      {
+        "id": "audit-export-verify",
+        "sentence": "An operator exports a held daemon home and verifies its JSON Lines audit record offline.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/surfaces/cli/test/audit-daemon.test.ts","name":"the CLI exports the held daemon home through its API line and verifies the JSONL offline","suite":"cli","level":"test"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"append-only per call"},{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"C24 JSONL"}]
+      },
+      {
+        "id": "audit-who-decided",
+        "sentence": "An auditor reads in the export whether each effect went out on a person's release or a standing signature, and which were refused or unknown.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/audit-export.test.ts","name":"a disposable home exports Core receipts for person release, signed send, refusal, failure, unknown and a revoked signature gap","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"codex.tool_decision records who decided"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"matched policies and outcome"}]
+      },
+      {
+        "id": "audit-states-gaps",
+        "sentence": "An auditor reads, with each export, what the record does not cover.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/audit-export.test.ts","name":"a disposable home exports Core receipts for person release, signed send, refusal, failure, unknown and a revoked signature gap","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"C24 vendor states what is not covered"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"17 Audit","sourceKeys":"compliance API scope"}]
+      },
+      {
+        "id": "person-receipts-view",
+        "sentence": "A person opens the record of what the assistant did for them, with each effect's outcome and evidence, inside the app.",
+        "kind": "platform",
+        "kindReason": "Scorecard and GOAL require this capability across the complete platform.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/work-evidence.spec.ts","name":"recorded evidence invalidates during refresh, keeps exact versions, and never hides UNKNOWN","suite":"app-e2e","level":"test"}],
+        "references": [{"product":"OpenClaw","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"17 Audit","sourceKeys":"inspect/filter audit history"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"Audit view"}]
+      },
+      {
+        "id": "audit-stream-siem",
+        "sentence": "A company streams the audit record continuously into its own log system.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"17 Audit","sourceKeys":"C24 stream to SIEM"},{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"17 Audit","sourceKeys":"stream into archive system"}]
+      },
+      {
+        "id": "transcript-retrieval",
+        "sentence": "An authorised compliance officer retrieves a person's session transcripts with tool calls, under a recorded reason.",
+        "kind": "configuration", "configuration": ["regulated-company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": null,
+        "references": [{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"17 Audit","sourceKeys":"Compliance API session transcripts"},{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"17 Audit","sourceKeys":"task transcripts"}]
+      }
+    ]
+  },
+  {
+    "id": 18, "name": "Central administration and tenancy",
+    "journeys": [
+      {
+        "id": "manage-policy",
+        "sentence": "An admin applies a signed company policy that narrows personal settings and refuses tampering.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/managed-policy-enforcement.test.ts","name":"tampered policy stops actual Host construction before writes, model resolution and optional telemetry startup","suite":"platform","level":"test"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"18 Administration","sourceKeys":"C7 requirements.toml, signed cache"},{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"18 Administration","sourceKeys":"managed settings"}]
+      },
+      {
+        "id": "policy-fail-closed",
+        "sentence": "A managed machine refuses to start work when its company policy is missing or invalid, and says why.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/platform/test/managed-policy.test.ts","name":"system reader verifies every home, notices tampering and refuses missing companions","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"11 in depth","sourceKeys":"fails closed without a valid cache"},{"product":"Hermes","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"18 Administration","sourceKeys":"H4 refuses to start when unreachable"}]
+      },
+      {
+        "id": "effective-settings-view",
+        "sentence": "A person sees each effective setting and which layer (company, person, project) set it.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/managed-policy-enforcement.test.ts","name":"Settings projection names fixed keys without policy values or public trust material","suite":"platform","level":"test"},
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"18 Administration","sourceKeys":"/debug-config"}]
+      },
+      {
+        "id": "admin-allowlist",
+        "sentence": "An admin limits which models, connectors and MCP servers people may use, and a person cannot override it.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": {"file":"packages/platform/test/managed-policy-enforcement.test.ts","name":"environment model endpoint, home route, native and agent selections meet the same provider and kind restrictions","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"18 Administration","sourceKeys":"restrict capabilities/models/connectors"},{"product":"Gemini CLI","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"18 Administration","sourceKeys":"G4 MCP allowlist"}]
+      },
+      {
+        "id": "tenant-separation",
+        "sentence": "Two workspaces on one server never see each other's data, whoever asks.",
+        "kind": "configuration", "configuration": ["multi-team-server"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "test",
+        "provingTest": {"file":"packages/core/test/catalog.test.ts","name":"stores: exactly the pinned tenant stores, each with forced row-level security and the tenant wall","suite":"core","level":"test","scope":"partial"},
+        "references": [{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"18 Administration","sourceKeys":"company ID on every record"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"18 Administration","sourceKeys":"child organisations"}]
+      },
+      {
+        "id": "spend-budget",
+        "sentence": "An admin sets spend limits per workspace or person, and work stops at the limit with a notice.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"18 Administration","sourceKeys":"Console budgets"},{"product":"Paperclip","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"3 Goals","sourceKeys":"P15 costs and budgets"}]
+      }
+    ]
+  },
+  {
+    "id": 19, "name": "Fleet deployment",
+    "journeys": [
+      {
+        "id": "fleet-upgrade",
+        "sentence": "An admin deploys and upgrades multiple homes together as a fleet.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"scripts/fleet-runtime.test.mjs","name":"two homes retain work across serial upgrades, refuse a second writer, and recover by Helm rollback","suite":"check","level":"test"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"19 Fleet","sourceKeys":"reconcile Agent revisions"}]
+      },
+      {
+        "id": "mdm-rollout",
+        "sentence": "An IT admin pushes the signed app and its company policy to every Mac and Windows machine through device management.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": null,
+        "references": [{"product":"Codex","file":"backbone:docs/references/2026-11-codex-hermes-paperclip-gemini.md","section":"19 Fleet","sourceKeys":"C27 Intune, managed preferences"},{"product":"Anthropic enterprise admin","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"19 Fleet","sourceKeys":"device policies"}]
+      },
+      {
+        "id": "kubernetes-homes",
+        "sentence": "An operator runs many people's homes on Kubernetes, and the controller brings back a home that fails.",
+        "kind": "configuration", "configuration": ["company-server"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"scripts/fleet-chart.test.mjs","name":"rendered homes are isolated single writers with retained RWO storage and real protected policy files","suite":"check","level":"test","scope":"partial"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"19 Fleet","sourceKeys":"Kubernetes reconcile"}]
+      },
+      {
+        "id": "minimum-version",
+        "sentence": "An admin sets a minimum version, and an older client says it must update before it works.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "references": [{"product":"Claude Code","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"19 Fleet","sourceKeys":"enforce minimum versions"}]
+      },
+      {
+        "id": "fleet-health",
+        "sentence": "An operator sees each home's health, queue and failures in their monitoring, without content.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"packages/platform/test/telemetry.test.ts","name":"collector receives no planted prompt, answer, file, tool argument, connector name or error content","suite":"platform","level":"test","scope":"partial"},
+        "references": [{"product":"Managed Agents","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"19 Fleet","sourceKeys":"monitor queue backlog/liveness"},{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"20 Observability","sourceKeys":"Prometheus metrics"}]
+      },
+      {
+        "id": "fleet-rollback",
+        "sentence": "An admin rolls a fleet back to the previous version and every home keeps its work and pending effects.",
+        "kind": "configuration", "configuration": ["company"],
+        "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
+        "evidenceRequired": "real use",
+        "provingTest": {"file":"scripts/fleet-runtime.test.mjs","name":"two homes retain work across serial upgrades, refuse a second writer, and recover by Helm rollback","suite":"check","level":"test"},
+        "references": [{"product":"OpenClaw Enterprise","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"19 Fleet","sourceKeys":"rollout/stop/delete"}]
+      }
+    ]
+  }
+]

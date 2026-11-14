@@ -1,0 +1,1 @@
+{ "name": "harbor", "brand": { "name": "Harbor", "appId": "org.example.harbor", "icon": "icon.png", "light": "neutral", "dark": "neutral" }, "modules": ["harness-pi"], "defaults": { "harness": "harness-pi", "learning": "off" } }

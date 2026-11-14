@@ -1,0 +1,8 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "rangeStrategy": "pin",
+  "minimumReleaseAge": "5 days",
+  "schedule": ["before 6am on monday"],
+  "packageRules": [{ "matchUpdateTypes": ["minor", "patch"], "groupName": "weekly minor and patch updates" }]
+}

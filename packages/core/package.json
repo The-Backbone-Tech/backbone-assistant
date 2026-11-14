@@ -1,0 +1,35 @@
+{
+  "name": "@backbone/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Backbone's core (L0): the PostgreSQL schema (one file per object, one baseline), its database client and the kernel twin.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "backbone": {
+    "layer": "core"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./kernel": "./src/kernel/index.ts",
+    "./db": "./src/db/index.ts",
+    "./testing": "./src/db/testing.ts"
+  },
+  "scripts": {
+    "baseline": "node scripts/baseline.mjs",
+    "test": "node ../../scripts/no-leftovers.mjs vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@backbone-next/kernel": "workspace:*",
+    "embedded-postgres": "18.4.0-beta.17",
+    "pg": "8.23.0",
+    "pg-connection-string": "2.14.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/pg": "8.23.1",
+    "fast-check": "4.10.2",
+    "vitest": "5.0.2",
+    "typescript": "7.0.2"
+  }
+}

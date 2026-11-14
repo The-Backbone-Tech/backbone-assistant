@@ -1,0 +1,21 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": {{ include "fleet.runtime" . | toJson }},
+    "labels": {"app.kubernetes.io/instance": {{ .Release.Name | toJson }}, "app.kubernetes.io/component": "runtime"},
+    "annotations": {
+      "helm.sh/hook": "pre-install,pre-upgrade,pre-rollback",
+      "helm.sh/hook-weight": "-20",
+      "helm.sh/hook-delete-policy": "before-hook-creation"
+    }
+  },
+  "data": {
+    "pg-cache.mjs": {{ (.Files.Get "files/pg-cache.mjs") | toJson }},
+    "backup.mjs": {{ (.Files.Get "files/backup.mjs") | toJson }},
+    "prepare.mjs": {{ (.Files.Get "files/prepare.mjs") | toJson }},
+    "start.mjs": {{ (.Files.Get "files/start.mjs") | toJson }},
+    "ready.mjs": {{ (.Files.Get "files/ready.mjs") | toJson }},
+    "rollout.mjs": {{ (.Files.Get "files/rollout.mjs") | toJson }}
+  }
+}

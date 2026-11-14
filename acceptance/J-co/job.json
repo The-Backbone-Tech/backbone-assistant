@@ -1,0 +1,9 @@
+{
+  "title": "Company function (inbound requests): map from existing tools, policy-run handling, one decision card in Slack, teammate continuation, morning brief with undo, clean disconnect",
+  "owns": [
+    "packages/core",
+    "packages/platform",
+    "distributions/backbone"
+  ],
+  "conformance": "conformance/C-co"
+}

@@ -1,0 +1,1 @@
+{ "name": "backbone", "brand": { "name": "Backbone", "light": "warm", "dark": "neutral", "appId": "ai.thebackbone.app", "icon": "icon.png" }, "modules": ["harness-pi"], "defaults": { "harness": "harness-pi", "learning": "off" } }

@@ -1,0 +1,156 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/channels",
+  "kind": "surface",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Direct messaging channels over the shared Host",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "api (projection in, command out, receipt back)",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      3
+    ],
+    "operations": [
+      "channels.reply"
+    ],
+    "network": [
+      "slack-api",
+      "telegram-api",
+      "discord-api",
+      "teams-api"
+    ],
+    "secrets": "surrogate"
+  },
+  "data": {
+    "owns": [
+      "<home>/channels: identity, intake and delivery journal"
+    ],
+    "migrations": [
+      {
+        "version": "1",
+        "path": "src/ledger.ts"
+      },
+      {
+        "version": "2",
+        "path": "src/ledger.ts"
+      },
+      {
+        "version": "3",
+        "path": "src/ledger.ts"
+      },
+      {
+        "version": "4",
+        "path": "src/ledger.ts"
+      }
+    ],
+    "export": "The journal stays in the home; Host export does not include channel identities, configuration or delivery history."
+  },
+  "dependsOn": [
+    {
+      "name": "@backbone-next/platform",
+      "version": "workspace"
+    },
+    {
+      "name": "@chat-adapter/discord",
+      "version": "4.44.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@chat-adapter/slack",
+      "version": "4.44.0"
+    },
+    {
+      "name": "@chat-adapter/state-memory",
+      "version": "4.44.0"
+    },
+    {
+      "name": "@chat-adapter/teams",
+      "version": "4.44.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@chat-adapter/telegram",
+      "version": "4.44.0"
+    },
+    {
+      "name": "chat",
+      "version": "4.44.0"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/surfaces/channels/test/authority.test.ts",
+      "packages/surfaces/channels/test/concurrency.test.ts",
+      "packages/surfaces/channels/test/connector-decision.test.ts",
+      "packages/surfaces/channels/test/deadline.test.ts",
+      "packages/surfaces/channels/test/delivery.test.ts",
+      "packages/surfaces/channels/test/direct-messages.test.ts",
+      "packages/surfaces/channels/test/endpoints.test.ts",
+      "packages/surfaces/channels/test/empty-errors.test.ts",
+      "packages/surfaces/channels/test/environment.test.ts",
+      "packages/surfaces/channels/test/host-recovery.test.ts",
+      "packages/surfaces/channels/test/host.test.ts",
+      "packages/surfaces/channels/test/identity.test.ts",
+      "packages/surfaces/channels/test/intake-recovery.test.ts",
+      "packages/surfaces/channels/test/intake.test.ts",
+      "packages/surfaces/channels/test/invalid-final.test.ts",
+      "packages/surfaces/channels/test/ledger.test.ts",
+      "packages/surfaces/channels/test/legacy-listener-media.test.ts",
+      "packages/surfaces/channels/test/limits.test.ts",
+      "packages/surfaces/channels/test/notice-authority.test.ts",
+      "packages/surfaces/channels/test/permanent-refusal.test.ts",
+      "packages/surfaces/channels/test/protections.test.ts",
+      "packages/surfaces/channels/test/restart.test.ts",
+      "packages/surfaces/channels/test/sealed-credentials.test.ts",
+      "packages/surfaces/channels/test/terminal-transaction.test.ts",
+      "packages/surfaces/channels/test/turn-notices.test.ts",
+      "packages/surfaces/channels/test/waiting-notice.test.ts",
+      "packages/surfaces/channels/test/breadth.test.ts",
+      "packages/surfaces/channels/test/decision-chat.test.ts",
+      "packages/surfaces/channels/test/decision-durability.test.ts",
+      "packages/surfaces/channels/test/breadth-boundaries.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "suite in pnpm check",
+          "reason": "The focused package suite uses fake loopback endpoints and disposable homes; it runs per package."
+        },
+        {
+          "rule": "removal guard",
+          "reason": "No programmatic uninstall guard exists for this experimental surface. Preserve unresolved delivery records manually."
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": false,
+    "rule": "Preserve unresolved delivery records."
+  },
+  "swap": "Another channel surface over the Host API",
+  "digest": "sha256:c1fa59f74053e12ee0b85484eed3dd4b19312f52fc09f226e72dd38ae0061fcb"
+}

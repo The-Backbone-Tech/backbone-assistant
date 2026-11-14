@@ -1,0 +1,25 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index 2a92399e19682fca34309edfbdd807827ef444e8..6ca55e6d23a545b002314c26549c582d6ecea598 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -43,6 +43,8 @@ interface TeamsAdapterConfig {
+     federated?: TeamsAuthFederated;
+     /** Logger instance for error reporting. Defaults to ConsoleLogger. */
+     logger?: Logger;
++    /** Logger for the internal Microsoft App, including authentication errors. */
++    appLogger?: App["options"]["logger"];
+     /**
+      * Custom token factory for outbound Bot Framework/Graph calls. Maps to the underlying
+      * Teams SDK's AppOptions.token. Use this on runtimes that can't reach Azure IMDS (so
+diff --git a/dist/index.js b/dist/index.js
+index 27536d61cc614fab64bf2019d21d02d0466dbcb6..36e51fd00f1aad8e7b5807a074a00ce762141fd7 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -2114,6 +2114,7 @@ var TeamsAdapter = class {
+   }
+   createApp(appId) {
+     const app = new TeamsApp({
++      logger: this.config.appLogger,
+       ...toAppOptions({ ...this.config, appId }),
+       client: {
+         headers: { "User-Agent": "Vercel.ChatSDK" }

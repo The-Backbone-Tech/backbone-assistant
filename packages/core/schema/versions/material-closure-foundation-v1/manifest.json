@@ -1,0 +1,182 @@
+{
+  "format": 1,
+  "version": "material-closure-foundation-v1",
+  "requires": [
+    {
+      "version": "material-source-guard-v1",
+      "checksum": "aa19fe4ce8779ed4040f50b4a225cfb6e73d71b25787ab3f34aaae23f881cab7"
+    },
+    {
+      "version": "material-source-link-v1",
+      "checksum": "26815c949303419f35ec3acbda282c9a875c73202336b46a0ff157c7c192d206"
+    },
+    {
+      "version": "material-source-enforcement-v1",
+      "checksum": "7de82aa384da2c39b851b5a311fa8b7ead8be0eace69c00ed816248326e928bb"
+    },
+    {
+      "version": "connector-signature-ledger-v1",
+      "checksum": "e9b5b046d2dc27fe384e86767d7528e1d55e36596d921fdfcb312fdba9576bfe"
+    }
+  ],
+  "sections": [
+    {
+      "role": "backbone_owner",
+      "files": [
+        {
+          "path": "app/knowledge_candidate_inputs.sql",
+          "sha256": "a80d09fcf990776de931e49a8bcf299fb0eb290800d8a39afe17312911dae35c"
+        },
+        {
+          "path": "app/knowledge_reads.sql",
+          "sha256": "9b09ff11da6a136e106bc74d2f65d94a80d3720a59607d4e3cbec4d5b64bf79a"
+        }
+      ]
+    },
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/_material_source_projection.sql",
+          "sha256": "c9b6e5beee421675f15e0a758e624d7c671a305df6ed683669e40675144b2e14"
+        },
+        {
+          "path": "gov/_material_source_state.sql",
+          "sha256": "9edd75037ed97049732cdf3b8b80fd2929a799b89638b6b50ec992cfd29b1ba9"
+        },
+        {
+          "path": "gov/_create_workspace.sql",
+          "sha256": "4132febae843b2730d73c3c82433397dbe4b4c00b25d7e03d9ad9543baaca39a"
+        },
+        {
+          "path": "gov/_candidate_claim_digest_v1.sql",
+          "sha256": "f77af22b83e5ba0eff60b1233600059c83571217b705aabbc8e50712610c7fce"
+        },
+        {
+          "path": "gov/_personal_message_inputs_v1.sql",
+          "sha256": "7295f6b0856871214035ca405096cd960a808ebe3197dcb8b44756e7a64e4691"
+        },
+        {
+          "path": "gov/_personal_message_roots_v1.sql",
+          "sha256": "56ac3f0d7f397b48fa5395af49cdf12e523c7b42f36106c1bd950c8a1d859f9b"
+        },
+        {
+          "path": "gov/_candidate_input_manifest_v1.sql",
+          "sha256": "b2b83aa154204f39c7d103183618d1ee2217f51fa64dde3790c70fa125e356c8"
+        },
+        {
+          "path": "sec/t_candidate_input_capture_v1.sql",
+          "sha256": "dba821d36f47390509bb36c22e421ca95bb32d174f9b3374a6b1f2af479a03e7"
+        },
+        {
+          "path": "sec/t_candidate_input_structure.sql",
+          "sha256": "bd75701690d35eab51d6f9ad608afdd8fb375c3c845e3e7e97384b40c3e46d87"
+        },
+        {
+          "path": "gov/_knowledge_personal_closure_v1.sql",
+          "sha256": "2ab6a060103df97787f3a5184e50840cf8d5da212bd8d8dd10faa4ac0858920d"
+        },
+        {
+          "path": "gov/recall_knowledge_traced_v1.sql",
+          "sha256": "830cb3d0c28dfec0ec9014b4be42104594e6fdf0e2e72a1ca40fcdf25d536c35"
+        }
+      ]
+    },
+    {
+      "role": "backbone_owner",
+      "files": [
+        {
+          "path": "app/candidate_input_capture.sql",
+          "sha256": "960f0e11ffb782768de3b6dfd7c819e2f927fdbb634917972cd703e83144d188"
+        },
+        {
+          "path": "app/candidate_input_structure.sql",
+          "sha256": "0de3a0a57a34b974b8af731dda41d568828cffad7667bc99c9eb65cb5f36ebc5"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "action": "add",
+      "object": "table app.knowledge_candidate_inputs",
+      "file": "app/knowledge_candidate_inputs.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.knowledge_reads",
+      "file": "app/knowledge_reads.sql"
+    },
+    {
+      "action": "add",
+      "object": "index app.knowledge_traced_scan",
+      "file": "app/knowledge_reads.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov._material_source_projection(uuid)",
+      "file": "gov/_material_source_projection.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._material_source_state(uuid)",
+      "file": "gov/_material_source_state.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._create_workspace(text,text,text,text)",
+      "file": "gov/_create_workspace.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov._candidate_claim_digest_v1(app.knowledge_candidates)",
+      "file": "gov/_candidate_claim_digest_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov._personal_message_inputs_v1(app.knowledge_candidates,uuid,bigint)",
+      "file": "gov/_personal_message_inputs_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov._personal_message_roots_v1(uuid,uuid)",
+      "file": "gov/_personal_message_roots_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov._candidate_input_manifest_v1(app.knowledge_candidates,bigint)",
+      "file": "gov/_candidate_input_manifest_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "function sec.t_candidate_input_capture_v1()",
+      "file": "sec/t_candidate_input_capture_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "function sec.t_candidate_input_structure()",
+      "file": "sec/t_candidate_input_structure.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov._knowledge_personal_closure_v1(uuid,uuid)",
+      "file": "gov/_knowledge_personal_closure_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.recall_knowledge_traced_v1(uuid,bigint,text[],integer)",
+      "file": "gov/recall_knowledge_traced_v1.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.knowledge_candidates.candidate_input_capture",
+      "file": "app/candidate_input_capture.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.knowledge_candidates.candidate_input_structure",
+      "file": "app/candidate_input_structure.sql"
+    }
+  ],
+  "checksum": "e42bc9100005e2949ce5c6da5f535a59de8ef307766b532e2ec2f5c568fa866c"
+}

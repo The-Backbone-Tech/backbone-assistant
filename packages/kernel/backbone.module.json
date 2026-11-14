@@ -1,0 +1,102 @@
+{
+  "$schema": "../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/kernel",
+  "kind": "core",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "v0.8 gov crossings (SQL functions on PostgreSQL 18), pinned and digest-checked",
+      "range": "0.x"
+    },
+    {
+      "port": "embedded PostgreSQL 18 cluster primitives and durable file writes",
+      "range": "0.x"
+    },
+    {
+      "port": "local data-home write admission and descriptor-owned file exclusion",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal",
+      "team",
+      "company"
+    ],
+    "effectClasses": [],
+    "operations": [],
+    "network": [],
+    "secrets": "none"
+  },
+  "data": {
+    "owns": [
+      "planes, contracts, runs, crossings, verdicts, receipts and effect attempts of the v0.8 kernel (schemas app, gov, sec, ops)"
+    ],
+    "migrations": [
+      {
+        "version": "0.0.0",
+        "path": "packages/kernel/sql/pin.json"
+      }
+    ],
+    "export": "not built: the audit export (gov.dump_crossing_rows) is the only read of the whole record so far"
+  },
+  "dependsOn": [
+    {
+      "name": "embedded-postgres",
+      "version": "18.4.0-beta.17",
+      "licence": "MIT"
+    },
+    {
+      "name": "pg",
+      "version": "8.23.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "fs-native-extensions",
+      "version": "1.5.3",
+      "licence": "Apache-2.0"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/kernel/test/sql.test.ts",
+      "packages/kernel/test/provision.test.ts",
+      "packages/kernel/test/home-lock.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "promise tests on every change",
+          "reason": "the kernel's acceptance runs in the kernel lab (parity, effects, crossing, mutation) at the pinned commit; this package refuses any other bytes"
+        },
+        {
+          "rule": "export",
+          "reason": "no export command yet"
+        },
+        {
+          "rule": "secrets",
+          "reason": "the provisioner makes the logins' passwords and returns them only inside URLs; it keeps none"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "not removable while a data home runs on it: replaced whole by a newer pinned kernel once its UNKNOWN attempts are settled"
+  },
+  "swap": "a newer kernel commit, pinned after its own independent acceptance",
+  "digest": "sha256:f472788f405119cad4efc3ead5b15aa12d90b81d5757d2c75583cba5418b48f2"
+}

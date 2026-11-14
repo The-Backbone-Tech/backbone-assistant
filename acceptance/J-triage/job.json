@@ -1,0 +1,9 @@
+{
+  "title": "Triage of incoming requests, measured: read, classify, propose a label or move, draft a reply, a morning brief with recovery classes; formed by one signature; blind comparison with a baseline",
+  "owns": [
+    "packages/platform",
+    "packages/modules",
+    "packages/surfaces/app"
+  ],
+  "conformance": "conformance/C-co"
+}

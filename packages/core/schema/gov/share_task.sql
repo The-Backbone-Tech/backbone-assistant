@@ -1,0 +1,21 @@
+-- Share a task with the whole workspace: its requester, its beneficiary or an admin who sees it.
+CREATE FUNCTION gov.share_task(p_task uuid) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
+AS $$
+#variable_conflict use_column
+DECLARE
+  me uuid := gov._person();
+  t record;
+BEGIN
+  SELECT * INTO t FROM app.tasks WHERE workspace_id = sec.current_workspace() AND id = p_task;
+  IF NOT FOUND OR NOT sec.task_visible(p_task) THEN
+    RAISE EXCEPTION 'not_found: no such task for this person';
+  END IF;
+  IF me NOT IN (t.requested_by, t.on_behalf_of) AND NOT sec.is_admin(me) THEN
+    RAISE EXCEPTION 'role: a task is shared by its people or an admin';
+  END IF;
+  UPDATE app.tasks SET visibility = 'workspace' WHERE workspace_id = t.workspace_id AND id = p_task;
+  PERFORM gov._append('task.shared', p_task::text, '{}');
+  RETURN p_task;
+END
+$$;

@@ -1,0 +1,5 @@
+# Raw source hashes and generated release bytes are identical in every checkout.
+schema/** text eol=lf
+src/db/material-closure-release.generated.ts text eol=lf
+
+src/db/material-closure-hardening-release.generated.ts text eol=lf

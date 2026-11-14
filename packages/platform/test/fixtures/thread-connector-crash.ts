@@ -1,0 +1,20 @@
+// Own a real connector dispatch until the parent kills this process after the fake server logs it.
+import { createHost } from '../../src/composition/host.ts';
+import { enableConnector } from '../../src/testing/connectors.ts';
+import { defaultToolEnv } from '../../src/tools/places.ts';
+import { waitFor } from '../../../../scripts/lib/test-hang.ts';
+import { value, settings } from '../helpers.ts';
+const [home, person] = process.argv.slice(2);
+const host = createHost({ home, harness: 'harness-pi', connectors: { env: defaultToolEnv({ HOME: person, PATH: process.env.PATH }), sources: ['claude-code'], callTimeoutMs: 120_000 } });
+const serverId = 'claude-code:notes';
+value(await host.call('connectors.refresh', { serverId }));
+value(await enableConnector(host, serverId)); value(await enableConnector(host, serverId, 'lost_note'));
+value(await host.openConnectorDoor(serverId, host.connectorDoorSeal(serverId)!));
+const shown = host.connectorToolView(serverId, 'lost_note')!;
+value(await host.signConnectorTool(serverId, 'lost_note', shown.seal, shown.stamp, false));
+const project = value(await host.call('projects.create', { name: 'Crash recovery', kind: 'folder' }));
+const first = value(await host.call('turns.send', { projectId: project.id, text: 'Ready', attachments: [], settings, clientKey: 'ready' }));
+await waitFor(async () => !value(await host.call('threads.get', { id: first.threadId })).summary.running, 'first turn finishes');
+const original = value(await host.call('turns.send', { projectId: project.id, threadId: first.threadId, text: 'Call the outside tool', attachments: [], settings, clientKey: 'outside' }));
+console.log(JSON.stringify({ first, original }));
+await new Promise(() => {});

@@ -1,0 +1,207 @@
+{
+  "format": 1,
+  "version": "identity-v1",
+  "requires": [
+    {
+      "version": "material-source-guard-v1",
+      "checksum": "aa19fe4ce8779ed4040f50b4a225cfb6e73d71b25787ab3f34aaae23f881cab7"
+    },
+    {
+      "version": "material-source-link-v1",
+      "checksum": "26815c949303419f35ec3acbda282c9a875c73202336b46a0ff157c7c192d206"
+    },
+    {
+      "version": "material-source-enforcement-v1",
+      "checksum": "7de82aa384da2c39b851b5a311fa8b7ead8be0eace69c00ed816248326e928bb"
+    },
+    {
+      "version": "connector-signature-ledger-v1",
+      "checksum": "e9b5b046d2dc27fe384e86767d7528e1d55e36596d921fdfcb312fdba9576bfe"
+    },
+    {
+      "version": "material-closure-foundation-v1",
+      "checksum": "e42bc9100005e2949ce5c6da5f535a59de8ef307766b532e2ec2f5c568fa866c"
+    },
+    {
+      "version": "material-closure-hardening-v1",
+      "checksum": "548a57924dc80927f133099f40686f516ec2a230cd8e60e1d80bb753a520bdbf"
+    }
+  ],
+  "sections": [
+    {
+      "role": "backbone_owner",
+      "files": [
+        {
+          "path": "gov/identity_accounts.sql",
+          "sha256": "b5f09772b16b2e348d3f5d2309bb19ee44def4efca77e561abe83d72a3f583ad"
+        },
+        {
+          "path": "gov/identity_sessions.sql",
+          "sha256": "f36e41e9a5426d842859d79b20ee7326aa71f6e635d09430bd869487a7aabd6e"
+        },
+        {
+          "path": "gov/identity_invitations.sql",
+          "sha256": "d9d544dfee4fc050568d87915b24a58674181b3633995714619b25c045eeba41"
+        },
+        {
+          "path": "gov/identity_projects.sql",
+          "sha256": "6045c193e25e851307bf274693d2ad043e27d040129f042c595f6f547162baa2"
+        },
+        {
+          "path": "gov/identity_project_people.sql",
+          "sha256": "a98fa411c649d4a43cc99db80381a5ece4b844a3bf3e20daf821e7503fbcc77e"
+        },
+        {
+          "path": "gov/identity_agents.sql",
+          "sha256": "8bd03e937f7b682f9414cdcd157ad65fcf8c42ee6ef322c07938d6f824be937b"
+        }
+      ]
+    },
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/identity_invite.sql",
+          "sha256": "51ed3e62c8fe8e450dab1de890773ddb10a4564bb5cda56b0090aae2a47a3696"
+        },
+        {
+          "path": "gov/identity_accept.sql",
+          "sha256": "624895e4b8035dafdec4b8f0b72479e6f9ff6eb4cbdfb6969887286e09a57729"
+        },
+        {
+          "path": "gov/identity_sign_in.sql",
+          "sha256": "ec9b291f0d52178c22956a79eef821b7d663b74e952a4209e1fc23fb2cb8da54"
+        },
+        {
+          "path": "gov/identity_session.sql",
+          "sha256": "3bc929636f2bd58f3edea581d5a939a2661aef953b60612a04d81dcc8df2449d"
+        },
+        {
+          "path": "gov/identity_people.sql",
+          "sha256": "bbb56ce022a82c9ca1cc7a295c1f1be6bd00cf20ecfe6160ed819a7451505f24"
+        },
+        {
+          "path": "gov/identity_remove.sql",
+          "sha256": "562316c4662c2526943574ca9db8af11c61ff74c823cb7b98eb90cc4a919115b"
+        },
+        {
+          "path": "gov/identity_change_role.sql",
+          "sha256": "022fc83f5203e1c6589d782d936cae34c5d813b21353f6d2e4d3d2c35d6d2d1a"
+        },
+        {
+          "path": "gov/identity_project_create.sql",
+          "sha256": "07019b25892a4816faeefe8c2197ecdfa8e0070bae1d3c33b41e5599f91c2b18"
+        },
+        {
+          "path": "gov/identity_project_access.sql",
+          "sha256": "4ce90d9b6fb4ba67785243e9f7dffe2de0b874dd45d6da3317896b106b510e88"
+        },
+        {
+          "path": "gov/identity_project_share.sql",
+          "sha256": "f77958a231bf0a916478141070bcef68e579928a59853afc38edf31f03c6147b"
+        },
+        {
+          "path": "gov/identity_runtime.sql",
+          "sha256": "376ea45a0f82119f172d4fb218e7e56d697689e840951522e0d7a7364caf7db4"
+        },
+        {
+          "path": "gov/identity_sign_out.sql",
+          "sha256": "f5d98d2444909bc68f5ab0609bd81fd730bee65358362031c8fffd586e0f16d3"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "action": "add",
+      "object": "table app.identity_accounts",
+      "file": "gov/identity_accounts.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_sessions",
+      "file": "gov/identity_sessions.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_invitations",
+      "file": "gov/identity_invitations.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_projects",
+      "file": "gov/identity_projects.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_project_people",
+      "file": "gov/identity_project_people.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_agents",
+      "file": "gov/identity_agents.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_invite(text,text,timestamp with time zone)",
+      "file": "gov/identity_invite.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_accept(text,text,text,text,text)",
+      "file": "gov/identity_accept.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_sign_in(text,text,text)",
+      "file": "gov/identity_sign_in.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_session(text)",
+      "file": "gov/identity_session.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_people()",
+      "file": "gov/identity_people.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_remove(uuid)",
+      "file": "gov/identity_remove.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_change_role(uuid,text)",
+      "file": "gov/identity_change_role.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_project_create(uuid)",
+      "file": "gov/identity_project_create.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_project_access(uuid)",
+      "file": "gov/identity_project_access.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_project_share(uuid,uuid,text)",
+      "file": "gov/identity_project_share.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_runtime(uuid)",
+      "file": "gov/identity_runtime.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_sign_out(text)",
+      "file": "gov/identity_sign_out.sql"
+    }
+  ],
+  "checksum": "440407bc2d22618997345e90c2a8cb097e813b7b5277c95694d31fdef878aaf8"
+}

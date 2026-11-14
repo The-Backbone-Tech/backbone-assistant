@@ -1,0 +1,4 @@
+#!/bin/sh
+# Unit B = .heavy.lock.b, independent of integrator A/.heavy.next; admit below 24 segments.
+# Revert on the first load-attributed gate failure overlapping B: integrator --trial-off.
+exec node "$(dirname "$0")/with-heavy-lock.mjs" "$@"

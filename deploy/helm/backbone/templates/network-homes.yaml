@@ -1,0 +1,19 @@
+{
+  "apiVersion": "networking.k8s.io/v1",
+  "kind": "NetworkPolicy",
+  "metadata": {
+    "name": {{ printf "%s-home-egress" .Release.Name | toJson }}
+  },
+  "spec": {
+    "podSelector": {
+      "matchLabels": {
+        "app.kubernetes.io/instance": {{ .Release.Name | toJson }},
+        "app.kubernetes.io/component": "home"
+      }
+    },
+    "policyTypes": [
+      "Egress"
+    ],
+    "egress": {{ concat (list (fromJson (include "fleet.dnsRule" .))) (fromJsonArray (include "fleet.modelRules" .)) | toJson }}
+  }
+}

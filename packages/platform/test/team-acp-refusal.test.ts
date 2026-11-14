@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {acceptAcpTestConfiguration} from '../src/testing/acp.ts';
+import {freshHome,open,value,idle,settings} from './helpers.ts';
+const refusal='This engine uses your own accounts and cannot run in a shared project. Choose another engine for this project.';
+test('the Host refuses ACP in a shared project with one plain line before agent startup',async()=>{
+ const home=freshHome(),fixture=fileURLToPath(new URL('../../modules/harness-acp/test/fake-agent.mjs',import.meta.url));
+ const configuration=acceptAcpTestConfiguration(home,{acceptsProcessVisibility:true,agent:'fake',command:process.execPath,args:[fixture],environment:process.platform==='darwin'?'restricted-writes':'person-rights'});
+ writeFileSync(join(home,'settings.json'),JSON.stringify({harness:'harness-acp',harnesses:{'harness-acp':configuration}}));
+ const {host}=open(home),project=value(await host.call('projects.create',{name:'Shared ACP',kind:'folder'}));
+ const invite=value(await host.call('identity.invite',{role:'member'})),colleague=value(await host.acceptInvitation(invite.token,'Colleague'));
+ value(await host.call('identity.share',{projectId:project.id,personId:colleague.person.id,access:'editor'}));
+ const sent=value(await host.call('turns.send',{projectId:project.id,text:'Do work',attachments:[],settings,clientKey:'shared-acp'}));
+ const turn=(await idle(host,sent.threadId)).turns.at(-1)!;
+ assert.equal(turn.status,'refused');assert.equal(turn.answer?.text,refusal);assert.equal(turn.refusal?.detail,refusal);
+ assert.equal(turn.work.steps.some(step=>step.kind==='write'),false,'the refused turn proposed no write');
+});

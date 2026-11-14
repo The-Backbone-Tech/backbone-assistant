@@ -1,0 +1,16 @@
+[Unit]
+Description=Backbone daemon
+StartLimitIntervalSec=1h
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Environment=BACKBONE_HOME=%h/.local/share/backbone
+Environment=BACKBONE_KEYS=plaintext
+Environment=BACKBONE_EXPERIMENTAL_LINUX_HOME_LOCK=1
+ExecStart=%h/.local/bin/backbone daemon run
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=default.target

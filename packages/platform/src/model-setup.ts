@@ -1,0 +1,3 @@
+export const APP_NO_ROUTE = 'No model is set up yet. Open Settings (the gear in the sidebar), then paste your own Anthropic or OpenAI key, or a Vercel AI Gateway or OpenRouter key, or choose a model running on this computer. Nothing was sent.';
+export const TERMINAL_NO_ROUTE = 'No model is set up yet. Use backbone engine codex, then backbone model codex --model <id>; or backbone engine pi, then backbone model local --endpoint <loopback-url> --model <id>. For a hosted API key, paste your own key in the app Settings > AI and models. Nothing was sent.';
+export const terminalModelHint = (detail: string): string => detail === APP_NO_ROUTE ? TERMINAL_NO_ROUTE : detail;

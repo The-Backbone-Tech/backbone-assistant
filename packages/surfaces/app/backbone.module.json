@@ -1,0 +1,208 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/app",
+  "kind": "surface",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Thread app (Electron, and a browser over the HTTP bridge)",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "api (projection in, command out, receipt back)",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      2
+    ],
+    "operations": [
+      "workspace.write_document"
+    ],
+    "network": [
+      "model-route"
+    ],
+    "secrets": "surrogate"
+  },
+  "data": {
+    "owns": [
+      "per-viewer UI state only: layout, theme, open tabs (through viewer.put)"
+    ],
+    "migrations": [],
+    "export": "nothing durable of its own: work, versions and receipts belong to the platform's data home and the core"
+  },
+  "dependsOn": [
+    {
+      "name": "@backbone-next/platform",
+      "version": "workspace"
+    },
+    {
+      "name": "@codemirror/commands",
+      "version": "6.11.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "@codemirror/lang-markdown",
+      "version": "6.5.2",
+      "licence": "MIT"
+    },
+    {
+      "name": "@codemirror/language",
+      "version": "6.13.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "@codemirror/search",
+      "version": "6.7.2",
+      "licence": "MIT"
+    },
+    {
+      "name": "@codemirror/state",
+      "version": "6.7.6",
+      "licence": "MIT"
+    },
+    {
+      "name": "@codemirror/view",
+      "version": "6.43.14",
+      "licence": "MIT"
+    },
+    {
+      "name": "@fontsource-variable/ibm-plex-sans",
+      "version": "5.3.0",
+      "licence": "OFL-1.1"
+    },
+    {
+      "name": "@fontsource-variable/jetbrains-mono",
+      "version": "5.3.0",
+      "licence": "OFL-1.1"
+    },
+    {
+      "name": "@lezer/highlight",
+      "version": "1.2.5",
+      "licence": "MIT"
+    },
+    {
+      "name": "@shadcn/react",
+      "version": "0.3.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "0.7.1",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "clsx",
+      "version": "2.1.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "cmdk",
+      "version": "1.1.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "lucide-react",
+      "version": "1.61.0",
+      "licence": "ISC"
+    },
+    {
+      "name": "radix-ui",
+      "version": "1.8.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "react",
+      "version": "19.3.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "react-resizable-panels",
+      "version": "4.15.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "shiki",
+      "version": "4.5.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "streamdown",
+      "version": "2.6.0",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "3.7.0",
+      "licence": "MIT"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/surfaces/app/test/tokens.test.ts",
+      "packages/surfaces/app/test/tree.test.ts",
+      "packages/surfaces/app/e2e/browser.spec.ts",
+      "packages/surfaces/app/e2e/electron.spec.ts",
+      "packages/surfaces/app/e2e/tools.electron.spec.ts",
+      "packages/surfaces/app/e2e/design.spec.ts",
+      "packages/surfaces/app/test/installed-journey.test.ts",
+      "packages/surfaces/app/e2e/now.electron.spec.ts",
+      "packages/surfaces/app/e2e/workspace.spec.ts",
+      "packages/surfaces/app/e2e/header.electron.spec.ts",
+      "packages/surfaces/app/e2e/flows.spec.ts",
+      "packages/surfaces/app/e2e/primitives.spec.ts",
+      "packages/surfaces/app/test/export-html.test.ts",
+      "packages/surfaces/app/test/export-policy.test.ts",
+      "packages/surfaces/app/e2e/export.electron.spec.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "signed build",
+          "reason": "the macOS app and DMG are unsigned and not notarised; that needs an Apple Developer account"
+        },
+        {
+          "rule": "conformance on the installed app",
+          "reason": "e2e:installed runs the Electron journey on a DMG installed into a temporary folder; the neutral conformance jobs in conformance/ have not run on an installed app"
+        },
+        {
+          "rule": "secrets: surrogate",
+          "reason": "a key the person pastes in Settings passes once from the window to the platform, which seals it; the window and the engine keep only a handle"
+        },
+        {
+          "rule": "suite in pnpm check",
+          "reason": "its unit tests and journeys run per package and in CI after pnpm check; they need a browser and an Electron binary"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "quit it and delete it; its data home stays until the person deletes it, and held UNKNOWNs stay with the core's gateway"
+  },
+  "swap": "any surface over the same api: another shell (Tauri, a browser tab over the HTTP bridge) or the MCP door for agents",
+  "digest": "sha256:450438975b2165386fdaa9f00f5d30a46ff142928fa15c8d03030937c14aa558"
+}

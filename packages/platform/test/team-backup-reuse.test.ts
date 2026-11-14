@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {writeFileSync,utimesSync,mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {backupBeforeIdentityUpgrade} from '../src/composition/identity-upgrade-backup.ts';
+import {freshDir} from './helpers.ts';
+import type {ExportSource} from '../src/composition/backup.ts';
+test('recovery-copy reuse depends on source bytes and resolved scrubber values, and rechecks the copy',async()=>{
+ const home=freshDir('copy-reuse-');let known:string[]=[];
+ const source:ExportSource={home,projects:[],documents:()=>[],versionPath:()=>'',threads:[],receipts:async()=>[],secrets:async()=>known};
+ writeFileSync(join(home,'projects.json'),'[]');
+ const first=await backupBeforeIdentityUpgrade(source);
+ utimesSync(join(home,'projects.json'),new Date(0),new Date(0));
+ assert.equal(await backupBeforeIdentityUpgrade(source),first,'timestamps do not trigger a new copy');
+ known=['a-new-keychain-secret'];
+ const credentialsChanged=await backupBeforeIdentityUpgrade(source);assert.notEqual(credentialsChanged,first,'resolved keychain changes must re-scrub work');
+ assert.equal(await backupBeforeIdentityUpgrade(source),credentialsChanged);
+ writeFileSync(join(credentialsChanged,'manifest.json'),'damaged');
+ const repaired=await backupBeforeIdentityUpgrade(source);assert.notEqual(repaired,credentialsChanged,'a damaged copy cannot admit an update');
+ mkdirSync(join(home,'drafts'));writeFileSync(join(home,'drafts','one.json'),'new work');
+ assert.notEqual(await backupBeforeIdentityUpgrade(source),repaired,'a durable work change needs another recovery copy');
+});

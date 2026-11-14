@@ -1,0 +1,94 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/telemetry-otel",
+  "kind": "module",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Telemetry",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "api",
+      "range": "0.x"
+    },
+    {
+      "port": "TelemetryObservation",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [],
+    "operations": [],
+    "network": [
+      "operator-configured-otlp-endpoint"
+    ],
+    "secrets": "surrogate"
+  },
+  "data": {
+    "owns": [
+      "bounded volatile export queue and drop counters"
+    ],
+    "migrations": [],
+    "export": "OTLP/HTTP spans containing operational metadata only"
+  },
+  "dependsOn": [
+    {
+      "name": "@opentelemetry/api",
+      "version": "1.10.0",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "@opentelemetry/sdk-trace",
+      "version": "3.1.1",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "@opentelemetry/otlp-transformer",
+      "version": "0.301.1",
+      "licence": "Apache-2.0"
+    },
+    {
+      "name": "@opentelemetry/resources",
+      "version": "3.1.1",
+      "licence": "Apache-2.0"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/modules/telemetry-otel/test/exporter.test.ts",
+      "packages/modules/telemetry-otel/test/subscriber.test.ts",
+      "packages/platform/test/telemetry.test.ts",
+      "packages/platform/test/telemetry-observations.test.ts",
+      "packages/platform/test/telemetry-settings.test.ts",
+      "packages/modules/telemetry-otel/test/shutdown.test.ts",
+      "packages/platform/test/telemetry-loading.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": []
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "clear endpoint and restart; queued telemetry may be dropped; work receipts remain"
+  },
+  "swap": "replace the Telemetry subscriber without changing work records",
+  "digest": "sha256:76c7470a46f437a1250a3cff23827ced214b09e86c0397f2ae0706df043fad98"
+}

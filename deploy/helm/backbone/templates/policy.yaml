@@ -1,0 +1,12 @@
+{{ range .Values.homes }}
+---
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": {{ printf "%s-%s" $.Release.Name .name | toJson }}
+  },
+  "data": {"managed-policy.json": {{ index .policy "managed-policy.json" | toJson }}, "policy-trust.json": {{ index .policy "policy-trust.json" | toJson }}},
+  "binaryData": {"managed-policy.json.sig": {{ index .policy "managed-policy.json.sig" | toJson }}}
+}
+{{ end }}

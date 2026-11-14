@@ -1,0 +1,97 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/harness-pi",
+  "kind": "module",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Harness",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "ToolHost",
+      "range": "0.x"
+    },
+    {
+      "port": "ModelRoute",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "nativeTools": "none",
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      2
+    ],
+    "operations": [
+      "workspace.write_document"
+    ],
+    "network": [
+      "model-route"
+    ],
+    "secrets": "none"
+  },
+  "data": {
+    "owns": [],
+    "migrations": [],
+    "export": "nothing durable: threads, effects and documents belong to the core"
+  },
+  "dependsOn": [
+    {
+      "name": "@earendil-works/pi-agent-core",
+      "version": "1.4.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@earendil-works/pi-ai",
+      "version": "1.4.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@earendil-works/pi-coding-agent",
+      "version": "1.4.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "typebox",
+      "version": "1.3.27",
+      "licence": "MIT"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/modules/harness-pi/test/harness.test.ts",
+      "packages/platform/test/harness-pi.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "shared harness port conformance suite",
+          "reason": "the Harness port has no shared suite yet; these tests and J-01 on the installed app with the scripted model stand in"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "allowed when no turn on this harness is running; held UNKNOWNs stay with the core's gateway"
+  },
+  "swap": "goose (radar plat-durable-execution, harness contract switch triggers); tests default to harness-stub",
+  "digest": "sha256:6a4ee8c5aa5eb4f7f9eb1d05139ab87546076457548006e2bd40f7987bac7bef"
+}

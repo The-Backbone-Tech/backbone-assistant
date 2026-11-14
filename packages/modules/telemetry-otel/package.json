@@ -1,0 +1,29 @@
+{
+  "name": "@backbone-next/telemetry-otel",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Content-free OTLP/HTTP turn telemetry",
+  "backbone": {
+    "layer": "modules"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "1.10.0",
+    "@opentelemetry/sdk-trace": "3.1.1",
+    "@opentelemetry/otlp-transformer": "0.301.1",
+    "@opentelemetry/resources": "3.1.1"
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "format": 1,
+  "version": "identity-guarantees-v1",
+  "requires": [
+    {
+      "version": "material-source-guard-v1",
+      "checksum": "aa19fe4ce8779ed4040f50b4a225cfb6e73d71b25787ab3f34aaae23f881cab7"
+    },
+    {
+      "version": "material-source-link-v1",
+      "checksum": "26815c949303419f35ec3acbda282c9a875c73202336b46a0ff157c7c192d206"
+    },
+    {
+      "version": "material-source-enforcement-v1",
+      "checksum": "7de82aa384da2c39b851b5a311fa8b7ead8be0eace69c00ed816248326e928bb"
+    },
+    {
+      "version": "connector-signature-ledger-v1",
+      "checksum": "e9b5b046d2dc27fe384e86767d7528e1d55e36596d921fdfcb312fdba9576bfe"
+    },
+    {
+      "version": "material-closure-foundation-v1",
+      "checksum": "e42bc9100005e2949ce5c6da5f535a59de8ef307766b532e2ec2f5c568fa866c"
+    },
+    {
+      "version": "material-closure-hardening-v1",
+      "checksum": "548a57924dc80927f133099f40686f516ec2a230cd8e60e1d80bb753a520bdbf"
+    },
+    {
+      "version": "identity-v1",
+      "checksum": "440407bc2d22618997345e90c2a8cb097e813b7b5277c95694d31fdef878aaf8"
+    },
+    {
+      "version": "identity-work-v1",
+      "checksum": "156aec912cfbcb3c284f74b0ccb4ec1a4042deb98520b51b9c3741994dcafdcb"
+    },
+    {
+      "version": "identity-role-revocation-v1",
+      "checksum": "dea22dcf9451a86a26d8d70754349b27d749fbfee6d4a45a72396539d375253b"
+    },
+    {
+      "version": "identity-resource-guard-v1",
+      "checksum": "d7e02c5a5d9b523b08513f4ed65988281ef17dfeceb0da0541109e686cfa41d6"
+    },
+    {
+      "version": "identity-admission-closure-v1",
+      "checksum": "f86719e28916af64016ca46001e361a73a55c20fe95721dc5a6e5e640c1cb22a"
+    }
+  ],
+  "sections": [
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/identity_task_exists.sql",
+          "sha256": "e80d0019c0305c7e88e536a4c96cb52a2b892d45cc1981b3f4daa812fb47a4d8"
+        },
+        {
+          "path": "gov/identity_effect_owner.sql",
+          "sha256": "312982ee86e8bfc2ba94e4f2ac17a6f63e82627a8662667f156b506079d8b2a0"
+        },
+        {
+          "path": "gov/queue_run.sql",
+          "sha256": "7638fdf96acff3b4fbdaba6178e54f2ddfbc2a393c7f513c2f43f95a81cb5748"
+        },
+        {
+          "path": "gov/propose_undo.sql",
+          "sha256": "b461b336a915098b533522c21f3a5ee1bc77e9aea44ac7420b515e1c072b9395"
+        },
+        {
+          "path": "gov/propose_candidate.sql",
+          "sha256": "aea3d406ddcfe6cc49c0b5937fb95298aa5faae03992fbbcd62cd1bc7b0a6168"
+        },
+        {
+          "path": "gov/_promotion_sources_allowed.sql",
+          "sha256": "f5c521c3033ae433c8d1edd84940e8a27240c826c08687d20a7f183e2c9e98d3"
+        },
+        {
+          "path": "sec/t_candidate_input_capture_v1.sql",
+          "sha256": "1223ab57206282eea9357a3f49aaa4cda70be1e963ec1c01665e5d0ab516d4d5"
+        }
+      ]
+    },
+    {
+      "role": "backbone_owner",
+      "files": [
+        {
+          "path": "owner/identity_store_guarantees.sql",
+          "sha256": "4b114b8e78324c74b37918e5b040a38ce68b6ff13636364bc1e811d1b7f6a9a3"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "action": "add",
+      "object": "function gov.identity_task_exists(uuid)",
+      "file": "gov/identity_task_exists.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_effect_owner(uuid)",
+      "file": "gov/identity_effect_owner.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.queue_run(uuid,uuid,uuid,uuid,uuid)",
+      "file": "gov/queue_run.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.propose_undo(uuid,jsonb,text,text,text)",
+      "file": "gov/propose_undo.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.propose_candidate(text,jsonb,uuid,text)",
+      "file": "gov/propose_candidate.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._promotion_sources_allowed(uuid)",
+      "file": "gov/_promotion_sources_allowed.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function sec.t_candidate_input_capture_v1()",
+      "file": "sec/t_candidate_input_capture_v1.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_accounts.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_accounts.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_agents.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_agents.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_invitations.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_invitations.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_sessions.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_sessions.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_projects.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_projects.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_project_people.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_project_people.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_task_projects.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_task_projects.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_directory.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_directory.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_directory_deleted.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_directory_deleted.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.identity_workspace_projects.tenant_wall",
+      "file": "owner/identity_store_guarantees.sql"
+    },
+    {
+      "action": "add",
+      "object": "trigger app.identity_workspace_projects.no_truncate",
+      "file": "owner/identity_store_guarantees.sql"
+    }
+  ],
+  "checksum": "751dfd673947b6a9cb172cda98c6313605937c01200d2831971eab7884f2e752"
+}

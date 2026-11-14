@@ -1,0 +1,269 @@
+{
+  "note": "Known-offender burn-down list, not a permanent allowance: each owner must remove repaired entries. Entries stay tied to their exact file, expression and occurrence count; new offenders and stale entries fail. The list is intended only to shrink.",
+  "exceptions": [
+    {
+      "file": "oracle/behaviour/lifecycle/guard.test.ts",
+      "rule": "fixed-temp",
+      "source": "join(tmpdir(), 'elsewhere')",
+      "reason": "Existing refusal fixture names an outside scratch path; it is never admitted as a home.",
+      "count": 1,
+      "owner": "backbone-next"
+    },
+    {
+      "file": "packages/kernel/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.renameSync(path,retained)",
+      "reason": "Existing native lock corruption and inode replacement controls intentionally construct invalid lock state in a per-test random home; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/kernel"
+    },
+    {
+      "file": "packages/kernel/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.writeFileSync(path,'',{mode:0o600})",
+      "reason": "Existing native lock corruption and inode replacement controls intentionally construct invalid lock state in a per-test random home; migrate through an owned fault-injection helper separately.",
+      "count": 2,
+      "owner": "@backbone-next/kernel"
+    },
+    {
+      "file": "packages/kernel/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.mkdirSync(path)",
+      "reason": "Existing native lock corruption and inode replacement controls intentionally construct invalid lock state in a per-test random home; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/kernel"
+    },
+    {
+      "file": "packages/kernel/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.writeFileSync(path,'Not a private lock',{mode:0o644})",
+      "reason": "Existing native lock corruption and inode replacement controls intentionally construct invalid lock state in a per-test random home; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/kernel"
+    },
+    {
+      "file": "packages/modules/connector-mail/test/gmail-mcp.test.ts",
+      "rule": "fixed-temp",
+      "source": "join(tmpdir(), 'person')",
+      "reason": "Existing preset inspection uses a fixed fake home without starting the preset or writing there.",
+      "count": 1,
+      "owner": "@backbone-next/connector-mail"
+    },
+    {
+      "file": "packages/modules/harness-codex/test/linux-policy.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/stage'",
+      "reason": "Existing mocked Linux inventory uses a synthetic stage path; its runner is injected.",
+      "count": 1,
+      "owner": "@backbone-next/harness-codex"
+    },
+    {
+      "file": "packages/modules/harness-codex/test/linux-preflight.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp'",
+      "reason": "Existing pure inventory test asserts the operating system temporary root is inventoried; it does not sweep it.",
+      "count": 1,
+      "owner": "@backbone-next/harness-codex"
+    },
+    {
+      "file": "packages/platform/test/api-line.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/x'",
+      "reason": "Existing API refusal input contains a dummy export destination; the test verifies dispatch is refused.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/backup.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/x'",
+      "reason": "Existing renderer refusal fixture supplies a path instead of an export ticket; no export is admitted.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/codex-plugins.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/elsewhere'",
+      "reason": "Existing unsafe credential-place fixture is rejected before its command is started.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "renameSync(join(h,'.lock'),join(h,'retained-lock'))",
+      "reason": "Existing inode replacement control mutates a per-test random home lock; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "writeFileSync(join(h,'.lock'),'',{mode:0o600})",
+      "reason": "Existing inode replacement control mutates a per-test random home lock; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/home-write-admission.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.mkdirSync(join(home,'.lock'))",
+      "reason": "Existing legacy and unsafe lock admission controls create invalid lock fixtures in per-test random homes; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/home-write-admission.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.writeFileSync(join(home,'.lock'),'',{mode:0o644})",
+      "reason": "Existing legacy and unsafe lock admission controls create invalid lock fixtures in per-test random homes; migrate through an owned fault-injection helper separately.",
+      "count": 2,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/keychain-route.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/journey-home'",
+      "reason": "Existing pure environment-selection test uses a dummy named home without accessing it.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/system-key-lookup.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/unreachable-scratch.keychain-db'",
+      "reason": "Existing injected system-store runner uses an unreachable keychain name and performs no real keychain access.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/workspace.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/unused'",
+      "reason": "Existing platform-refusal inputs are rejected before the workspace directory is accessed.",
+      "count": 3,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/surfaces/cli/test/audit.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/disposable'",
+      "reason": "Existing pure CLI parser fixtures use dummy home and scratch arguments without opening them.",
+      "count": 7,
+      "owner": "@backbone-next/cli"
+    },
+    {
+      "file": "packages/surfaces/cli/test/audit.test.ts",
+      "rule": "fixed-temp",
+      "source": "'/tmp/private'",
+      "reason": "Existing pure CLI parser fixtures use dummy home and scratch arguments without opening them.",
+      "count": 2,
+      "owner": "@backbone-next/cli"
+    },
+    {
+      "file": "scripts/gate.test.mjs",
+      "rule": "shared-sweep",
+      "source": "rm(runner, { force: true })",
+      "reason": "Existing gate fixtures clean sibling paths derived from each test unique mkdtemp suffix; these are isolated but the static rule cannot prove the suffix provenance.",
+      "count": 1,
+      "owner": "backbone-next"
+    },
+    {
+      "file": "scripts/gate.test.mjs",
+      "rule": "shared-sweep",
+      "source": "rm(lock, { recursive: true, force: true })",
+      "reason": "Existing gate fixtures clean sibling paths derived from each test unique mkdtemp suffix; these are isolated but the static rule cannot prove the suffix provenance.",
+      "count": 1,
+      "owner": "backbone-next"
+    },
+    {
+      "file": "scripts/gate.test.mjs",
+      "rule": "shared-sweep",
+      "source": "rm(out, { recursive: true, force: true })",
+      "reason": "Existing gate fixtures clean sibling paths derived from each test unique mkdtemp suffix; these are isolated but the static rule cannot prove the suffix provenance.",
+      "count": 1,
+      "owner": "backbone-next"
+    },
+    {
+      "file": "packages/kernel/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.symlinkSync(target,path)",
+      "reason": "Existing symlink and hard-link lock corruption controls deliberately construct invalid lock state in a per-test random home; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/kernel"
+    },
+    {
+      "file": "packages/kernel/test/home-lock.test.ts",
+      "rule": "handmade-lock",
+      "source": "fs.linkSync(target,path)",
+      "reason": "Existing symlink and hard-link lock corruption controls deliberately construct invalid lock state in a per-test random home; migrate through an owned fault-injection helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/kernel"
+    },
+    {
+      "file": "packages/modules/harness-acp/test/seatbelt.test.ts",
+      "rule": "shared-audit-root",
+      "source": "mkdir(auditScratchParent(),{recursive:true,mode:0o700})",
+      "reason": "Existing native sandbox boundary control creates and removes a uniquely named canary in the real shared audit parent; it must exercise that exact exclusion until a product-owned test seam exists.",
+      "count": 1,
+      "owner": "@backbone-next/harness-acp"
+    },
+    {
+      "file": "packages/modules/harness-acp/test/seatbelt.test.ts",
+      "rule": "shared-audit-root",
+      "source": "writeFile(canary,'audit-copy-private-canary',{mode:0o600})",
+      "reason": "Existing native sandbox boundary control creates and removes a uniquely named canary in the real shared audit parent; it must exercise that exact exclusion until a product-owned test seam exists.",
+      "count": 1,
+      "owner": "@backbone-next/harness-acp"
+    },
+    {
+      "file": "packages/modules/harness-acp/test/seatbelt.test.ts",
+      "rule": "shared-audit-root",
+      "source": "rm(canary,{force:true})",
+      "reason": "Existing native sandbox boundary control creates and removes a uniquely named canary in the real shared audit parent; it must exercise that exact exclusion until a product-owned test seam exists.",
+      "count": 1,
+      "owner": "@backbone-next/harness-acp"
+    },
+    {
+      "file": "packages/platform/test/api-line.test.ts",
+      "rule": "shared-audit-root",
+      "source": "mkdtempSync(join(auditTemporaryRoot(),'backbone-audit-v1-2147483647-'))",
+      "reason": "Existing API-line startup control plants stale copies in the shared default audit root; migrate this control to an injected per-test root separately.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/api-line.test.ts",
+      "rule": "shared-audit-root",
+      "source": "auditTemporaryRoot()",
+      "reason": "Existing API-line startup control plants stale copies in the shared default audit root; migrate this control to an injected per-test root separately.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/audit-failures.test.ts",
+      "rule": "shared-audit-root",
+      "source": "auditTemporaryRoot()",
+      "reason": "Existing supplied-root isolation control obtains the default audit root only to observe that the run never lists or removes it; obtaining that root still initializes shared state.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/audit-root.test.ts",
+      "rule": "shared-audit-root",
+      "source": "auditTemporaryRoot()",
+      "reason": "Existing ownership control inspects the actual default audit parent; its other adverse root fixtures are isolated.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    },
+    {
+      "file": "packages/platform/test/home-lock-legacy.test.ts",
+      "rule": "handmade-lock",
+      "source": "rmdirSync(path)",
+      "reason": "Existing compatibility control removes a legacy directory lock after every test client has stopped in a per-test random home; migrate through an owned fixture helper separately.",
+      "count": 1,
+      "owner": "@backbone-next/platform"
+    }
+  ]
+}

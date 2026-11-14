@@ -1,0 +1,107 @@
+{
+  "standardwebhooks@1.1.1": {
+    "file": "licenses/standardwebhooks_1.1.1.txt",
+    "source": "https://raw.githubusercontent.com/standard-webhooks/standard-webhooks/b4d2c14fc5b4ccff3ff271e3b087dff812254c59/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  "@sapphire/snowflake@3.5.5": {
+    "file": "licenses/_sapphire_snowflake_3.5.5.txt",
+    "source": "https://raw.githubusercontent.com/sapphiredev/utilities/dd52b66fc63099b2f95163eebd4df23c26b1cd16/LICENSE.md",
+    "sha256": "9a022e629657a7e9753e631ac112bb4260e71267b9ccff1fa72240eb167e2eeb"
+  },
+  "@sapphire/async-queue@1.5.5": {
+    "file": "licenses/_sapphire_snowflake_3.5.5.txt",
+    "source": "https://raw.githubusercontent.com/sapphiredev/utilities/36268acb83cc613e06836f6ebbdafeeba99c2365/LICENSE.md",
+    "sha256": "9a022e629657a7e9753e631ac112bb4260e71267b9ccff1fa72240eb167e2eeb"
+  },
+  "@microsoft/teams.graph@2.2.1": {
+    "file": "licenses/_microsoft_teams.graph_2.2.1.txt",
+    "source": "https://raw.githubusercontent.com/microsoft/teams.ts/v2.2.1/LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "@microsoft/teams.graph-endpoints@2.2.1": {
+    "file": "licenses/_microsoft_teams.graph_2.2.1.txt",
+    "source": "https://raw.githubusercontent.com/microsoft/teams.ts/v2.2.1/LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "@microsoft/teams.common@2.2.1": {
+    "file": "licenses/_microsoft_teams.graph_2.2.1.txt",
+    "source": "https://raw.githubusercontent.com/microsoft/teams.ts/v2.2.1/LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "@microsoft/teams.cards@2.2.1": {
+    "file": "licenses/_microsoft_teams.graph_2.2.1.txt",
+    "source": "https://raw.githubusercontent.com/microsoft/teams.ts/v2.2.1/LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "@microsoft/teams.apps@2.2.1": {
+    "file": "licenses/_microsoft_teams.graph_2.2.1.txt",
+    "source": "https://raw.githubusercontent.com/microsoft/teams.ts/v2.2.1/LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "@microsoft/teams.api@2.2.1": {
+    "file": "licenses/_microsoft_teams.graph_2.2.1.txt",
+    "source": "https://raw.githubusercontent.com/microsoft/teams.ts/v2.2.1/LICENSE",
+    "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+  },
+  "@microsoft/signalr@10.0.11": {
+    "file": "licenses/_microsoft_signalr_10.0.11.txt",
+    "source": "https://raw.githubusercontent.com/dotnet/aspnetcore/v10.0.11/LICENSE.txt",
+    "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+  },
+  "@earendil-works/pi-tui@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "@earendil-works/pi-telemetry@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "@earendil-works/pi-mcp@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "@earendil-works/pi-coding-agent@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "@earendil-works/pi-codemode@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "@earendil-works/pi-ai@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "@earendil-works/pi-agent-core@1.4.0": {
+    "file": "licenses/_earendil-works_pi-tui_1.4.0.txt",
+    "source": "https://raw.githubusercontent.com/earendil-works/pi/v1.4.0/LICENSE",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "react-remove-scroll-bar@2.3.8": {
+    "file": "licenses/react-remove-scroll-bar_2.3.8.txt",
+    "source": "https://raw.githubusercontent.com/theKashey/react-remove-scroll-bar/master/LICENSE",
+    "sha256": "88de0af64f3f1eacec4ebea6a1dfe4f131bfd64560aa82845b8b01530cbfdf4f"
+  },
+  "@aws-sdk/nested-clients@3.997.50": {
+    "file": "licenses/_aws-sdk_nested-clients_3.997.50.txt",
+    "source": "https://raw.githubusercontent.com/aws/aws-sdk-js-v3/main/LICENSE",
+    "sha256": "edea91454b811f127fbdea3d86f378f6719bd372ed440abf82b232f6fca06c3d"
+  },
+  "@aws-sdk/credential-provider-login@3.972.83": {
+    "file": "licenses/_aws-sdk_nested-clients_3.997.50.txt",
+    "source": "https://raw.githubusercontent.com/aws/aws-sdk-js-v3/main/LICENSE",
+    "sha256": "edea91454b811f127fbdea3d86f378f6719bd372ed440abf82b232f6fca06c3d"
+  },
+  "@aws-sdk/credential-provider-http@3.972.78": {
+    "file": "licenses/_aws-sdk_nested-clients_3.997.50.txt",
+    "source": "https://raw.githubusercontent.com/aws/aws-sdk-js-v3/main/LICENSE",
+    "sha256": "edea91454b811f127fbdea3d86f378f6719bd372ed440abf82b232f6fca06c3d"
+  }
+}

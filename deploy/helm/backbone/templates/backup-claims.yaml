@@ -1,0 +1,24 @@
+{{ range .Values.homes }}
+---
+{
+  "apiVersion": "v1",
+  "kind": "PersistentVolumeClaim",
+  "metadata": {
+    "name": {{ printf "%s-%s-backups" $.Release.Name .name | toJson }},
+    "annotations": {
+      "helm.sh/resource-policy": "keep"
+    }
+  },
+  "spec": {
+    "accessModes": [
+      "ReadWriteOnce"
+    ],
+    "storageClassName": {{ $.Values.backups.className | toJson }},
+    "resources": {
+      "requests": {
+        "storage": {{ $.Values.backups.size | toJson }}
+      }
+    }
+  }
+}
+{{ end }}

@@ -1,0 +1,148 @@
+{
+  "services": {
+    "alpha": {
+      "image": "${BACKBONE_FLEET_IMAGE:?Set the built image repository}@${BACKBONE_FLEET_DIGEST:?Set its sha256 digest}",
+      "restart": "unless-stopped",
+      "environment": {
+        "BACKBONE_HOME": "/data/home",
+        "BACKBONE_KEYS": "plaintext",
+        "BACKBONE_EXPERIMENTAL_LINUX_HOME_LOCK": "1",
+        "BACKBONE_MODEL_ENDPOINT": "${BACKBONE_MODEL_ENDPOINT:-}",
+        "BACKBONE_MODEL_ID": "${BACKBONE_MODEL_ID:-}",
+        "BACKBONE_POSTGRES_NATIVE": "/pg-runtime/package/native",
+        "BACKBONE_PLAINTEXT_TRIAL_ACK": "${BACKBONE_PLAINTEXT_TRIAL_ACK:?Acknowledge plaintext keys on the data volume}",
+        "BACKBONE_ENCRYPTED_STORAGE_ACK": "${BACKBONE_ENCRYPTED_STORAGE_ACK:?Confirm encrypted external volumes}"
+      },
+      "volumes": [
+        "alpha-home:/data",
+        "alpha-postgres:/pg-runtime",
+        "../helm/backbone/files/pg-cache.mjs:/fleet/pg-cache.mjs:ro"
+      ],
+      "command": [
+        "sh",
+        "-ec",
+        "test \"$BACKBONE_PLAINTEXT_TRIAL_ACK\" = I_ACCEPT_PLAINTEXT_KEYS_ON_THE_DATA_VOLUME; test \"$BACKBONE_ENCRYPTED_STORAGE_ACK\" = I_CONFIRMED_ENCRYPTED_VOLUMES; node /fleet/pg-cache.mjs; if [ ! -f /data/home/core.json ]; then node packages/surfaces/cli/src/main.ts projects create Fleet; fi; exec node packages/surfaces/cli/src/main.ts daemon run"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "packages/surfaces/cli/src/main.ts",
+          "doctor",
+          "--json"
+        ],
+        "interval": "30s",
+        "timeout": "30s",
+        "start_period": "120s",
+        "retries": 3
+      },
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "networks": [
+        "alpha"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,nodev,uid=1000,gid=1000,mode=1777,size=128m"
+      ]
+    },
+    "beta": {
+      "image": "${BACKBONE_FLEET_IMAGE:?Set the built image repository}@${BACKBONE_FLEET_DIGEST:?Set its sha256 digest}",
+      "restart": "unless-stopped",
+      "environment": {
+        "BACKBONE_HOME": "/data/home",
+        "BACKBONE_KEYS": "plaintext",
+        "BACKBONE_EXPERIMENTAL_LINUX_HOME_LOCK": "1",
+        "BACKBONE_MODEL_ENDPOINT": "${BACKBONE_MODEL_ENDPOINT:-}",
+        "BACKBONE_MODEL_ID": "${BACKBONE_MODEL_ID:-}",
+        "BACKBONE_POSTGRES_NATIVE": "/pg-runtime/package/native",
+        "BACKBONE_PLAINTEXT_TRIAL_ACK": "${BACKBONE_PLAINTEXT_TRIAL_ACK:?Acknowledge plaintext keys on the data volume}",
+        "BACKBONE_ENCRYPTED_STORAGE_ACK": "${BACKBONE_ENCRYPTED_STORAGE_ACK:?Confirm encrypted external volumes}"
+      },
+      "volumes": [
+        "beta-home:/data",
+        "beta-postgres:/pg-runtime",
+        "../helm/backbone/files/pg-cache.mjs:/fleet/pg-cache.mjs:ro"
+      ],
+      "command": [
+        "sh",
+        "-ec",
+        "test \"$BACKBONE_PLAINTEXT_TRIAL_ACK\" = I_ACCEPT_PLAINTEXT_KEYS_ON_THE_DATA_VOLUME; test \"$BACKBONE_ENCRYPTED_STORAGE_ACK\" = I_CONFIRMED_ENCRYPTED_VOLUMES; node /fleet/pg-cache.mjs; if [ ! -f /data/home/core.json ]; then node packages/surfaces/cli/src/main.ts projects create Fleet; fi; exec node packages/surfaces/cli/src/main.ts daemon run"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "packages/surfaces/cli/src/main.ts",
+          "doctor",
+          "--json"
+        ],
+        "interval": "30s",
+        "timeout": "30s",
+        "start_period": "120s",
+        "retries": 3
+      },
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "networks": [
+        "beta"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,nodev,uid=1000,gid=1000,mode=1777,size=128m"
+      ]
+    }
+  },
+  "volumes": {
+    "alpha-home": {
+      "external": true,
+      "name": "${BACKBONE_ALPHA_HOME_VOLUME:?Set the encrypted home volume}"
+    },
+    "beta-home": {
+      "external": true,
+      "name": "${BACKBONE_BETA_HOME_VOLUME:?Set the encrypted home volume}"
+    },
+    "alpha-backups": {
+      "external": true,
+      "name": "${BACKBONE_ALPHA_BACKUP_VOLUME:?Set a separate encrypted backup volume}"
+    },
+    "alpha-postgres": {
+      "driver": "local",
+      "driver_opts": {
+        "type": "tmpfs",
+        "device": "tmpfs",
+        "o": "uid=1000,gid=1000,mode=0700,exec,nosuid,nodev,size=512m"
+      }
+    },
+    "beta-backups": {
+      "external": true,
+      "name": "${BACKBONE_BETA_BACKUP_VOLUME:?Set a separate encrypted backup volume}"
+    },
+    "beta-postgres": {
+      "driver": "local",
+      "driver_opts": {
+        "type": "tmpfs",
+        "device": "tmpfs",
+        "o": "uid=1000,gid=1000,mode=0700,exec,nosuid,nodev,size=512m"
+      }
+    }
+  },
+  "networks": {
+    "alpha": {
+      "internal": true
+    },
+    "beta": {
+      "internal": true
+    }
+  }
+}

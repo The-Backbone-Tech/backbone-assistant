@@ -1,0 +1,7 @@
+{
+  "id": "T2-renewal-exceptions",
+  "class": "report or editable document from evidence/data",
+  "review_date": "2026-11-10",
+  "ask": "Using contracts.csv, policy.md and notes.md, write an editable brief for the VP of Sales: which renewals are exceptions under the policy and why, which are urgent, and the ARR at risk. Do not approve, send or promise anything.",
+  "deliverable": "one editable markdown document"
+}

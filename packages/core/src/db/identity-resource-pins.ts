@@ -1,0 +1,2 @@
+// Qualified from the disposable closed predecessor, never a live home.
+export const IDENTITY_RESOURCE_PINS: {payload:string;predecessor:string;catalogue:string}|null={"payload":"d7e02c5a5d9b523b08513f4ed65988281ef17dfeceb0da0541109e686cfa41d6","predecessor":"aa21fcc469a85e10163a9a1fd028f4fda478692abafede975eb7717db8f8dcc3","catalogue":"a30beb340cbb17dc0876d49573e68d561bbb4a51897d7893b47074da452a5320"};

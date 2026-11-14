@@ -1,0 +1,80 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/harness-hermes",
+  "kind": "module",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Harness",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "ToolHost",
+      "range": "0.x"
+    },
+    {
+      "port": "ModelRoute",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      2
+    ],
+    "operations": [
+      "workspace.write_document"
+    ],
+    "network": [
+      "hermes-contained-plane"
+    ],
+    "secrets": "none"
+  },
+  "data": {
+    "owns": [],
+    "migrations": [],
+    "export": "nothing durable but per-attempt journals, which are evidence: file names and outcomes, no bodies; threads, effects and documents belong to the core, and Hermes's own state stays in its contained plane outside custody"
+  },
+  "dependsOn": [],
+  "conformance": {
+    "suite": [
+      "packages/modules/harness-hermes/test/harness.test.ts",
+      "packages/modules/harness-hermes/test/recovery.test.ts",
+      "packages/modules/harness-hermes/test/crossing.test.ts",
+      "packages/modules/harness-hermes/test/gate.test.ts",
+      "packages/modules/harness-hermes/test/keys.test.ts",
+      "packages/modules/harness-hermes/test/plugin.test.ts",
+      "packages/modules/harness-hermes/test/vm.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "shared harness port conformance suite",
+          "reason": "the Harness port has no shared suite yet; these tests use a fake Hermes host, and the real journey runs by hand in a disposable VM (journey/drive.ts); no app composition selects this module"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "stop active turns first; held UNKNOWNs stay with the core's gateway; Hermes's fenced sessions and its home are removed with the plane"
+  },
+  "swap": "another HarnessV1 adapter selected by the owning composition; no automatic route fallback",
+  "digest": "sha256:67184504d99c7886f3fac2cac8a96dfc41e6ef5013887ebfa61f769420263638"
+}

@@ -1,0 +1,59 @@
+{
+  "adapter": "successor",
+  "passed": 271,
+  "failed": 0,
+  "pending": 2,
+  "promises": {
+    "oracle": {
+      "state": "pass",
+      "passed": 8,
+      "failed": 0
+    },
+    "isolation": {
+      "state": "pass",
+      "passed": 44,
+      "failed": 0
+    },
+    "mandates": {
+      "state": "pass",
+      "passed": 36,
+      "failed": 0
+    },
+    "effects": {
+      "state": "pass",
+      "passed": 48,
+      "failed": 0
+    },
+    "ledger": {
+      "state": "pass",
+      "passed": 18,
+      "failed": 0
+    },
+    "promotion": {
+      "state": "pass",
+      "passed": 14,
+      "failed": 0
+    },
+    "rule-of-two": {
+      "state": "pass",
+      "passed": 45,
+      "failed": 0
+    },
+    "lessons": {
+      "state": "pass",
+      "passed": 18,
+      "failed": 0
+    },
+    "scenes": {
+      "state": "not implemented"
+    },
+    "lifecycle": {
+      "state": "not implemented"
+    },
+    "journeys": {
+      "state": "pass",
+      "passed": 40,
+      "failed": 0
+    }
+  }
+}

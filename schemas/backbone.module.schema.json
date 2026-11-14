@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://backbone.invalid/schemas/backbone.module.schema.json",
+  "title": "backbone.module.json",
+  "description": "What a Backbone piece (the core, the platform, a module or a surface) declares about itself (docs/repo-design.md, Manifests). scripts/manifests.mjs validates every manifest against this schema and recomputes its digest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest", "id", "kind", "version", "licence", "publisher", "provides", "consumes", "stability", "capabilities", "data", "dependsOn", "conformance", "removal", "digest"],
+  "allOf": [{
+    "if": {
+      "type": "object",
+      "required": ["kind", "stability", "conformance"],
+      "properties": {
+        "kind": { "const": "surface" },
+        "stability": { "const": "experimental" },
+        "conformance": {
+          "type": "object", "required": ["quality"],
+          "properties": {
+            "quality": {
+              "type": "object", "required": ["exemptions"],
+              "properties": {
+                "exemptions": {
+                  "type": "array",
+                  "contains": { "type": "object", "required": ["rule"], "properties": { "rule": { "const": "removal guard" } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "else": {
+      "properties": { "removal": { "type": "object", "properties": { "refusedWhileUnknown": { "const": true } } } }
+    }
+  }],
+  "properties": {
+    "$schema": { "type": "string" },
+    "manifest": { "const": 1, "description": "The version of this manifest format." },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+/[a-z0-9][a-z0-9-]*$",
+      "description": "<publisher namespace>/<name>. The namespace part must equal publisher.namespace."
+    },
+    "kind": { "enum": ["core", "platform", "module", "surface"], "description": "Which layer the piece is; scripts/manifests.mjs checks it against the package's backbone.layer." },
+    "version": { "type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$" },
+    "licence": { "type": "string", "minLength": 1, "description": "SPDX expression; must equal the package's own licence." },
+    "publisher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "namespace", "verification"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "namespace": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9-]+)+$", "description": "Reverse-DNS: a domain the publisher controls, or io.github.<account>." },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "status"],
+          "properties": {
+            "method": { "enum": ["dns", "github"] },
+            "status": { "enum": ["pending", "verified"], "description": "pending until the namespace is proven; a stable preset may refuse pending publishers." }
+          }
+        }
+      }
+    },
+    "provides": { "$ref": "#/$defs/ports" },
+    "consumes": { "$ref": "#/$defs/ports" },
+    "stability": { "enum": ["experimental", "stable"] },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planes", "effectClasses", "operations", "network", "secrets"],
+      "properties": {
+        "planes": { "type": "array", "items": { "enum": ["personal", "team", "company"] }, "uniqueItems": true },
+        "effectClasses": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 6 },
+          "uniqueItems": true,
+          "description": "The highest classes its effects may reach; the gateway still decides each one."
+        },
+        "operations": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "network": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Hosts it may reach, or a named route (\"model-route\") whose host the configuration fixes."
+        },
+        "nativeTools": { "enum": ["none", "account"], "description": "none declares that every tool runs through the Host; absent is unverified." },
+        "secrets": { "enum": ["none", "surrogate"], "description": "none, or surrogate tokens only; never secret values." }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owns", "migrations", "export"],
+      "properties": {
+        "owns": { "type": "array", "items": { "type": "string" } },
+        "migrations": {
+          "type": "array",
+          "description": "Forward-only migrations this piece ships, per version.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["version", "path"],
+            "properties": { "version": { "type": "string" }, "path": { "type": "string" } }
+          }
+        },
+        "export": { "type": "string", "minLength": 1 }
+      }
+    },
+    "dependsOn": {
+      "type": "array",
+      "description": "Every dependency, explicitly. A version is exact; a git reference is never one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "version"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "version": {
+            "type": "string",
+            "pattern": "^((0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?|workspace|sha256:[0-9a-f]{64})$"
+          },
+          "licence": { "type": "string" }
+        }
+      }
+    },
+    "conformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite", "quality"],
+      "properties": {
+        "suite": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "Test files (paths from the repository root) the piece passes." },
+        "quality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "exemptions"],
+          "properties": {
+            "level": { "enum": ["bronze", "silver", "gold"] },
+            "exemptions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["rule", "reason"],
+                "properties": { "rule": { "type": "string", "minLength": 1 }, "reason": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "removal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refusedWhileUnknown", "rule"],
+      "properties": {
+        "refusedWhileUnknown": { "type": "boolean", "description": "Removal has an UNKNOWN guard. False is allowed only for an experimental surface with a named removal guard exemption; it declares missing enforcement, never permission to resend or erase history." },
+        "rule": { "type": "string", "minLength": 1 }
+      }
+    },
+    "swap": { "type": "string", "description": "The challenger, or how to replace this piece." },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "sha256 over every file of the package on disk but dependencies and build output (the files git tracks; this manifest without this field included), tool and skill descriptions with them, as packages/platform/src/pieces/digest.ts computes it. Never a git reference."
+    }
+  },
+  "$defs": {
+    "ports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["port", "range"],
+        "properties": {
+          "port": { "type": "string", "minLength": 1 },
+          "range": { "type": "string", "pattern": "^[\\^~]?(0|[1-9]\\d*)\\.(0|[1-9]\\d*|x)(\\.(0|[1-9]\\d*|x))?$" }
+        }
+      }
+    }
+  }
+}

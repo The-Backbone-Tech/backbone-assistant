@@ -1,0 +1,9 @@
+{
+  "title": "Single-thread base: attach, brief, human edit, Save v2, quit, follow-up reads v2; kill during Save leaves one version",
+  "owns": [
+    "packages/core",
+    "packages/platform",
+    "packages/surfaces/app"
+  ],
+  "conformance": "conformance/C-01"
+}

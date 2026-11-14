@@ -1,0 +1,29 @@
+{
+  "name": "@backbone-next/harness-pi",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "The Harness port on Pi (pi-agent-core and pi-ai, MIT): Backbone's own engine, every tool call proposed through the core's effect gateway.",
+  "backbone": {
+    "layer": "modules"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "1.4.0",
+    "@earendil-works/pi-ai": "1.4.0",
+    "@earendil-works/pi-coding-agent": "1.4.0",
+    "typebox": "1.3.27"
+  },
+  "devDependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

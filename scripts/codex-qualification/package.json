@@ -1,0 +1,9 @@
+{
+  "name": "codex-sandbox-qualification",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "@openai/codex": "0.165.0"
+  },
+  "license": "Apache-2.0"
+}

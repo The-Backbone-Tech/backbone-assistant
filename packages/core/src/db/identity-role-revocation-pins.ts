@@ -1,0 +1,2 @@
+// Qualified only from the disposable source predecessor, never an installed home.
+export const IDENTITY_ROLE_REVOCATION_PINS: { payload: string; predecessor: string; catalogue: string } | null = {"payload":"dea22dcf9451a86a26d8d70754349b27d749fbfee6d4a45a72396539d375253b","predecessor":"775e5dd228de326b82dca9481f1d50ffabea88a0665f059483f7d2b5af10c431","catalogue":"aa21fcc469a85e10163a9a1fd028f4fda478692abafede975eb7717db8f8dcc3"};

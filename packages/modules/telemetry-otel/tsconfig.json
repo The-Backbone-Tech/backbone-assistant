@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2023", "module": "NodeNext", "moduleResolution": "NodeNext",
+    "strict": true, "noEmit": true, "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true, "skipLibCheck": true, "types": ["node"],
+
+    "typeRoots": ["./node_modules/@types", "../../../node_modules/.pnpm/node_modules/@types"]
+  },
+  "include": ["src", "test"]
+}

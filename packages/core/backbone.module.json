@@ -1,0 +1,118 @@
+{
+  "$schema": "../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/core",
+  "kind": "core",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "gov crossings (SQL functions on PostgreSQL 18)",
+      "range": "0.x"
+    },
+    {
+      "port": "kernel twin (TypeScript model of mandates and effects)",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [],
+  "stability": "experimental",
+  "capabilities": {
+    "planes": [
+      "personal",
+      "team",
+      "company"
+    ],
+    "effectClasses": [],
+    "operations": [],
+    "network": [],
+    "secrets": "none"
+  },
+  "data": {
+    "owns": [
+      "workspaces, principals and sign-in (schemas app, auth)",
+      "mandates, decisions, tasks, runs and their steps",
+      "effects and their receipts, the hash-chained ledger",
+      "documents and their versions, knowledge, memory, routines, channel threads",
+      "queues and installation state (schema ops)",
+      "piece registrations: each module's or surface's declared capabilities and digest"
+    ],
+    "migrations": [
+      {
+        "version": "0.0.0",
+        "path": "packages/core/schema/baseline.json"
+      },
+      {
+        "version": "material-source-guard-v1",
+        "path": "packages/core/src/db/material-guard.ts"
+      }
+    ],
+    "export": "not built: an export of the ledger as JSONL and the data as a SQL dump is planned"
+  },
+  "dependsOn": [
+    {
+      "name": "@backbone-next/kernel",
+      "version": "workspace"
+    },
+    {
+      "name": "embedded-postgres",
+      "version": "18.4.0-beta.17",
+      "licence": "MIT"
+    },
+    {
+      "name": "pg",
+      "version": "8.23.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "pg-connection-string",
+      "version": "2.14.1"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/core/test/catalog.test.ts",
+      "packages/core/test/kernel.test.ts",
+      "packages/core/test/pieces.test.ts",
+      "packages/core/test/recall.test.ts",
+      "packages/core/test/sweep.test.ts",
+      "packages/core/test/testing.test.ts",
+      "oracle/runner.mjs"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "promise tests on every change",
+          "reason": "pnpm check runs the core's own tests; the promise tests run apart (pnpm oracle), and scenes and lifecycle are not implemented for this core"
+        },
+        {
+          "rule": "export",
+          "reason": "no export command yet; the data lives in one PostgreSQL cluster"
+        },
+        {
+          "rule": "secrets",
+          "reason": "the core keeps its own database passwords beside the cluster (an owner-only file) and run secrets; it hands no secret value to another piece or a model"
+        },
+        {
+          "rule": "skills and sealed secrets",
+          "reason": "listed as core responsibilities, not built in this schema yet; the platform's credential store stands in for sealed secrets"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "not removable: every other piece stands on it; it is replaced whole by a core that passes the promise tests, once its UNKNOWN effects are settled"
+  },
+  "swap": "another core behind the same crossings, judged by the promise tests in oracle/ through an adapter in oracle/adapters/",
+  "digest": "sha256:eed2e61cdafce8a5f3710841b46cc3ac2a865dd7128e592a7e26e91b0418568b"
+}

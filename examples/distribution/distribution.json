@@ -1,0 +1,1 @@
+{ "name": "example", "brand": { "name": "Example Assistant", "appId": "org.example.assistant", "light": "neutral", "dark": "neutral" }, "modules": ["harness-pi"], "defaults": { "harness": "harness-pi", "learning": "off" } }

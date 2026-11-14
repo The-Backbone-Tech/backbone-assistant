@@ -1,0 +1,627 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:backbone:audit:v1",
+  "title": "backbone.audit.v1 JSON Lines record",
+  "description": "Validate each JSON object separately. Cross-line byte hashes, cursor joins, counts and period semantics are checked by audit verify.",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/header"
+    },
+    {
+      "$ref": "#/definitions/event"
+    },
+    {
+      "$ref": "#/definitions/trailer"
+    }
+  ],
+  "definitions": {
+    "anchor": {
+      "type": "object",
+      "required": [
+        "id",
+        "sequence",
+        "receiptHash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 100
+        },
+        "sequence": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,18}$"
+        },
+        "receiptHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Keyed receipt commitment by default; raw Core SHA-256 only with includeContent."
+        }
+      }
+    },
+    "header": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "homeId",
+        "exportedBy",
+        "createdAt",
+        "period",
+        "tool",
+        "includeContent",
+        "count",
+        "after",
+        "sourceHead",
+        "completeness",
+        "gaps",
+        "transport",
+        "scanThrough",
+        "receiptHashMode",
+        "digestKey"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "backbone.audit.v1"
+        },
+        "type": {
+          "const": "header"
+        },
+        "homeId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "exportedBy": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "personId"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "home-person"
+                },
+                "personId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "uid"
+              ],
+              "properties": {
+                "kind": {
+                  "const": "same-user-process"
+                },
+                "uid": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        },
+        "period": {
+          "type": "object",
+          "required": [
+            "since",
+            "until"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "since": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+            },
+            "until": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+            }
+          }
+        },
+        "tool": {
+          "type": "object",
+          "required": [
+            "name",
+            "version"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "includeContent": {
+          "type": "boolean"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "after": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/anchor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceHead": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/anchor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "completeness": {
+          "const": "committed-through-scan-through"
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transport": {
+          "enum": [
+            "direct",
+            "api-line"
+          ]
+        },
+        "scanThrough": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/anchor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receiptHashMode": {
+          "enum": [
+            "raw-sha256",
+            "keyed-hmac-sha256"
+          ],
+          "description": "Raw Core hashes only with content opt-in; otherwise domain-separated HMAC of the raw hash."
+        },
+        "digestKey": {
+          "type": "object",
+          "required": [
+            "id",
+            "derivation"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$",
+              "description": "128-bit keyed identifier; no key material."
+            },
+            "derivation": {
+              "enum": [
+                "hkdf-master-sha256",
+                "legacy-service-secret"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "homeId",
+        "id",
+        "sequence",
+        "kind",
+        "at",
+        "actorId",
+        "subjectId",
+        "data",
+        "receipt",
+        "omitted",
+        "previousHash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "backbone.audit.v1"
+        },
+        "type": {
+          "const": "event"
+        },
+        "homeId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 100
+        },
+        "sequence": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,18}$"
+        },
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.]*$"
+        },
+        "at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        },
+        "actorId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "subjectId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer",
+              "boolean",
+              "null"
+            ]
+          },
+          "description": "Allowlisted metadata. Private hash-like values are domain-separated HMACs by default. The published sha256-prefixed piece-file digest remains plain only on piece.registered and piece.unregistered. args_hash, proposal_hash and intent_hash are omitted without includeContent. audit verify enforces the cross-line content policy.",
+          "properties": {
+            "args_hash": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "proposal_hash": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "intent_hash": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "receipt": {
+          "type": "object",
+          "required": [
+            "sequence",
+            "hash",
+            "previousHash"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$"
+            },
+            "hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "description": "Keyed receipt commitment by default; raw Core SHA-256 only with includeContent."
+            },
+            "previousHash": {
+              "type": "string",
+              "pattern": "^([0-9a-f]{64})?$"
+            }
+          }
+        },
+        "effect": {
+          "type": "object",
+          "required": [
+            "id",
+            "runId",
+            "taskId",
+            "mandateId",
+            "proposerId",
+            "beneficiaryId",
+            "connectionId",
+            "undoOf",
+            "repeatOf",
+            "class"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "runId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "taskId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mandateId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "proposerId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "beneficiaryId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "connectionId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "undoOf": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "repeatOf": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "class": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            }
+          }
+        },
+        "run": {
+          "type": "object",
+          "required": [
+            "id",
+            "taskId",
+            "mandateId",
+            "engineId"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "taskId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "mandateId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "engineId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "disposition": {
+          "enum": [
+            "held",
+            "refused",
+            "approved",
+            "dispatch-started",
+            "succeeded",
+            "failed",
+            "unknown",
+            "cancelled"
+          ]
+        },
+        "authority": {
+          "type": "object",
+          "required": [
+            "method",
+            "actorId",
+            "mandateId",
+            "decisionId"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "method": {
+              "enum": [
+                "core-decision",
+                "mandate"
+              ]
+            },
+            "actorId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mandateId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "decisionId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "receiptStatement": {
+          "type": "string"
+        },
+        "omitted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "previousHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "trailer": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "count",
+        "eventsSha256",
+        "lastHash",
+        "cursor"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "backbone.audit.v1"
+        },
+        "type": {
+          "const": "trailer"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "eventsSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "lastHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cursor": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/anchor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

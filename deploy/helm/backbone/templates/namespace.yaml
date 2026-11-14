@@ -1,0 +1,15 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": {{ .Release.Namespace | toJson }},
+    "annotations": {
+      "helm.sh/resource-policy": "keep"
+    },
+    "labels": {
+      "backbone.fleet.release": {{ .Release.Name | toJson }},
+      "pod-security.kubernetes.io/enforce": "baseline",
+      "pod-security.kubernetes.io/enforce-version": "latest"
+    }
+  }
+}

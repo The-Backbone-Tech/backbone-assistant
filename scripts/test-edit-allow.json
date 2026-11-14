@@ -1,0 +1,281 @@
+[
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a run that finished behind a stalled stream keeps its answer but is not done: its tools went unchecked",
+    "reason": "Asserted the removed `unchecked` flag: a finish is no longer judged by the event stream. Replaced by 'a finish behind a stalled stream is judged by the ledger, not by the stream', which covers both a closed and an open ledger.",
+    "reviewer": "Codex CLI gpt-6.1-terra, three rounds of cross-family diff review of claude/hosted-engine-2: no finding against these removals; the overall verdict at round 3 was reject, on other findings"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a gap in the event sequence keeps the turn from done",
+    "reason": "Asserted the removed `unchecked` flag. A gap now loses only text; the outcome comes from the ledger.",
+    "reviewer": "Codex CLI gpt-6.1-terra, three rounds of cross-family diff review of claude/hosted-engine-2: no finding against these removals; the overall verdict at round 3 was reject, on other findings"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a read-only turn reads and cannot write, though Hermes still offers the tool",
+    "reason": "Added in round 1 of this branch and replaced after round 2: offering the tool departs from the port, and Hermes has no per-run limit, so a read-only turn is now refused at admission. Replaced by 'a read-only turn is refused before any run: Hermes cannot limit what it offers per run', which is stricter.",
+    "reviewer": "Codex CLI gpt-6.1-terra, three rounds of cross-family diff review of claude/hosted-engine-2: no finding against these removals; the overall verdict at round 3 was reject, on other findings"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a finish behind a stalled stream is judged by the ledger, not by the stream",
+    "reason": "Added earlier on this branch. By the coordinator's decision, done now also needs the stream followed to its clean end, so a finish seen only through status is not done. Replaced by 'a finish behind a stalled stream keeps its answer but is not done: the stream never reached its clean end'. The removed 'a gap in the event sequence keeps the turn from done' is restored unchanged.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, pending (coordinator decision of 2 November)"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/plugin.test.ts",
+    "test": "the plugin registers the one policy hook and the three door tools",
+    "reason": "The plugin now also registers post_llm_call, its per-turn report of decisions it could not get, by the coordinator's decision on the gate-unreachable block. Replaced by 'the plugin registers the policy hook, the turn report and the three door tools', same assertions plus that hook. Written red before the plugin changed.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, pending (coordinator decision of 2 November)"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/plugin.test.ts",
+    "test": "only an explicit allow passes, and the hook sends the bearer token and the call",
+    "reason": "Finding 1 of the integrator's review: the plane's secret must never travel. Replaced by 'only an explicit allow passes, and the hook sends the call signed, never the plane's secret', which asserts the opposite of the bearer header. Red on 15243aa.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, second round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/plugin.test.ts",
+    "test": "the turn report carries the decisions the hook could not get, once per session",
+    "reason": "Finding 2: this test encoded the defect, a count taken before it was sent. Replaced by 'the turn report carries every decision the hook could not get, until one is delivered and after', which expects the count to survive a lost report. Red on 15243aa.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, second round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a read result carrying a known key reaches the model scrubbed, names included",
+    "reason": "Second integrator review, item 2(c): the key sat in the file name, so the test did not prove the body was scrubbed. Replaced by 'a read result carrying a known key, literally or encoded, reaches the model scrubbed', with the key in the body of an allowed read, literally and in each checked encoding.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, third round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "every key a rotating source resolves is scrubbed, not only the first",
+    "reason": "Third integrator review, item 2: a turn now resolves the API key once and uses only that key, so in one turn the source is asked once and keys it never handed out cannot be known. The old test assumed several resolutions in one turn. Replaced by 'every key a rotating source returns is scrubbed, not only the first', which keeps the property across three turns and three resolutions and asserts the source really rotated.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, fourth round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a key split across stream frames, and keys in tool metadata and the journal, never surface",
+    "reason": "Fifth integrator review, item 2: the integrator decided a text that carries a key is withheld whole, never rewritten. This test's assertion that the text read 'before [credential] after' expected rewriting. The assertion is replaced: the text before the key is released and the chunk that completed the key is withheld whole. The test's other assertions are unchanged.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, sixth round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a read result carrying a known key, literally or encoded, reaches the model scrubbed",
+    "reason": "Same decision: its assertion that the body reached the model ('form 0:') expected rewriting. Replaced by assertions that the read was allowed, its body withheld whole, and no form of the key reached the model.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, sixth round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a read body carrying a key in mixed-case hex or partly percent-encoded reaches the model scrubbed",
+    "reason": "Same decision, same change to the 'form 0:' assertion.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, sixth round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "a key holding %41, and a non-ASCII key, are found raw and percent-encoded, in a read body and a request",
+    "reason": "Same decision, same change to the 'form 0:' assertion.",
+    "reviewer": "integrator cold review of claude/hosted-engine-2, sixth round, pending"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "the journal scrubs the decoded value of every field",
+    "reason": "Open-at-park item 1: withholding every field was the defect, since it can erase a kind or an id recovery needs. Replaced by 'the journal withholds a name on its decoded value and refuses an id that carries a key'.",
+    "reviewer": "Codex gpt-6.1-terra cold review, 2 Nov"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/harness.test.ts",
+    "test": "an event from a write that outlives settlement passes the same sanitizer",
+    "reason": "Its write carried a key in its call id, which the journal now refuses, so that write is refused before the ToolHost; that case is 'a write whose call id carries a key is refused before the ToolHost, and its event passes the same sanitizer'. The outliving path is restored by 'an event from a write that outlives settlement passes the same sanitizer, with keys learned after the decision'.",
+    "reviewer": "Codex gpt-6.1-terra cold review, 2 Nov"
+  },
+  {
+    "file": "packages/modules/harness-hermes/test/plugin.test.ts",
+    "test": "the plane has no way to leave a native toolset on",
+    "reason": "By the current engine contract Hermes keeps its own memory, skills, task list and session search, which act only on the plane's home. Replaced by 'the plane turns on the doors and Hermes's own toolsets, and nothing that leaves it', which pins the exact list and asserts built-in memory, no skill shell and no MCP server.",
+    "reviewer": "Codex gpt-6.1-terra cold review, 2 Nov"
+  },
+  {
+    "file": "packages/kernel/test/durable.test.ts",
+    "test": "a scoped write precondition runs after file fsync, immediately before every rename, and refuses replacement cleanly",
+    "reason": "Restore the kernel byte-for-byte to 7a0c66d9 and remove the general write hook, as explicitly ruled by the integrator in review finding M1.",
+    "reviewer": "Integrator ruling and independent Claude-family security review of 861b6f7c, 10 November 2026, M1"
+  },
+  {
+    "file": "packages/kernel/test/durable.test.ts",
+    "test": "write preconditions are local to their file and async operation, and expire for detached descendants",
+    "reason": "Same M1 ruling: this test covers the removed out-of-scope kernel hook, not connector behavior.",
+    "reviewer": "Integrator ruling and independent Claude-family security review of 861b6f7c, 10 November 2026, M1"
+  },
+  {
+    "file": "packages/platform/test/connectors-enabling.test.ts",
+    "test": "the enable precondition rechecks under the service write lock after preparation has yielded",
+    "reason": "M1 explicitly accepts the remaining Core-registration/write window until the service owner applies the documented in-lock check. Replaced with an honest characterization of that window plus a start-of-enable refusal regression; the original API exploit test is unchanged.",
+    "reviewer": "Integrator ruling and independent Claude-family security review of 861b6f7c, 10 November 2026, M1"
+  },
+  {
+    "file": "packages/platform/test/gmail-send-turn.test.ts",
+    "test": "harness-pi: the person enables Gmail, releases one exact send and sees its durable work receipt",
+    "reason": "Renamed and strengthened after M1: the real preset argv/env now launch a local stand-in with the full send schema. The test releases cc, bcc and inline base64 bytes, compares the exact release JSON to raw wire arguments and an independent delivery projection, and preserves restart/no-replay checks. It makes no live-Gmail claim.",
+    "reviewer": "Claude Opus cross-family review of 1fa9b57a, 12 November 2026, M1; explicit owner instruction to rename and strengthen the proof"
+  },
+  {
+    "file": "packages/platform/test/gmail-send-turn.test.ts",
+    "test": "harness-codex: the person enables Gmail, releases one exact send and sees its durable work receipt",
+    "reason": "Renamed and strengthened after M1: the real preset argv/env now launch a local stand-in with the full send schema. The test releases cc, bcc and inline base64 bytes, compares the exact release JSON to raw wire arguments and an independent delivery projection, and preserves restart/no-replay checks. It makes no live-Gmail claim.",
+    "reviewer": "Claude Opus cross-family review of 1fa9b57a, 12 November 2026, M1; explicit owner instruction to rename and strengthen the proof"
+  },
+  {
+    "file": "packages/platform/test/gmail-send-content.test.ts",
+    "test": "harness-pi: every server-resolved Gmail send argument is refused before proposal or any tools/call",
+    "reason": "The first run showed Pi rejects the JSON-string attachment array in native input-schema validation before Host.callConnector. Replace the Host-specific no-send wording assertion with refusal-class visibility, as the shared rules require. Every attack case and zero-tools/call and zero-proposal assertion is retained; Codex still exercises the Host guard for that shape. The pure policy test separately requires ok:false.",
+    "reviewer": "Owner contract, 12 November 2026: each refused argument is refused before any call, assert a refusal property rather than exact wording; one cross-family delta review follows"
+  },
+  {
+    "file": "packages/platform/test/gmail-send-content.test.ts",
+    "test": "harness-codex: every server-resolved Gmail send argument is refused before proposal or any tools/call",
+    "reason": "The first run showed Pi rejects the JSON-string attachment array in native input-schema validation before Host.callConnector. Replace the Host-specific no-send wording assertion with refusal-class visibility, as the shared rules require. Every attack case and zero-tools/call and zero-proposal assertion is retained; Codex still exercises the Host guard for that shape. The pure policy test separately requires ok:false.",
+    "reviewer": "Owner contract, 12 November 2026: each refused argument is refused before any call, assert a refusal property rather than exact wording; one cross-family delta review follows"
+  },
+  {
+    "file": "packages/modules/harness-codex/test/harness.test.ts",
+    "test": "the full environment turns on Codex's own working capabilities, keeps everything that reaches the outside off, and hides credentials",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/platform/test/pieces.test.ts",
+    "test": "an update that declares more than the version it replaces is refused, never offered as the same authority",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/platform/test/native-account-crash.test.ts",
+    "test": "a kill during native account activity retains its evidence and blocks goal continuation, restart and rewind",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/platform/test/native-connector-work.test.ts",
+    "test": "native connector ${phase} is one work step, never a canonical receipt",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/modules/harness-codex/test/native-connectors.test.ts",
+    "test": "terminal snapshots project native MCP calls and never call failed or unfinished activity done",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/modules/harness-codex/test/native-connectors.test.ts",
+    "test": "a native tool reported read-only can fail without implying an uncertain account write",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/modules/harness-codex/test/native-connectors.test.ts",
+    "test": "sub-agent native MCP calls use the same scope validation and uncertainty rules",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/modules/harness-codex/test/native-connectors.test.ts",
+    "test": "${mode}: startup and calls survive full admission; uncertainty stops imports",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "oracle/core/effects/undo.test.ts",
+    "test": "[S4] an undo is asked for by the person the effect was for, or an admin \u2014 never by a run or another member",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use. Team-hardening item 6 requires absent and hidden effects to give the same refusal. Both are now asserted as not_found; refusal and the no-undo assertions remain.",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "oracle/core/effects/unknown-repeat.test.ts",
+    "test": "[S8] an unknown change made for another beneficiary on the same task does not block this one",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use. Team-hardening item 6 requires absent and hidden tasks to give the same refusal. Assert not_found for both; every unknown-repeat and post-sharing outcome assertion is retained.",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/platform/test/identity-device-recovery.test.ts",
+    "test": "a paused previously shared data folder restores only its device owner through the trusted path",
+    "reason": "lead decision 13 Nov: recovery must not override another owner",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/surfaces/app/test/identity-session.test.ts",
+    "test": "device access repair refuses signed-in, signed-out and unknown windows before reaching the trusted Host method",
+    "reason": "lead decision 13 Nov: recovery must not override another owner",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "packages/platform/test/team-legacy-query.test.ts",
+    "test": "the real principal policy query allows only the sole device owner, including after a colleague is removed",
+    "reason": "lead decision 13 Nov: sole-device admission follows current active people, sessions and automations rather than historical colleagues",
+    "reviewer": "Claude Fable (lead)"
+  },
+  {
+    "file": "scripts/managed-policy-hunks.test.mjs",
+    "test": "reserved policy hooks are applied and no implemented requirement remains deferred",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Public export only, as authorized by the public-tree brief: replace the withheld historical handoff heading assertion with the live managed-policy contract heading. All product enforcement assertions remain unchanged."
+  },
+  {
+    "file": "packages/platform/test/native-account-controls.test.ts",
+    "test": "Stop after native activity readOnly=false: controls use possible writes, without an unknown marker",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Correct the obsolete post-check Restart assertion to the reviewed contract: a refused turn continues through a new message. Retain native inspection holds and prove the deliberate continuation."
+  },
+  {
+    "file": "packages/core/test/material-closure-personal-followups.test.ts",
+    "test": "owned open selects actual profiles after optional closure failure",
+    "reason": "lead decision 13 Nov 2026: Team update is admitted only from the app's main process",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Fixture only: the open that performs the upgrade now takes the admitted app main-process path (allowIdentityUpgrade, with its recovery copy). No assertion is removed or relaxed; the headless refusal is asserted separately."
+  },
+  {
+    "file": "packages/platform/test/material-guard-upgrade.test.ts",
+    "test": "an owned disposable legacy home upgrades on the actual Core-open path and reopens without replay",
+    "reason": "lead decision 13 Nov 2026: Team update is admitted only from the app's main process",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Fixture only: the open that performs the upgrade now takes the admitted app main-process path (allowIdentityUpgrade, with its recovery copy). No assertion is removed or relaxed; the headless refusal is asserted separately."
+  },
+  {
+    "file": "packages/platform/test/material-link-upgrade.test.ts",
+    "test": "actual owned open installs the prerequisite then the link once; external old homes stay untouched",
+    "reason": "lead decision 13 Nov 2026: Team update is admitted only from the app's main process",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Fixture only: the open that performs the upgrade now takes the admitted app main-process path (allowIdentityUpgrade, with its recovery copy). No assertion is removed or relaxed; the headless refusal is asserted separately."
+  },
+  {
+    "file": "packages/platform/test/readonly-home.test.ts",
+    "test": "released pending schema refuses read-only and upgrades through a writable Host",
+    "reason": "lead decision 13 Nov 2026: Team update is admitted only from the app's main process",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Fixture only: the open that performs the upgrade now takes the admitted app main-process path (allowIdentityUpgrade, with its recovery copy). No assertion is removed or relaxed; the headless refusal is asserted separately."
+  },
+  {
+    "file": "packages/platform/test/material-enforcement-native.test.ts",
+    "test": "unpublished-step PL/pgSQL bodies compile from exact canonical CREATE OR REPLACE and run inside rollback-only fixtures",
+    "reason": "Team branch adds nine closed identity hardening versions; one of them re-issues baseline bodies unchanged, so the baseline bytes are a substring of the versioned block",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Register every identity hardening release and its upgrader; when a function's versioned block and a baseline block both match, the versioned file is the step's source. The exact declared-versus-canonical equality and the per-function invocation requirement are unchanged; seven new rollback-only refusal fixtures are added."
+  },
+  {
+    "file": "packages/surfaces/cli/test/app-line.test.ts",
+    "test": "what is off the line is refused and done by nothing",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Replace the obsolete project-creation refusal with archive of an existing unarchived thread, assert NOT_AVAILABLE and exact unchanged thread listing."
+  },
+  {
+    "file": "packages/surfaces/app/e2e/cli.electron.spec.ts",
+    "test": "the bin reaches the running app on a Keychain-kept home, and says so plainly once it is closed",
+    "reason": "owner direction 13 Nov 2026: remove friction found in first real use",
+    "reviewer": "Claude Fable (lead)",
+    "scope": "Replace the obsolete project-creation refusal with successful creation and listing of Another; retain an off-line archive refusal against an existing unarchived thread and assert the full thread listing is unchanged."
+  }
+]

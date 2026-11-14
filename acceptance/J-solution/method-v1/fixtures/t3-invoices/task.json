@@ -1,0 +1,6 @@
+{
+  "id": "T3-invoice-ledger",
+  "class": "bounded software or data transformation",
+  "ask": "Turn invoices.csv into ledger.csv with columns date (ISO yyyy-mm-dd), vendor, amount_eur (two decimals, using rates.json), sorted by date then vendor, and totals.csv with columns vendor,total_eur: each vendor's total in EUR (two decimals), one row per vendor in alphabetical order, then a final TOTAL row. ledger.csv's header is date,vendor,amount_eur. Dates with slashes are day first (dd/mm/yyyy) except 11/02/2026 from Cloudly Inc, a US vendor, which is month first. Amounts use a decimal comma for EUR vendors and a decimal point for USD. Keep credit notes (negative amounts).",
+  "deliverable": "ledger.csv and totals.csv"
+}

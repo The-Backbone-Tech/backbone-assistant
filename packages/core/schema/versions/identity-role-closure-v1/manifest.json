@@ -1,0 +1,104 @@
+{
+  "format": 1,
+  "version": "identity-role-closure-v1",
+  "requires": [
+    {
+      "version": "material-source-guard-v1",
+      "checksum": "aa19fe4ce8779ed4040f50b4a225cfb6e73d71b25787ab3f34aaae23f881cab7"
+    },
+    {
+      "version": "material-source-link-v1",
+      "checksum": "26815c949303419f35ec3acbda282c9a875c73202336b46a0ff157c7c192d206"
+    },
+    {
+      "version": "material-source-enforcement-v1",
+      "checksum": "7de82aa384da2c39b851b5a311fa8b7ead8be0eace69c00ed816248326e928bb"
+    },
+    {
+      "version": "connector-signature-ledger-v1",
+      "checksum": "e9b5b046d2dc27fe384e86767d7528e1d55e36596d921fdfcb312fdba9576bfe"
+    },
+    {
+      "version": "material-closure-foundation-v1",
+      "checksum": "e42bc9100005e2949ce5c6da5f535a59de8ef307766b532e2ec2f5c568fa866c"
+    },
+    {
+      "version": "material-closure-hardening-v1",
+      "checksum": "548a57924dc80927f133099f40686f516ec2a230cd8e60e1d80bb753a520bdbf"
+    },
+    {
+      "version": "identity-v1",
+      "checksum": "440407bc2d22618997345e90c2a8cb097e813b7b5277c95694d31fdef878aaf8"
+    },
+    {
+      "version": "identity-work-v1",
+      "checksum": "156aec912cfbcb3c284f74b0ccb4ec1a4042deb98520b51b9c3741994dcafdcb"
+    },
+    {
+      "version": "identity-role-revocation-v1",
+      "checksum": "dea22dcf9451a86a26d8d70754349b27d749fbfee6d4a45a72396539d375253b"
+    },
+    {
+      "version": "identity-resource-guard-v1",
+      "checksum": "d7e02c5a5d9b523b08513f4ed65988281ef17dfeceb0da0541109e686cfa41d6"
+    },
+    {
+      "version": "identity-admission-closure-v1",
+      "checksum": "f86719e28916af64016ca46001e361a73a55c20fe95721dc5a6e5e640c1cb22a"
+    },
+    {
+      "version": "identity-guarantees-v1",
+      "checksum": "751dfd673947b6a9cb172cda98c6313605937c01200d2831971eab7884f2e752"
+    },
+    {
+      "version": "identity-platform-v1",
+      "checksum": "bf4ef7e9d340c4de213e08a93d6413c090b4e298b7aae2a1ef3e3799ca9d539f"
+    }
+  ],
+  "sections": [
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/change_role.sql",
+          "sha256": "dc5802784d1fc43b4f8ad646ff1b729ba3e28eb19542d5701af47fdb05dafd59"
+        },
+        {
+          "path": "gov/add_person.sql",
+          "sha256": "b877f45faeab05885a75373170cf50c0e9e8e0bcaf166936b83b5971443bc696"
+        },
+        {
+          "path": "gov/accept_invitation.sql",
+          "sha256": "fed5a87fec7ad8d3d57af6618713eddf9009070a3198098ea3641750780b13c9"
+        },
+        {
+          "path": "gov/identity_add_person.sql",
+          "sha256": "ab8b0c30e142de6bb28bfc1b3bd95efd20bdd784b4a97dd618c40bc07822d02e"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "action": "replace",
+      "object": "function gov.change_role(uuid,text)",
+      "file": "gov/change_role.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.add_person(text,text,text)",
+      "file": "gov/add_person.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.accept_invitation(text,text)",
+      "file": "gov/accept_invitation.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_add_person(text,text,text)",
+      "file": "gov/identity_add_person.sql"
+    }
+  ],
+  "checksum": "51bdb53e46134eb9ea7fec6156be8b3b5d34fe35b9132edc66c8097241c2f5fd"
+}

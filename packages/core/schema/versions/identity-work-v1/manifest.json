@@ -1,0 +1,243 @@
+{
+  "format": 1,
+  "version": "identity-work-v1",
+  "requires": [
+    {
+      "version": "material-source-guard-v1",
+      "checksum": "aa19fe4ce8779ed4040f50b4a225cfb6e73d71b25787ab3f34aaae23f881cab7"
+    },
+    {
+      "version": "material-source-link-v1",
+      "checksum": "26815c949303419f35ec3acbda282c9a875c73202336b46a0ff157c7c192d206"
+    },
+    {
+      "version": "material-source-enforcement-v1",
+      "checksum": "7de82aa384da2c39b851b5a311fa8b7ead8be0eace69c00ed816248326e928bb"
+    },
+    {
+      "version": "connector-signature-ledger-v1",
+      "checksum": "e9b5b046d2dc27fe384e86767d7528e1d55e36596d921fdfcb312fdba9576bfe"
+    },
+    {
+      "version": "material-closure-foundation-v1",
+      "checksum": "e42bc9100005e2949ce5c6da5f535a59de8ef307766b532e2ec2f5c568fa866c"
+    },
+    {
+      "version": "material-closure-hardening-v1",
+      "checksum": "548a57924dc80927f133099f40686f516ec2a230cd8e60e1d80bb753a520bdbf"
+    },
+    {
+      "version": "identity-v1",
+      "checksum": "440407bc2d22618997345e90c2a8cb097e813b7b5277c95694d31fdef878aaf8"
+    }
+  ],
+  "sections": [
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/identity_person_task_access.sql",
+          "sha256": "8c6a3b40628717af3c57b369b16ac4c29f2bfb52de4e01141cb888eed59b913b"
+        },
+        {
+          "path": "gov/identity_task_access.sql",
+          "sha256": "6ff78b7ced64c0c02fe3651cebfb5dd406b720d866652cc7b13ecd378cdd0109"
+        },
+        {
+          "path": "gov/identity_document_access.sql",
+          "sha256": "18dcfcc65c1c4b08b62f13341a8088defc2a303deb56b25bc3168b14a86964e0"
+        },
+        {
+          "path": "gov/identity_run_access.sql",
+          "sha256": "e5a4e401789924647cecbae0aec166156a4892fa86d672151ee85da4c053d623"
+        },
+        {
+          "path": "gov/identity_run_accounting.sql",
+          "sha256": "ea2bc53b8c495c7903232795e09d3121c355f6a286d520088baff9dcb772475c"
+        }
+      ]
+    },
+    {
+      "role": "backbone_owner",
+      "files": [
+        {
+          "path": "app/identity_task_projects.sql",
+          "sha256": "99040e3286d8f4b9afacf1bd8181460cff2ce86094a06aaf6b7edd9ac3dcd244"
+        },
+        {
+          "path": "app/identity_directory.sql",
+          "sha256": "a604151fbd9129a57d1979dd59b02e7441598fd55f2a1f412f5bfc9350dd2cf8"
+        }
+      ]
+    },
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/task_visible_to.sql",
+          "sha256": "f16b2c30ce2ddca4d81c6dfca1cf62341494b93d88d1fe6cb3def423efdce786"
+        },
+        {
+          "path": "gov/identity_project_share.sql",
+          "sha256": "c041001c2fe77c1724d3417911f2f6ac0035239f09b63a15276e8a7fd949be9c"
+        },
+        {
+          "path": "gov/identity_register_project.sql",
+          "sha256": "4665cadc0a3cfed53e3313c203c2fdfed2e18575ba5d112c14d7df6448715912"
+        },
+        {
+          "path": "gov/identity_bind_task.sql",
+          "sha256": "f2e3725102343aebca2213cffcc0c9a846608340b6e5d696a3d832977a39e720"
+        },
+        {
+          "path": "gov/identity_project_sharing.sql",
+          "sha256": "3d09dc1dfd6dbf797d0dcdc79e1ce1a4cbac8670be2588022fefba9bf37646b2"
+        },
+        {
+          "path": "gov/identity_create_task.sql",
+          "sha256": "05dc686111f77efcadf45cf6c49a889291a24fd85ba767be71b71b7765c70e67"
+        },
+        {
+          "path": "gov/identity_document_version.sql",
+          "sha256": "d1d46bf23edbddf2f2246c3589e2d72c6b3555014137f0ab03802fc17418838b"
+        },
+        {
+          "path": "gov/identity_revise_document.sql",
+          "sha256": "5c22683354e4f4723546468a0eb79041f32cae62fb82528032ffbc0f0b560202"
+        },
+        {
+          "path": "gov/identity_directory_create.sql",
+          "sha256": "a8cf87bf7abcb4a08347086d60d8e19018bf11a7de40dde193ac9f412ca59bd2"
+        },
+        {
+          "path": "gov/identity_directory_list.sql",
+          "sha256": "41fb49eb0bbcb179d78879972a96463d890aa86a8ac6f6689ec2966404589fde"
+        },
+        {
+          "path": "gov/identity_directory_update.sql",
+          "sha256": "7ed05b808dc165c43772124bc97db6415f7d1d75eff69fced7a490378e5072a1"
+        },
+        {
+          "path": "gov/identity_automation_create.sql",
+          "sha256": "88f5f8d82e02f6357ef5d885cd976da3eb6cae21bfbf6c890f0896d0201b04b4"
+        },
+        {
+          "path": "gov/identity_automations.sql",
+          "sha256": "ab1e30103f8f8cb7e0e827f3928159fbcd7dff55f39cb5fca7e9abe886718ac7"
+        },
+        {
+          "path": "gov/identity_automation_revoke.sql",
+          "sha256": "04d2515360fcf5b02410e7c28e973f6b265cb2259fd3ada094ee1d297a18086f"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "action": "add",
+      "object": "function gov.identity_person_task_access(uuid,uuid,boolean)",
+      "file": "gov/identity_person_task_access.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_task_access(uuid,boolean)",
+      "file": "gov/identity_task_access.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_document_access(uuid,boolean)",
+      "file": "gov/identity_document_access.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_run_access(uuid,boolean)",
+      "file": "gov/identity_run_access.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_run_accounting(uuid)",
+      "file": "gov/identity_run_accounting.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_task_projects",
+      "file": "app/identity_task_projects.sql"
+    },
+    {
+      "action": "add",
+      "object": "table app.identity_directory",
+      "file": "app/identity_directory.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function sec.task_visible_to(uuid,uuid)",
+      "file": "gov/task_visible_to.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.identity_project_share(uuid,uuid,text)",
+      "file": "gov/identity_project_share.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_register_project(uuid)",
+      "file": "gov/identity_register_project.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_bind_task(uuid,uuid)",
+      "file": "gov/identity_bind_task.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_project_sharing(uuid)",
+      "file": "gov/identity_project_sharing.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_create_task(uuid,text)",
+      "file": "gov/identity_create_task.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_document_version(uuid,uuid)",
+      "file": "gov/identity_document_version.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_revise_document(uuid,uuid,text,integer)",
+      "file": "gov/identity_revise_document.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_directory_create(text,text,text,text)",
+      "file": "gov/identity_directory_create.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_directory_list(text)",
+      "file": "gov/identity_directory_list.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_directory_update(text,uuid,text,boolean,bigint)",
+      "file": "gov/identity_directory_update.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_automation_create(uuid,uuid,text,uuid)",
+      "file": "gov/identity_automation_create.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_automations()",
+      "file": "gov/identity_automations.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_automation_revoke(uuid)",
+      "file": "gov/identity_automation_revoke.sql"
+    }
+  ],
+  "checksum": "156aec912cfbcb3c284f74b0ccb4ec1a4042deb98520b51b9c3741994dcafdcb"
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "from": "@backbone-next/platform",
+    "to": "@backbone-next/harness-pi",
+    "reason": "The platform composition root wires the Pi harness through its port and imports checked piece files from packages/platform/src/composition/pieces.ts. This dependency keeps the selected implementation installed beside the platform.",
+    "owner": "integrator"
+  },
+  {
+    "from": "@backbone-next/platform",
+    "to": "@backbone-next/connector-mail",
+    "reason": "The composition root wires the mail connector to its port as it does the harness: createHost imports the module only by path from its checked folder, after its digest and registration are checked (src/composition/pieces.ts, src/triage). The dependency keeps the module installed beside the platform, and the triage tests drive its sample mailbox.",
+    "owner": "integrator"
+  },
+  {
+    "from": "@backbone/core",
+    "to": "@backbone-next/kernel",
+    "reason": "The current Core package reuses cluster primitives, durable file writes and home locks from the kernel package rather than keeping duplicate implementations. Both packages declare the core layer, so this package dependency needs an explicit exception.",
+    "owner": "integrator"
+  },
+  {
+    "from": "@backbone-next/cli",
+    "to": "@backbone-next/channels",
+    "reason": "The headless daemon composes the channel surface in the same process as its Host, as authorised for the channel surface. Channels call only the public Host API; this peer edge is composition, not a policy bypass.",
+    "owner": "channel surface"
+  },
+  {
+    "from": "@backbone-next/platform",
+    "to": "@backbone-next/telemetry-otel",
+    "reason": "Trusted platform composition starts the optional telemetry subscriber for the app and daemon. The subscriber consumes only the public Host API and its content-free projection; this edge keeps collector credentials at trusted composition.",
+    "owner": "telemetry composition"
+  }
+]

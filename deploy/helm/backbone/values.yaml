@@ -1,0 +1,60 @@
+{
+  "image": {
+    "repository": "backbone-daemon",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "storage": {
+    "className": "encrypted-block",
+    "size": "10Gi",
+    "encryptionConfirmed": false
+  },
+  "rollout": {
+    "timeoutSeconds": 300
+  },
+  "homes": [
+    {
+      "name": "alpha",
+      "modelRoute": {
+        "endpoint": "",
+        "model": ""
+      },
+      "policy": {
+        "managed-policy.json": "",
+        "managed-policy.json.sig": "",
+        "policy-trust.json": ""
+      }
+    },
+    {
+      "name": "beta",
+      "modelRoute": {
+        "endpoint": "",
+        "model": ""
+      },
+      "policy": {
+        "managed-policy.json": "",
+        "managed-policy.json.sig": "",
+        "policy-trust.json": ""
+      }
+    }
+  ],
+  "trial": {
+    "plaintextKeysAcknowledged": false
+  },
+  "namespace": {
+    "name": "fleet",
+    "dedicated": true,
+    "podSecurity": "baseline"
+  },
+  "backups": {
+    "className": "encrypted-backups",
+    "size": "20Gi",
+    "encryptionConfirmed": false,
+    "retention": {
+      "maxArchives": 3
+    }
+  },
+  "network": {
+    "apiServerCidrs": [],
+    "modelEgress": []
+  }
+}

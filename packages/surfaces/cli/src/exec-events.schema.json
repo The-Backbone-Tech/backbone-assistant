@@ -1,0 +1,226 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Headless CLI JSONL event",
+  "description": "One event per line from exec --json. Backbone steps are polled projections, not raw engine tool calls. A completed effect item reports its recorded outcome; UNKNOWN is never success. Unknown usage is null.",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "thread.started"
+        },
+        "thread_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "thread_id"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "turn.started"
+        },
+        "turn_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "turn_id"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "item.started",
+            "item.updated",
+            "item.completed"
+          ]
+        },
+        "item": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "backbone_step"
+                },
+                "status": {
+                  "enum": [
+                    "in_progress",
+                    "completed"
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "read",
+                    "search",
+                    "list",
+                    "write",
+                    "note"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "status",
+                "kind",
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "agent_message"
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "const": "backbone_effect"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "enum": [
+                    "DONE",
+                    "REFUSED",
+                    "UNKNOWN"
+                  ]
+                },
+                "detail": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "kind",
+                "target",
+                "outcome"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "item"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "turn.completed"
+        },
+        "usage": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "input_tokens": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "cached_input_tokens": {
+                  "type": "null"
+                },
+                "output_tokens": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "input_tokens",
+                "cached_input_tokens",
+                "output_tokens"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "structured_output": {}
+      },
+      "required": [
+        "type",
+        "usage"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "turn.failed"
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "message"
+          ],
+          "additionalProperties": false
+        },
+        "exit_code": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 7
+        }
+      },
+      "required": [
+        "type",
+        "error",
+        "exit_code"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

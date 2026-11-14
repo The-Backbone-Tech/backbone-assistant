@@ -1,0 +1,13 @@
+{
+  "title": "Choose, execute and verify a task-specific solution across tools and licences; qualify reuse and improvements; preserve work when access changes",
+  "owns": [
+    "GOAL.md",
+    "docs/shape.md",
+    "acceptance/J-solution",
+    "packages/core",
+    "packages/platform",
+    "packages/modules",
+    "packages/surfaces/app"
+  ],
+  "conformance": "conformance/C-01"
+}

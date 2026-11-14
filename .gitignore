@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.pg-data/
+evidence/
+*.log
+.DS_Store
+
+.gate/
+
+# Offline private keys never belong in source control.
+*.pem
+*.key

@@ -1,0 +1,218 @@
+{
+  "format": 1,
+  "version": "identity-admission-closure-v1",
+  "requires": [
+    {
+      "version": "material-source-guard-v1",
+      "checksum": "aa19fe4ce8779ed4040f50b4a225cfb6e73d71b25787ab3f34aaae23f881cab7"
+    },
+    {
+      "version": "material-source-link-v1",
+      "checksum": "26815c949303419f35ec3acbda282c9a875c73202336b46a0ff157c7c192d206"
+    },
+    {
+      "version": "material-source-enforcement-v1",
+      "checksum": "7de82aa384da2c39b851b5a311fa8b7ead8be0eace69c00ed816248326e928bb"
+    },
+    {
+      "version": "connector-signature-ledger-v1",
+      "checksum": "e9b5b046d2dc27fe384e86767d7528e1d55e36596d921fdfcb312fdba9576bfe"
+    },
+    {
+      "version": "material-closure-foundation-v1",
+      "checksum": "e42bc9100005e2949ce5c6da5f535a59de8ef307766b532e2ec2f5c568fa866c"
+    },
+    {
+      "version": "material-closure-hardening-v1",
+      "checksum": "548a57924dc80927f133099f40686f516ec2a230cd8e60e1d80bb753a520bdbf"
+    },
+    {
+      "version": "identity-v1",
+      "checksum": "440407bc2d22618997345e90c2a8cb097e813b7b5277c95694d31fdef878aaf8"
+    },
+    {
+      "version": "identity-work-v1",
+      "checksum": "156aec912cfbcb3c284f74b0ccb4ec1a4042deb98520b51b9c3741994dcafdcb"
+    },
+    {
+      "version": "identity-role-revocation-v1",
+      "checksum": "dea22dcf9451a86a26d8d70754349b27d749fbfee6d4a45a72396539d375253b"
+    },
+    {
+      "version": "identity-resource-guard-v1",
+      "checksum": "d7e02c5a5d9b523b08513f4ed65988281ef17dfeceb0da0541109e686cfa41d6"
+    }
+  ],
+  "sections": [
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/identity_budget_totals.sql",
+          "sha256": "84921bb8a7286fe9ff8537bbbb0d9f82dcf31798d1fb9945c427b440a4727388"
+        },
+        {
+          "path": "gov/_mandate_standing.sql",
+          "sha256": "312007bc8325c40f7db90f7c43c0ee414730c365eed23178d399f4afd447084e"
+        },
+        {
+          "path": "gov/identity_bind_task.sql",
+          "sha256": "eff2c8820b9389acc3c1bd4f6f1584819700aa6b3430c885743857bbf95f2bc7"
+        },
+        {
+          "path": "gov/_task_read_beyond.sql",
+          "sha256": "edeeeca54a6be4715e7ada8ba979b6e4f65f4ed05050c8fa3c021fa454ae42e5"
+        },
+        {
+          "path": "gov/_quote_run.sql",
+          "sha256": "ac2e81932463819d441f7247f47ffe346ed43b09069976f76275d5a7f4f94955"
+        },
+        {
+          "path": "gov/quote_marks.sql",
+          "sha256": "66ff2dee7be435ed075d7bf8be209b1900b5329da38eecaedac9748c09c05ca4"
+        },
+        {
+          "path": "gov/unregister_piece.sql",
+          "sha256": "f907bfa98edcc03f49badd0327433e3be692eff7e24085cc9c4f1ce4964385a9"
+        },
+        {
+          "path": "gov/give_connector_signature.sql",
+          "sha256": "22a7c3c1848a8032263dd1e06494ad8cdfbba04162e1a6150ea095297b2c56e1"
+        },
+        {
+          "path": "gov/_may_answer.sql",
+          "sha256": "89ea52a527e3216bdfbe6000ee12c9658a1d7a5ad902fe6361b93655982b3cf3"
+        },
+        {
+          "path": "gov/identity_effect_decider_access.sql",
+          "sha256": "47755b6eee144d74c31339ac250fae6ce6dc5e9f9cc147b01160822075be1b47"
+        },
+        {
+          "path": "gov/identity_material_scope.sql",
+          "sha256": "d4234ba6fcfb0a0640e24cfcf825cd76e3526ff687b2ec8db0c3f9025e459d61"
+        }
+      ]
+    },
+    {
+      "role": "backbone_owner",
+      "files": [
+        {
+          "path": "app/identity_document_policies.sql",
+          "sha256": "b5efada905403860523d89ae4e38814ca28709dcf3fda27dbc035469598f4e19"
+        }
+      ]
+    },
+    {
+      "role": "backbone_gov",
+      "files": [
+        {
+          "path": "gov/identity_document_access.sql",
+          "sha256": "84aac5874b797c112b96b96ec6e94668d1a195a864bbb8375a90c44f14762878"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "action": "add",
+      "object": "function gov.identity_budget_totals(uuid)",
+      "file": "gov/identity_budget_totals.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._mandate_standing(uuid)",
+      "file": "gov/_mandate_standing.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.identity_bind_task(uuid,uuid)",
+      "file": "gov/identity_bind_task.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._task_read_beyond(uuid,uuid)",
+      "file": "gov/_task_read_beyond.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._quote_run(uuid,uuid)",
+      "file": "gov/_quote_run.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.quote_marks(uuid,jsonb)",
+      "file": "gov/quote_marks.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.unregister_piece(uuid)",
+      "file": "gov/unregister_piece.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.give_connector_signature(uuid,text,text)",
+      "file": "gov/give_connector_signature.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov._may_answer(uuid,uuid,text)",
+      "file": "gov/_may_answer.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.identity_effect_decider_access(uuid)",
+      "file": "gov/identity_effect_decider_access.sql"
+    },
+    {
+      "action": "add",
+      "object": "function gov.identity_material_scope(uuid,boolean)",
+      "file": "gov/identity_material_scope.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.documents.identity_project_read",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.documents.identity_project_crossing_read",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.documents.identity_project_insert",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.documents.identity_project_update",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.episodes.identity_project_read",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.episodes.identity_project_crossing_read",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.episodes.identity_project_insert",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "policy app.episodes.identity_project_update",
+      "file": "app/identity_document_policies.sql"
+    },
+    {
+      "action": "replace",
+      "object": "function gov.identity_document_access(uuid,boolean)",
+      "file": "gov/identity_document_access.sql"
+    }
+  ],
+  "checksum": "f86719e28916af64016ca46001e361a73a55c20fe95721dc5a6e5e640c1cb22a"
+}

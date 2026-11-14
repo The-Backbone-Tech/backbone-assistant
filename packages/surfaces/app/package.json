@@ -1,0 +1,61 @@
+{
+  "name": "@backbone-next/app",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "The thread app: Electron, React, Tailwind, Radix, shadcn/ui, cmdk, Shiki.",
+  "backbone": {
+    "layer": "surfaces"
+  },
+  "main": "dist/electron/main.cjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/ensure-electron.mjs && electron .",
+    "serve": "node server/bridge.ts",
+    "test": "node ../../../scripts/no-leftovers.mjs node --test test/*.test.ts",
+    "e2e": "node scripts/ensure-electron.mjs && node scripts/build.mjs && node ../../../scripts/no-leftovers.mjs node ../../../scripts/with-test-cluster.mjs playwright test",
+    "typecheck": "tsc -p .",
+    "package": "node scripts/ensure-electron.mjs && node scripts/build.mjs && node scripts/package.mjs",
+    "e2e:installed": "node ../../../scripts/no-leftovers.mjs node scripts/e2e-installed.mjs",
+    "electron:install": "node scripts/ensure-electron.mjs",
+    "e2e:browser": "node scripts/build.mjs && node ../../../scripts/no-leftovers.mjs node ../../../scripts/with-test-cluster.mjs playwright test --project=browser-*"
+  },
+  "dependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-markdown": "6.5.2",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/search": "6.7.2",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.14",
+    "@fontsource-variable/ibm-plex-sans": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@lezer/highlight": "1.2.5",
+    "@shadcn/react": "0.3.1",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "lucide-react": "1.61.0",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-resizable-panels": "4.15.0",
+    "shiki": "4.5.0",
+    "streamdown": "2.6.0",
+    "tailwind-merge": "3.7.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "@playwright/test": "1.64.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "electron": "45.0.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@backbone-next/cli",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "The person's command line: projects, threads, turns and what matters now, over the platform api.",
+  "backbone": {
+    "layer": "surfaces"
+  },
+  "bin": {
+    "backbone": "./src/main.ts"
+  },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node ../../../scripts/with-test-cluster.mjs node --require ../../../scripts/lib/test-local-network.cjs --test --test-concurrency=2 test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@backbone-next/channels": "workspace:*",
+    "ajv": "8.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

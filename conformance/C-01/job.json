@@ -1,0 +1,1 @@
+{ "title": "One thread: attach, agent draft, person's edit saved as v2, restart, follow-up reads v2; kill during Save leaves one version", "owns": ["packages/core", "packages/platform", "packages/surfaces/app"], "invariants": ["I-5", "I-6", "I-11", "I-13"], "contracts": ["docs/contracts/thread-app.md", "docs/contracts/work-material.md", "docs/contracts/effect-gateway.md"] }

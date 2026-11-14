@@ -1,0 +1,8 @@
+{
+  "apiVersion": "v1",
+  "kind": "ServiceAccount",
+  "metadata": {
+    "name": {{ printf "%s-rollout" .Release.Name | toJson }}
+  },
+  "automountServiceAccountToken": false
+}

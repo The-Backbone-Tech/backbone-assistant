@@ -1,0 +1,338 @@
+@import "tailwindcss";
+/* Streamdown ships utility classes in its maintained components. */
+@source "../node_modules/streamdown/dist/*.js";
+/* Bundled faces, no external request (OFL-1.1, ADR 0001). */
+@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource-variable/jetbrains-mono";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Native macOS window controls stay native. Only empty bar space drags the window;
+   interactive controls and the mobile/sidebar-collapse layouts keep their own hit targets. */
+[data-native-titlebar] .app-window-bar {
+  -webkit-app-region: drag;
+}
+[data-native-titlebar] .app-window-bar :is(button, a, input, select, [role="tab"], [role="separator"]) {
+  -webkit-app-region: no-drag;
+}
+[data-native-titlebar] .app-rail {
+  padding-top: 50px;
+}
+[data-native-titlebar] .app-sidebar-bar {
+  padding-left: 36px;
+}
+@media (min-width: 768px) {
+  [data-native-titlebar]:has([data-sidebar-collapsed="true"]) [data-conversation-bar] {
+    padding-left: 40px;
+  }
+}
+[data-native-titlebar] .file-toolbar-inline {
+  padding-left: 80px;
+}
+@media (max-width: 767px) {
+  [data-native-titlebar] .app-sidebar-bar,
+  [data-native-titlebar] [data-conversation-bar] {
+    padding-left: 80px;
+  }
+}
+@media (max-width: 1023px) {
+  [data-native-titlebar] [data-workspace-bar] {
+    padding-left: 80px;
+  }
+}
+
+/* Backbone tokens, from the old app's palette. Light is warm with a deep green accent; Dark is
+   neutral with light-grey actions. test/tokens.test.ts checks contrast and that no orange is left. */
+:root {
+  --bg: #fbfaf7;
+  /* Backbone's light chat cream, adjusted by Alberto on 4 November 2026. */
+  --conversation: #fbf7f1;
+  --surface: #ffffff;
+  --sidebar: #f4f3ee;
+  --sunken: #f1efe8;
+  --hover: #e9e7df;
+  --fg: #14150f;
+  --muted: #63655d;
+  --border: #e4e2da;
+  --strong-border: #868880;
+  --accent: #2d5f3f;
+  --accent-fg: #ffffff;
+  --accent-soft: #e8f1ea;
+  --draft: #8a5200;
+  --draft-bg: #fbf0dc;
+  --pending: #1d5fb8;
+  --pending-bg: #e6effb;
+  --committed: #2c6e3f;
+  --committed-bg: #e3f2e7;
+  --danger: #a1332b;
+  --diff-add-bg: #e3f2e7;
+  --diff-del-bg: #f8e6e3;
+  --ring: #2d5f3f;
+  --file-blue: #2563a8;
+  --file-green: #2f7d57;
+  --file-amber: #9a6400;
+  --file-violet: #7c56b5;
+  --file-red: #be4b43;
+  --code-keyword: #8a3f8f;
+  --code-string: #2d6a3b;
+  --code-number: #9a4a00;
+  --code-heading: #14150f;
+  --code-link: #2f5a9e;
+  --code-comment: #63655d;
+}
+
+.dark {
+  --bg: #1c1c1c;
+  --conversation: #161616;
+  --surface: #242424;
+  --sidebar: #1c1c1c;
+  --sunken: #2a2a2a;
+  --hover: #303030;
+  --fg: #f2f2f2;
+  --muted: #aaaaaa;
+  --border: #333333;
+  --strong-border: #777777;
+  --accent: #d1d1d1;
+  --accent-fg: #1c1c1c;
+  --accent-soft: #333333;
+  --draft: #e3a948;
+  --draft-bg: #2c2410;
+  --pending: #7fb0f5;
+  --pending-bg: #16263d;
+  --committed: #8fd3a4;
+  --committed-bg: #15301e;
+  --danger: #ef8a80;
+  --diff-add-bg: #15301e;
+  --diff-del-bg: #3b1a17;
+  --ring: #d1d1d1;
+  --file-blue: #8ab4ef;
+  --file-green: #8fc4a8;
+  --file-amber: #d4ad62;
+  --file-violet: #ba9be4;
+  --file-red: #e99991;
+  --code-keyword: #d7a6e0;
+  --code-string: #9fd3a6;
+  --code-number: #f0b27a;
+  --code-heading: #f2f2f2;
+  --code-link: #9cc3f5;
+  --code-comment: #aaaaaa;
+}
+
+/* The work area follows a quiet neutral document palette; sidebar and conversation retain the
+   product's existing light and dark tones. Status and file-kind colors stay semantic. */
+[data-workspace] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --sidebar: #fafafa;
+  --sunken: #f5f5f5;
+  --hover: #f0f0f0;
+  --fg: #222222;
+  --muted: #717171;
+  --border: #e8e8e8;
+  --strong-border: #a3a3a3;
+  --accent: #444444;
+  --accent-fg: #ffffff;
+  --accent-soft: #efefef;
+  --ring: #666666;
+  --code-string: #555555;
+}
+
+.dark [data-workspace] {
+  color-scheme: dark;
+  --bg: #1b1b1b;
+  --surface: #202020;
+  --sidebar: #1e1e1e;
+  --sunken: #292929;
+  --hover: #303030;
+  --fg: #e8e8e8;
+  --muted: #a1a1a1;
+  --border: #383838;
+  --strong-border: #777777;
+  --accent: #d5d5d5;
+  --accent-fg: #202020;
+  --accent-soft: #383838;
+  --ring: #d5d5d5;
+  --code-string: #c4c4c4;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-conversation: var(--conversation);
+  --color-surface: var(--surface);
+  --color-sidebar: var(--sidebar);
+  --color-sunken: var(--sunken);
+  --color-hover: var(--hover);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-strong-border: var(--strong-border);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-draft: var(--draft);
+  --color-draft-bg: var(--draft-bg);
+  --color-pending: var(--pending);
+  --color-pending-bg: var(--pending-bg);
+  --color-committed: var(--committed);
+  --color-committed-bg: var(--committed-bg);
+  --color-danger: var(--danger);
+  --color-diff-add: var(--diff-add-bg);
+  --color-diff-del: var(--diff-del-bg);
+  --color-ring: var(--ring);
+  --color-file-blue: var(--file-blue);
+  --color-file-green: var(--file-green);
+  --color-file-amber: var(--file-amber);
+  --color-file-violet: var(--file-violet);
+  --color-file-red: var(--file-red);
+  /* The role names Streamdown's markup is written with, on Backbone's surfaces. */
+  --color-background: var(--surface);
+  --color-foreground: var(--fg);
+  --color-muted-foreground: var(--muted);
+  /* Interface and caption sizes; reading sizes stay with the text they set. */
+  --text-ui: 13px;
+  --text-ui--line-height: 20px;
+  --text-caption: 11px;
+  --text-caption--line-height: 16px;
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--accent-soft);
+  }
+}
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  background-color: transparent !important;
+}
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark);
+}
+
+/* Reading: Streamdown ships no element styles; hierarchy comes from weight, size and space. */
+@layer components {
+  .reading :is(h1, h2, h3, h4) {
+    @apply mt-5 mb-2 font-semibold first:mt-0;
+  }
+  .reading h1 {
+    @apply text-xl;
+  }
+  .reading h2 {
+    @apply text-[17px];
+  }
+  .reading h3 {
+    @apply text-[15px];
+  }
+  .reading p {
+    @apply mb-3;
+  }
+  .reading :is(ul, ol) {
+    @apply mb-3 flex flex-col gap-1 pl-5;
+  }
+  .reading ul {
+    @apply list-disc;
+  }
+  .reading ol {
+    @apply list-decimal;
+  }
+  .reading li::marker {
+    color: var(--muted);
+  }
+  .reading blockquote {
+    @apply my-3 border-l-2 border-border pl-3 text-muted italic;
+  }
+  .reading code {
+    @apply rounded bg-sunken px-1 py-0.5 font-mono text-[0.9em];
+  }
+  .reading pre code {
+    @apply bg-transparent p-0;
+  }
+  .reading a {
+    @apply text-accent underline underline-offset-2;
+  }
+  .reading hr {
+    @apply my-4 border-border;
+  }
+  .reading > :last-child {
+    @apply mb-0;
+  }
+}
+/* Streamdown's code blocks and tables arrive with shadcn-style utilities; these unlayered rules keep
+   one quiet frame whichever of them this build generates. */
+.reading [data-streamdown="code-block"] {
+  @apply my-3 overflow-hidden rounded-lg border border-border bg-sunken p-0;
+}
+.reading [data-streamdown="code-block-body"] {
+  @apply bg-transparent px-4 py-3 font-mono text-ui leading-5;
+}
+.reading [data-streamdown="table-wrapper"] {
+  @apply my-3 border-0 bg-transparent p-0;
+}
+.reading [data-streamdown="table-wrapper"] > div:last-child {
+  @apply overflow-x-auto rounded-lg border border-border bg-surface;
+}
+.reading [data-streamdown="table-wrapper"] table {
+  @apply w-full border-collapse text-sm;
+}
+.reading [data-streamdown="table-wrapper"] :is(th, td) {
+  @apply border-b border-border px-3 py-2 text-left align-top;
+}
+.reading [data-streamdown="table-wrapper"] th {
+  @apply bg-sunken font-semibold;
+}
+.reading [data-streamdown="table-wrapper"] tr:last-child td {
+  @apply border-b-0;
+}
+
+/* Actions that appear on hover or focus. A touch screen has no hover, so there they simply stay. */
+@layer components {
+  .reveal {
+    opacity: 0;
+  }
+  .group:hover .reveal,
+  .group:focus-within .reveal,
+  .reveal:focus-visible,
+  .reveal[data-state="open"] {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .reveal {
+      opacity: 1;
+    }
+  }
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: var(--accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

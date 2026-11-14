@@ -1,0 +1,31 @@
+{
+  "name": "backbone-next",
+  "private": true,
+  "description": "Backbone Base: a small strict core, ports, modules and surfaces for building governed assistants, used alone or as the base of a distribution (working name).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.30.1",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "check": "node scripts/no-leftovers.mjs node --test scripts/*.test.mjs && node scripts/check.mjs && pnpm --filter @backbone/core test && pnpm --filter @backbone-next/mcp test && pnpm --filter @backbone-next/harness-hermes test",
+    "test:install": "BACKBONE_INSTALL_TEST=1 node --test scripts/cli-install.test.mjs",
+    "guides": "node scripts/guide-steps.mjs",
+    "oracle": "node scripts/no-leftovers.mjs node oracle/runner.mjs --adapter successor",
+    "gate": "node scripts/gate.mjs",
+    "regen": "node scripts/regen.mjs",
+    "ship:mac": "node scripts/ship-mac.mjs",
+    "public:tree": "node scripts/public-tree.mjs"
+  },
+  "devDependencies": {
+    "@babel/parser": "8.0.7",
+    "@quantco/pnpm-licenses": "2.4.2",
+    "ajv": "8.20.0",
+    "fast-check": "4.10.2",
+    "fs-native-extensions": "1.5.3",
+    "pg": "8.23.0",
+    "semver": "7.8.5",
+    "vitest": "5.0.2"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Parallel work: parent starts two children and a read-only reviewer, person steers from the phone, results merge",
+  "owns": [
+    "packages/core",
+    "packages/platform",
+    "packages/surfaces/app"
+  ],
+  "conformance": "conformance/C-ma"
+}

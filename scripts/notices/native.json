@@ -1,0 +1,92 @@
+{
+  "packageVersion": "18.4.0-beta.17",
+  "components": {
+    "PostgreSQL": {
+      "license": "PostgreSQL",
+      "source": "https://raw.githubusercontent.com/postgres/postgres/REL_18_4/COPYRIGHT",
+      "file": "native/PostgreSQL.txt",
+      "sha256": "3d6af92ff8a4c2cdf69afb1cf44edea727922f5cd0cf8b5f72b11cdecac8fdfd"
+    },
+    "OpenSSL": {
+      "license": "Apache-2.0",
+      "source": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.5.6/LICENSE.txt",
+      "file": "native/OpenSSL.txt",
+      "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+    },
+    "zstd": {
+      "license": "BSD-3-Clause",
+      "source": "https://raw.githubusercontent.com/facebook/zstd/v1.5.7/LICENSE",
+      "file": "native/zstd.txt",
+      "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8"
+    },
+    "lz4": {
+      "license": "BSD-2-Clause",
+      "source": "https://raw.githubusercontent.com/lz4/lz4/v1.10.0/lib/LICENSE",
+      "file": "native/lz4.txt",
+      "sha256": "8b58c446121a109ccf32edc094bba3010a3d85e4ee3702950db55e4d3e87736c"
+    },
+    "zlib": {
+      "license": "Zlib",
+      "source": "https://raw.githubusercontent.com/madler/zlib/v1.3.2/LICENSE",
+      "file": "native/zlib.txt",
+      "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+    },
+    "ICU": {
+      "license": "Unicode-3.0",
+      "source": "https://raw.githubusercontent.com/unicode-org/icu/release-77-1/LICENSE",
+      "file": "native/ICU.txt",
+      "sha256": "2b598da0d9ae04690f7a55343f771cf225405b4ed41e4d7e15abbd0e31e755a9"
+    },
+    "Kerberos": {
+      "license": "MIT and BSD-3-Clause",
+      "source": "https://raw.githubusercontent.com/krb5/krb5/krb5-1.22-final/NOTICE",
+      "file": "native/Kerberos.txt",
+      "sha256": "83914195f655de4f4970014a26f38b16bf4c5ff357ea51645ca2aea3a92764eb"
+    },
+    "libiconv": {
+      "license": "LGPL-2.1-or-later",
+      "source": "https://raw.githubusercontent.com/roboticslibrary/libiconv/master/COPYING.LIB",
+      "file": "native/libiconv.txt",
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+      "version": "1.18",
+      "archiveUrl": "https://ftp.gnu.org/gnu/libiconv/libiconv-1.18.tar.gz",
+      "archiveSha256": "3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8",
+      "unmodified": true,
+      "replacementPath": "Contents/Resources/postgres/native/lib/libiconv.2.dylib",
+      "providerSha256": "b486a446ffb46ce0531cb25addfe9bfa1564ebbeea1490c694330aadefa8e008"
+    },
+    "libintl": {
+      "license": "LGPL-2.1-or-later",
+      "source": "https://raw.githubusercontent.com/autotools-mirror/gettext/master/gettext-runtime/intl/COPYING.LIB",
+      "file": "native/libintl.txt",
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+      "version": "0.26",
+      "archiveUrl": "https://ftp.gnu.org/gnu/gettext/gettext-0.26.tar.gz",
+      "archiveSha256": "39acf4b0371e9b110b60005562aace5b3631fed9b1bb9ecccfc7f56e58bb1d7f",
+      "unmodified": true,
+      "replacementPath": "Contents/Resources/postgres/native/lib/libintl.8.dylib",
+      "providerSha256": "2449c21c1ceeb6965ce6e5259d515797786f0647e80a04108642be0426d5063d"
+    },
+    "libuuid": {
+      "license": "BSD-3-Clause",
+      "source": "https://raw.githubusercontent.com/util-linux/util-linux/v2.41/libuuid/COPYING ; https://raw.githubusercontent.com/util-linux/util-linux/v2.41/Documentation/licenses/COPYING.BSD-3-Clause",
+      "file": "native/libuuid.txt",
+      "sha256": "bad621f7fbb93d21577ab6612c200b05ef5669ad5d1f4f154dc3fdabae1741f2"
+    },
+    "libxml2": {
+      "license": "MIT",
+      "source": "https://raw.githubusercontent.com/GNOME/libxml2/v2.14.3/Copyright",
+      "file": "native/libxml2.txt",
+      "sha256": "5d4873884a890122a4b9b20ad56ac6f7da1d796a5bfcf04a427970ac96217626"
+    },
+    "libedit": {
+      "license": "BSD-3-Clause",
+      "source": "https://raw.githubusercontent.com/NetBSD/src/trunk/lib/libedit/el.c",
+      "file": "native/libedit.txt",
+      "sha256": "1c399b89a29d3705329dbb7fdd7b27889fdb7c4b0dd4d8c147e460b364ef6cf1"
+    }
+  },
+  "payloadDigests": {
+    "darwin": "f2ff43313b0570c8578c9bd6fb24b367bc6dc5cb226cc7ecc601a37b93ad0181"
+  }
+}

@@ -1,0 +1,2 @@
+// Frozen only from a disposable build after the exact identity-v1 predecessor.
+export const IDENTITY_WORK_PINS: { payload: string; predecessor: string; catalogue: string } | null = {"payload":"156aec912cfbcb3c284f74b0ccb4ec1a4042deb98520b51b9c3741994dcafdcb","predecessor":"00d155ba3da7162219d5a321a1eda9fe257d1b11e1caf86e0f8ea561aba08bc7","catalogue":"775e5dd228de326b82dca9481f1d50ffabea88a0665f059483f7d2b5af10c431"};

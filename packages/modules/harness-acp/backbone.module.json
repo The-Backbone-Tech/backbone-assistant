@@ -1,0 +1,118 @@
+{
+  "$schema": "../../../schemas/backbone.module.schema.json",
+  "manifest": 1,
+  "id": "io.github.albertoangulo/harness-acp",
+  "kind": "module",
+  "version": "0.0.0",
+  "licence": "Apache-2.0",
+  "publisher": {
+    "name": "Backbone maintainers",
+    "namespace": "io.github.albertoangulo",
+    "verification": {
+      "method": "github",
+      "status": "pending"
+    }
+  },
+  "provides": [
+    {
+      "port": "Harness",
+      "range": "0.x"
+    }
+  ],
+  "consumes": [
+    {
+      "port": "ToolHost",
+      "range": "0.x"
+    }
+  ],
+  "stability": "experimental",
+  "capabilities": {
+    "nativeTools": "account",
+    "planes": [
+      "personal"
+    ],
+    "effectClasses": [
+      2
+    ],
+    "operations": [
+      "workspace.write_document"
+    ],
+    "network": [
+      "agent-managed-network"
+    ],
+    "secrets": "surrogate"
+  },
+  "data": {
+    "owns": [
+      "agent session ids and private agent state"
+    ],
+    "migrations": [],
+    "export": "canonical documents and history belong to the core; native agent state is not exported"
+  },
+  "dependsOn": [
+    {
+      "name": "@agentclientprotocol/sdk",
+      "version": "2.5.0",
+      "licence": "Apache-2.0"
+    }
+  ],
+  "conformance": {
+    "suite": [
+      "packages/modules/harness-acp/test/harness.test.ts",
+      "packages/modules/harness-acp/test/write-restrictions.test.ts",
+      "packages/platform/test/harness-acp.test.ts",
+      "packages/modules/harness-acp/test/mcp.test.ts",
+      "packages/modules/harness-acp/test/files.test.ts",
+      "packages/modules/harness-acp/test/seatbelt.test.ts",
+      "packages/modules/harness-acp/test/storage.test.ts",
+      "packages/modules/harness-acp/test/review-fixes.test.ts",
+      "packages/platform/test/harnesses-config.test.ts",
+      "packages/modules/harness-acp/test/shim-secrets.test.ts",
+      "packages/modules/harness-acp/test/folders.test.ts",
+      "packages/modules/harness-acp/test/incarnation.test.ts",
+      "packages/modules/harness-acp/test/reconnect-lifecycle.test.ts",
+      "packages/modules/harness-acp/test/open-identity.test.ts",
+      "packages/modules/harness-acp/test/retire-poison.test.ts",
+      "packages/modules/harness-acp/test/opt-in.test.ts",
+      "packages/platform/test/harness-acp-opt-in.test.ts",
+      "packages/platform/test/pieces.test.ts",
+      "packages/platform/test/selection.test.ts",
+      "packages/modules/harness-acp/test/cleanup-stop.test.ts",
+      "packages/modules/harness-acp/test/unknown-flight.test.ts",
+      "packages/modules/harness-acp/test/cleanup-report.test.ts",
+      "packages/modules/harness-acp/test/retire-native.test.ts",
+      "packages/modules/harness-acp/test/invalid-tools.test.ts",
+      "packages/modules/harness-acp/test/cleanup-command.test.ts",
+      "packages/modules/harness-acp/test/removal-fallback.test.ts",
+      "packages/modules/harness-acp/test/repair-links.test.ts",
+      "packages/modules/harness-acp/test/repair-dashes.test.ts"
+    ],
+    "quality": {
+      "level": "bronze",
+      "exemptions": [
+        {
+          "rule": "real-agent qualification",
+          "reason": "transport and Host tests use a local fake; vendor sign-in and installed-agent compatibility remain unqualified"
+        },
+        {
+          "rule": "process visibility",
+          "reason": "off by default; acceptsProcessVisibility must explicitly acknowledge that other same-user process environments and command lines can expose API keys; bridge capabilities stay in session-private files and never process argv or environment"
+        },
+        {
+          "rule": "retained connector read invocation binding",
+          "reason": "the integrated Host requires native pi/codex invocation identity; this generic ACP route does not fabricate one from MCP request IDs and retained connector reads refuse"
+        },
+        {
+          "rule": "descendant process lifetime",
+          "reason": "detached descendants and children surviving an agent self-exit are not guaranteed to be killed; fresh random incarnation paths prevent access to the next capability file and working folder, while permitted reads, outbound networking and already-open file handles remain possible"
+        }
+      ]
+    }
+  },
+  "removal": {
+    "refusedWhileUnknown": true,
+    "rule": "stop active ACP attempts before removal; canonical receipts stay with the core"
+  },
+  "swap": "select another Harness through composition; native agent sessions do not transfer",
+  "digest": "sha256:a94696fc60538576ebd59c42c8e5cd3eac0269293d463acbcdd533ae78775a33"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@backbone-next/connector-mail",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "The mail connector port's adapters: the sample mailbox (a fake provider seeded with a labelled inbox), each request classified from the request itself, writes gated.",
+  "backbone": {
+    "layer": "modules"
+  },
+  "bin": {
+    "backbone-fake-gmail-mcp": "./src/gmail-mcp-main.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./gmail-mcp": "./src/gmail-mcp.ts",
+    "./gmail-preset": "./src/gmail-preset.ts"
+  },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@modelcontextprotocol/client": "2.4.0",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

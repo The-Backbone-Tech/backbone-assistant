@@ -1,0 +1,31 @@
+{
+  "name": "@backbone-next/channels",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Messaging channels over the Host API.",
+  "backbone": {
+    "layer": "surfaces"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node ../../../scripts/no-leftovers.mjs node ../../../scripts/with-test-cluster.mjs node --require ../../../scripts/lib/test-local-network.cjs --test test/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@backbone-next/platform": "workspace:*",
+    "@chat-adapter/discord": "4.44.0",
+    "@chat-adapter/slack": "4.44.0",
+    "@chat-adapter/state-memory": "4.44.0",
+    "@chat-adapter/teams": "4.44.0",
+    "@chat-adapter/telegram": "4.44.0",
+    "chat": "4.44.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}
