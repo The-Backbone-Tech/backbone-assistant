@@ -2,6 +2,12 @@
 
 Source pre-release 0.2.0, reviewed 14 November 2026. This repository contains a clean source snapshot with fresh Git history. It does not host a previously built private binary. [README](../README.md) and the [source release record](source-release.md) explain installation and evidence.
 
+## Public Mac download
+
+The [unsigned Apple-silicon pre-release](https://github.com/The-Backbone-Tech/backbone-assistant/releases/tag/v0.2.0-macos-arm64.1) is built from clean public source `b1bcaa865e572a14a2d48c759bbd39cd04162cb5`, preserved by `v0.2.0-source.1`. Its two focused installed tests cover the scripted file/document journey with restart and edits, and reading every bundled notice. The actual extracted native libraries passed PostgreSQL, encoding and translation smoke checks. The complete installed inventory and privacy review passed; the release includes exact digests, provenance, notices inventory and GNU source archives.
+
+This is a source-linked binary delivery, not full J-01, human, two-physical-computer Team or Company acceptance. It remains unsigned and unnotarised. Later private-runtime fixes are outside this frozen public build.
+
 ## Personal and Team
 
 Personal includes the desktop conversation, CLI and MCP surface, editable versioned files, engine/model choice, connectors, memory and skills, scheduled/background work, audit and data export. Team adds people and roles, shared projects, joining from another client, viewer restrictions and removal. The source includes both terminal and app joining paths.
@@ -15,7 +21,7 @@ The public export has its own privacy, source and structural checks, recorded se
 - Record human use and feedback on everyday Personal and Team work.
 - Exercise Team joining, recovery and access control on two physical computers and the actual network configuration.
 - Complete the Company configuration, including identity-provider operation, directory lifecycle, policy, audit and fleet qualification.
-- Sign and notarise macOS builds; independently build and inspect public binary artifacts before publishing them.
+- Sign and notarise macOS builds; independently build and inspect each future public binary before publication.
 - Continue platform-specific real-engine, account, upgrade and recovery qualification.
 - Compare complete jobs when a claim of being better depends on the result.
 
