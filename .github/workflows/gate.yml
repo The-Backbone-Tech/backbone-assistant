@@ -8,6 +8,11 @@ on:
         description: Exact published source commit
         required: true
         default: 8fee4557c37b7f78e09875cd1003f9a06e6b1c28
+      test_scope:
+        description: Full installed qualification or focused boundary diagnosis
+        type: choice
+        options: [full, pi-sandbox]
+        default: full
 permissions:
   contents: read
 jobs:
@@ -17,6 +22,7 @@ jobs:
     env:
       SOURCE_COMMIT: 8fee4557c37b7f78e09875cd1003f9a06e6b1c28
       PUBLIC_SOURCE: /private/tmp/backbone-public-source
+      TEST_SCOPE: ${{ inputs.test_scope }}
       BACKBONE_PUBLIC_DISTRIBUTION: '1'
       BACKBONE_DISTRIBUTION: /private/tmp/backbone-public-source/distributions/backbone/distribution.json
     steps:
@@ -54,16 +60,30 @@ jobs:
       - name: Build the unmodified pinned GNU shared libraries
         working-directory: /private/tmp/backbone-public-source
         run: node scripts/native-lgpl/build.mjs
-      - name: Package and run the complete installed app selection
+      - name: Package and run the selected installed app checks
+        id: installed
         working-directory: /private/tmp/backbone-public-source
-        run: pnpm --filter @backbone-next/app e2e:installed
+        shell: bash
+        run: |
+          case "$TEST_SCOPE" in
+            full) pnpm --filter @backbone-next/app e2e:installed ;;
+            pi-sandbox) pnpm --filter @backbone-next/app e2e:installed --grep '^Pi shell is confined on macOS' ;;
+            *) echo 'Unknown verification scope' >&2; exit 1 ;;
+          esac
       - name: Check the libraries extracted from the actual disk image
+        if: always()
+        id: native_smoke
         working-directory: /private/tmp/backbone-public-source/packages/surfaces/app
         shell: bash
         run: |
           node scripts/install-dmg.mjs "$RUNNER_TEMP/public-native-check"
           node ../../../scripts/native-lgpl/smoke.mjs "$RUNNER_TEMP/public-native-check/Backbone.app/Contents/Resources/postgres/native"
-      - name: Verify source and stage source-linked artifacts
+      - name: Verify source and retain the exact artifact even after a test failure
+        if: always()
+        id: stage
+        env:
+          INSTALLED_TEST_OUTCOME: ${{ steps.installed.outcome }}
+          NATIVE_SMOKE_OUTCOME: ${{ steps.native_smoke.outcome }}
         working-directory: /private/tmp/backbone-public-source
         shell: bash
         run: |
@@ -85,9 +105,10 @@ jobs:
           copyFileSync('dist/native-lgpl/output/build.json',join(out,'native-lgpl-build.json'));
           for(const file of ['libiconv-1.18.tar.gz','libiconv-1.18.tar.gz.sig','gettext-0.26.tar.gz','gettext-0.26.tar.gz.sig'])copyFileSync(join('dist/native-lgpl/downloads',file),join(out,file));
           const hash=file=>createHash('sha256').update(readFileSync(file)).digest('hex');
-          writeFileSync(join(out,'hosted-provenance.json'),JSON.stringify({sourceCommit:process.env.SOURCE_COMMIT,sourceTree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),workflowCommit:process.env.GITHUB_SHA,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,runUrl:`https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,runnerImage:process.env.ImageOS,runnerImageVersion:process.env.ImageVersion,macOS:execFileSync('sw_vers',['-productVersion'],{encoding:'utf8'}).trim(),node:process.version,arch:process.arch,pnpm:execFileSync('pnpm',['--version'],{encoding:'utf8'}).trim(),lockSha256:hash('pnpm-lock.yaml'),distributionSha256:hash('distributions/backbone/distribution.json'),dmgSha256:info.sha256,buildId:info.compiled.id,checks:['fixed clean published source','public-distribution GNU source/signature/recipe checks','full default installed-app journey selection on this public disk image','actual extracted PostgreSQL/libintl smoke'],signed:false,notarised:false,publicPrivacyReview:'required separately before release publication'},null,2)+'\n');
+          writeFileSync(join(out,'hosted-provenance.json'),JSON.stringify({sourceCommit:process.env.SOURCE_COMMIT,sourceTree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),workflowCommit:process.env.GITHUB_SHA,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,runUrl:`https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,runnerImage:process.env.ImageOS,runnerImageVersion:process.env.ImageVersion,macOS:execFileSync('sw_vers',['-productVersion'],{encoding:'utf8'}).trim(),node:process.version,arch:process.arch,pnpm:execFileSync('pnpm',['--version'],{encoding:'utf8'}).trim(),lockSha256:hash('pnpm-lock.yaml'),distributionSha256:hash('distributions/backbone/distribution.json'),dmgSha256:info.sha256,buildId:info.compiled.id,verificationScope:process.env.TEST_SCOPE,installedTestOutcome:process.env.INSTALLED_TEST_OUTCOME,nativeSmokeOutcome:process.env.NATIVE_SMOKE_OUTCOME,checks:['fixed clean published source','public-distribution GNU source/signature/recipe checks','installed selection outcome recorded separately','actual extracted PostgreSQL/libintl smoke outcome recorded separately'],signed:false,notarised:false,publicPrivacyReview:'required separately before release publication'},null,2)+'\n');
           JS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && steps.stage.outcome == 'success'
         with:
           name: public-macos-arm64-build
           path: ${{ runner.temp }}/public-macos-artifacts/
