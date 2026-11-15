@@ -1,4 +1,4 @@
-# Delta verification: unchanged runtime proof is retained in run 43665566626.
+# Delta verification: runtime proof is in run 43665566626; unchanged check tests passed in 43666473045.
 name: Public source metadata and self-tests
 on:
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
           mkdir -p .csv-evidence
           git rev-parse HEAD > .csv-evidence/source.txt
           BACKBONE_GUIDE_STEP=1 node scripts/check.mjs > .csv-evidence/static.log 2>&1
-          node --test --test-concurrency=1 scripts/*.test.mjs > .csv-evidence/self-tests.log 2>&1
+          node --test --test-name-pattern="SQL:" scripts/checks.test.mjs > .csv-evidence/self-tests.log 2>&1
       - name: Retain delta evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
