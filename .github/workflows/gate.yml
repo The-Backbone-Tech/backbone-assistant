@@ -48,10 +48,13 @@ jobs:
           node --test scripts/public-tree.test.mjs
           BACKBONE_GUIDE_STEP=1 node scripts/check.mjs
           node --test packages/platform/test/harness-messages.test.ts
+      - name: Install Chromium required by the full installed selection
+        working-directory: /private/tmp/backbone-public-source
+        run: pnpm --filter @backbone-next/app exec playwright install chromium
       - name: Build the unmodified pinned GNU shared libraries
         working-directory: /private/tmp/backbone-public-source
         run: node scripts/native-lgpl/build.mjs
-      - name: Package and run the focused installed app journeys
+      - name: Package and run the complete installed app selection
         working-directory: /private/tmp/backbone-public-source
         run: pnpm --filter @backbone-next/app e2e:installed
       - name: Check the libraries extracted from the actual disk image
