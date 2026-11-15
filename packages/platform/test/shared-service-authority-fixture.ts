@@ -41,6 +41,7 @@ export function restrictedMethodArgs(projectId:string,threadId:string,turnId:str
     'models.local':{},
     'settings.engine.put':{engine:'harness-stub'},
     'settings.model.get':{},
+    'settings.engines.get':{},
     'settings.policy.get':{},
     'settings.model.put':{change:{route:'own',provider:'openai-compatible',baseUrl:'http://127.0.0.1:1',model:'probe',key:'fake-authority-probe'}},
     'tools.list':{},

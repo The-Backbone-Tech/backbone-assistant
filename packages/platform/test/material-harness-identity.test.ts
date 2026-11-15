@@ -95,7 +95,8 @@ for (const opened of [false, true]) test(`staged project files are availability,
   let checked = false;
   const harness: HarnessV1 = { specificationVersion: 'v1', id: 'test', label: 'test', start(_request, { tools }) {
     const outcome = (async () => {
-      for (const file of await tools.list()) await tools.read(file.name, { purpose: 'staging' });
+      for (const file of await tools.list({ purpose: 'staging' })) await tools.read(file.name, { purpose: 'staging' });
+      assert.deepEqual(turn.work.steps.filter(s => s.kind === 'list'), [], 'a staging listing records no listing step');
       if (opened) await tools.read(entries[0].name);
       assert.deepEqual(turn.work.steps.filter(s => s.kind === 'read').map(s => s.label), opened ? ['Read downloads-review.md v1'] : []);
       assert.deepEqual(turn.reads!.filter(r => !r.available).map(r => r.name), opened ? ['downloads-review.md'] : []);
@@ -114,4 +115,24 @@ for (const opened of [false, true]) test(`staged project files are availability,
     credential: async () => { throw new Error('No credential'); }, history: [], resumed: false, tell: () => ({ roleTools: ['Glob', 'Read'] }), progress() {} }, turn, []);
   assert.equal(checked, true, JSON.stringify(turn));
   assert.equal(turn.withheld, true);
+});
+
+test('a listing the model asks for still records a listing step', async (t) => {
+  const home = mkdtempSync(join(tmpdir(), 'material-ordinary-list-')); t.after(() => rmSync(home, { recursive: true, force: true }));
+  const material = new MaterialStore(home, {}, () => {});
+  for (const name of ['one.md', 'two.md']) material.create('p', name, 'text/markdown', Buffer.from('Synthetic project text'), 'working', 'person');
+  const turn: Turn = { id: 'turn', side: false, status: 'running', user: { text: 'List', attachments: [], at: '' }, work: { startedAt: '', harness: 'test', steps: [] }, effects: [] };
+  const harness: HarnessV1 = { specificationVersion: 'v1', id: 'test', label: 'test', start(_request, { tools }) {
+    const outcome = (async () => {
+      await tools.list({ purpose: 'staging' });
+      assert.deepEqual(turn.work.steps.map(s => s.label), []);
+      assert.equal((await tools.list()).length, 2);
+      assert.deepEqual(turn.work.steps.filter(s => s.kind === 'list').map(s => s.label), ['Listed 2 file(s)']);
+      return { status: 'done' as const, answer: 'Synthetic answer', usage: { input: 0, output: 0 } };
+    })();
+    return { events: (async function* () {})(), outcome, steer() {}, stop() {} };
+  } };
+  await runHarnessTurn({ material, projectId: 'p', gateway: { read: syntheticMaterialReader(home, material, 'p'), async write() { throw new Error('No writes'); } }, writeDelayMs: 0,
+    signal: new AbortController().signal, threadId: 'thread', harness, route: { kind: 'endpoint', provider: 'openai-compatible', baseUrl: 'http://localhost', model: 'fixture', label: 'fixture', credential: null },
+    credential: async () => { throw new Error('No credential'); }, history: [], resumed: false, progress() {} }, turn, []);
 });

@@ -17,9 +17,9 @@ function identity(home: string): string {
     const id = readFileSync(identityPath(home), 'utf8').trim();
     if (ACCOUNT.test(id)) return id;
   } catch {}
-  throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This home\'s system key store identity is missing or invalid; nothing was changed.');
+  throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This data folder\'s system key store identity is missing or invalid; nothing was changed.');
 }
-const invalid = () => new SystemKeysRefused({ kind: 'wrapped-key-invalid' }, 'not-unwrapped', 'The system key store could not authenticate this home\'s wrapped key; nothing was changed.');
+const invalid = () => new SystemKeysRefused({ kind: 'wrapped-key-invalid' }, 'not-unwrapped', 'The system key store could not authenticate this data folder\'s wrapped key; nothing was changed.');
 async function readKey(store: SystemKeyStore, account: string): Promise<Buffer | null> {
   let key: Buffer | null;
   try { key = await store.get(account); }
@@ -100,7 +100,7 @@ export function systemKeys(home: string, store: SystemKeyStore = toolStore(), op
       } catch { throw invalid(); }
       const account = envelope.account; // GCM authenticates this account as additional data.
       const wrapping = await readKey(store, account);
-      if (!wrapping) throw new SystemKeysRefused({ kind: 'missing-item' }, 'not-unwrapped', 'This home\'s keys are gone from the system key store; nothing was changed.');
+      if (!wrapping) throw new SystemKeysRefused({ kind: 'missing-item' }, 'not-unwrapped', 'This data folder\'s keys are gone from the system key store; nothing was changed.');
       let key: Buffer;
       try {
         const decipher = createDecipheriv('aes-256-gcm', wrapping, Buffer.from(envelope.iv, 'base64'));

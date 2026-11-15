@@ -20,6 +20,7 @@ test('a person configures an ACP agent, restarts, and receives a document with i
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await dialog.getByRole('button', { name: 'AI and models', exact: true }).click();
+    await dialog.getByText('Change your model', { exact: true }).click();
     const form = dialog.getByRole('form', { name: 'ACP agent', exact: true });
     await expect(form.getByRole('button', { name: 'Save ACP agent' })).toBeDisabled();
     await expect(form).toContainText('@agentclientprotocol/claude-agent-acp');
@@ -97,6 +98,7 @@ test('Claude setup uses machine sign-in and refuses a signed-out client without 
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await dialog.getByRole('button', { name: 'AI and models', exact: true }).click();
+    await dialog.getByText('Change your model', { exact: true }).click();
     const form = dialog.getByRole('form', { name: 'ACP agent', exact: true });
     await expect(form.getByLabel('Agent rights')).toHaveValue('person-rights');
     await expect(form.getByLabel('Agent rights')).toBeDisabled();
@@ -150,6 +152,7 @@ test('Claude setup uses machine sign-in and refuses a signed-out client without 
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const reopened = page.getByRole('dialog', { name: 'Settings' });
     await reopened.getByRole('button', { name: 'AI and models', exact: true }).click();
+    await reopened.getByText('Change your model', { exact: true }).click();
     const refresh = reopened.getByRole('button', { name: 'Refresh engine sign-in', exact: true });
     await expect(refresh).toBeVisible();
     expect(puts).toEqual([]);

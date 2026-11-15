@@ -6,7 +6,7 @@ import { policyView } from '../policy/index.ts';
 import { join } from 'node:path';
 import { selectedHarness, engineLabel } from './engine-settings.ts';
 import type { Args, Changes, Method, ModelSettings, Project, Receipt, Result, Thread, ThreadSummary, ViewerPrefs } from '../api.ts';
-import { DEFAULT_PREFS } from '../api.ts';
+import { DEFAULT_PREFS, normaliseViewerPrefs } from '../api.ts';
 import type { ConnectorService } from '../connectors/service.ts';
 import type { CredentialStore } from '../credentials/store.ts';
 import { detectLocalModels } from '../models/local.ts';
@@ -30,7 +30,7 @@ import { standingSignatureStatus } from './signature-status.ts';
 import type { StoredThread } from './thread-journal.ts';
 
 /** What a read-only host answers. Everything else changes something, or can. */
-export const READS = new Set<Method>(['threads.rewindPreview', 'audit.export', 'core.signatureStatus', 'backup.export', 'backup.inspect', 'solutions.options', 'solutions.verify', 'projects.list', 'threads.list', 'threads.get', 'material.list', 'material.read', 'files.list', 'files.resolveLink', 'work.now', 'drafts.get', 'changes.get', 'models.list', 'models.local', 'settings.policy.get', 'settings.model.get', 'viewer.get', 'board.get', 'connectors.list', 'schedules.get']);
+export const READS = new Set<Method>(['threads.rewindPreview', 'audit.export', 'core.signatureStatus', 'backup.export', 'backup.inspect', 'solutions.options', 'solutions.verify', 'projects.list', 'threads.list', 'threads.get', 'material.list', 'material.read', 'files.list', 'files.resolveLink', 'work.now', 'drafts.get', 'changes.get', 'models.list', 'models.local', 'settings.policy.get', 'settings.model.get', 'settings.engines.get', 'viewer.get', 'board.get', 'connectors.list', 'schedules.get']);
 
 const refused = <T>(reason: 'NOT_FOUND' | 'NOT_A_REPOSITORY' | 'NOT_AVAILABLE' | 'INVALID' | 'STALE_BASE', detail: string): Receipt<T> => ({ ok: false, reason, detail, outcome: 'REFUSED' });
 
@@ -161,7 +161,7 @@ export function createHostReads(deps: HostReadDeps) {
     },
     'settings.policy.get': () => policyView(home),
     'settings.model.get': (): ModelSettings => ({ ...routes.settings(), ...(deps.nativeProblem ? { hint: deps.nativeProblem } : {}), harness: label() }),
-    'viewer.get': () => ({ ...DEFAULT_PREFS, ...readJson<Partial<ViewerPrefs>>(join(home, 'viewer.json'), {}) }),
+    'viewer.get': () => normaliseViewerPrefs({ ...DEFAULT_PREFS, ...readJson<Partial<ViewerPrefs>>(join(home, 'viewer.json'), {}) }),
     // Listing observes only; writable startup and mutations reconcile connector authority.
     'connectors.list': () => connectors.list(),
     'audit.export': async (args) => auditReceipt(await core, args),

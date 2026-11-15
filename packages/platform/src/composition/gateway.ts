@@ -150,7 +150,7 @@ async function grantDoorHeld(options: GrantOptions): Promise<DoorGrant> {
   const expiresAt = options.expiresAt ?? new Date(Date.now() + (options.days ?? 30) * DAY);
   if (expiresAt.getTime() <= Date.now()) throw new Error('This grant\'s expiry has already passed; nothing was granted.');
   // A name is granted once: granting it again would leave the earlier mandate acting, out of reach of revoke.
-  const taken = () => new Error(`A door named ${options.name} is already granted in this home; revoke it and grant another name.`);
+  const taken = () => new Error(`A door named ${options.name} is already granted in this data folder; revoke it and grant another name.`);
   const piece = pieceOnDisk(options.piece ?? PIECES.mcp.dir, PIECES.mcp.id);
   const link = await CoreLink.open({ home: options.home, baselineSql: options.baselineSql, postgresNative: options.postgresNative, keys: options.keys });
   try {
@@ -210,7 +210,7 @@ async function grantDoorHeld(options: GrantOptions): Promise<DoorGrant> {
 export function revokeDoor(options: { home: string; name: string; intent?: string } & Pick<CoreOptions, 'baselineSql' | 'postgresNative' | 'keys'>): Promise<number> {
   return personOperation(options.home, async () => {
     const grant = readGrant(options.home, options.name);
-    if (!grant && !options.intent) throw new Error(`No door named ${options.name} in this home.`);
+    if (!grant && !options.intent) throw new Error(`No door named ${options.name} in this data folder.`);
     const link = await CoreLink.open({ home: options.home, baselineSql: options.baselineSql, postgresNative: options.postgresNative, keys: options.keys });
     try {
       const mandates = new Set<string>(grant ? [grant.mandate] : []);
@@ -286,7 +286,7 @@ function receiptOf(row: EffectRow): EffectReceipt {
 }
 
 const refusal = (reason: GatewayRefusalReason, detail: string): GatewayRefusal => ({ ok: false, outcome: 'REFUSED', reason, detail });
-const NO_MANDATE = refusal('NO_MANDATE', 'This door has no standing mandate: no grant, or its mandate was revoked or has expired. The person grants one in the app, or with `backbone-mcp grant` for a test home.');
+const NO_MANDATE = refusal('NO_MANDATE', 'This door has no standing mandate: no grant, or its mandate was revoked or has expired. The person grants one in the app, or with `backbone-mcp grant` for a test data folder.');
 
 /** A core refusal by its reason code only: the core's message text is never passed on (it may carry the caller's words). */
 function fromCore(error: unknown): GatewayRefusal {

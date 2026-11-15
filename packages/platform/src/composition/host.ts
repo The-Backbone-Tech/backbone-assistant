@@ -1,3 +1,6 @@
+import { IdentityRefused, recoveryRefusal } from './identity-core.ts';
+import { assertSharedHistory } from './shared-history.ts';
+import { createSharedEngine } from './shared-engine.ts';
 import { createTurnCarrier } from './turn-carrier.ts';
 import {nativeTurnForProject} from './engine-admission.ts';
 import {deviceRecoveryControls} from './device-recovery.ts';
@@ -14,7 +17,8 @@ import { createKeyedProject } from './project-create.ts';
 import { createProjectFiles } from './project-files.ts';
 import { createThreadRewind, rewindControl, syncRewindVersions } from './thread-rewind.ts';
 import { rewindAdmission, rewindWriteHold } from './rewind-admission.ts';
-import { withHomeLock, assertHomeWriteAdmission } from './home-lock.ts';
+import {attachmentName} from '../material-attachment.ts';
+import { withHomeLock, assertHomeWriteAdmission, HomeWriteUnavailable } from './home-lock.ts';
 import {createMaterialWithdrawalDelivery} from './material-withdrawal-delivery.ts';
 import { refuseStampedHome } from './home-kernel.ts';
 import { requireCompleteHome } from './home-complete.ts';
@@ -58,14 +62,14 @@ import { createProactivity } from './proactivity.ts';
 import { choose } from '../selection/choose.ts';
 import { inventory } from '../selection/inventory.ts';
 import { asShown, continuedSelection, historyRefusal, pinFor, pinnedRoute, replayOf, turnRoute, withNamedModel } from '../selection/pin.ts';
-import { codexCheck } from './doctor.ts';
+import { codexCheck, codexCheckAsync } from './doctor.ts';
 import { AppChanges, createTriggers } from './triggers.ts';
 import { createMemory } from './memory.ts';
 import { createGoalRuns } from './goal-runs.ts';
 import { createTaskBoard } from './task-board.ts';
 import { searchThreads } from './thread-search.ts';
 import { createConnectorReadDecisions } from './connector-read-decisions.ts';
-import { ThreadJournal, type StoredThread } from './thread-journal.ts';
+import { ThreadJournal, applyEvent, type StoredThread } from './thread-journal.ts';
 import { saveThreadProjection, custodyRun, unconfirmedCustody } from './thread-custody.ts';
 import { ownHome, prepareHome, priorHomeRelease, homeRelease, trackHomeRelease, waitToRemoveHome } from './home-owner.ts';
 import { checkpointRepairNotice, createRecoveryRepair } from './checkpoint-repair.ts';
@@ -80,6 +84,7 @@ import { connectorEnabling, setConnectorFromApi } from './connector-settings.ts'
 import { ConnectorService } from '../connectors/service.ts';
 import type { ServerSource } from '../connectors/discover.ts';
 import type { CapabilityView, ConnectorServer, HeldCall, SignCapability, TriageView } from '../api.ts';
+import { normaliseViewerPrefs } from '../api.ts';
 import type { MailConnector, MailModule, TriageTask } from '../ports/mail.ts';
 import { viewOf } from '../triage/brief.ts';
 import { summaryOf } from '../triage/capability.ts';
@@ -95,7 +100,7 @@ export { requireCompleteHome, HomeIncomplete } from './home-complete.ts';
 // (no static import), and calls the named factory.
 // The terminal's output reaches the renderer, so the app's own secrets stay out of its environment.
 const withoutSecrets = (env: NodeJS.ProcessEnv) => Object.fromEntries(Object.entries(env).filter(([name]) => !/KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL/i.test(name)));
-import { selectedHarness, setEngine } from './engine-settings.ts';
+import { engineChoices, selectedHarness, setEngine, settingsCheck } from './engine-settings.ts';
 import { hostToolsOnly, HARNESSES, harnessConfiguration, loadHarness, closeHarness, removeHarnessState } from './harnesses.ts';
 type StoredProject = Project & { dir: string };
 type CrashPoint = WriteCrashPoint;
@@ -103,7 +108,7 @@ const refused = <T>(reason: 'NOT_FOUND' | 'NOT_A_REPOSITORY' | 'NOT_AVAILABLE' |
 const now = () => new Date().toISOString();
 /** How often the host looks for dispatches a dead door left behind. */
 const SWEEP_MS = 5_000;
-const READ_ONLY = 'This data home was opened read-only.';
+const READ_ONLY = 'This data folder was opened read-only.';
 const CLOSING = 'This app is closing; nothing was read, changed, signed or sent.';
 import { turnAdmissions, type TurnAdmissionOptions } from './turn-admission.ts';
 export function createHost(options: HostOptions): Host {
@@ -149,6 +154,8 @@ export function createHost(options: HostOptions): Host {
   const interrupted: { thread: StoredThread; turn: Turn }[] = [];
   // Configuration layers, the narrowest first: the session, the person, the distribution, the platform.
   const harnessId = selectedHarness(home, options.harness);
+  // Settings' engine list asks Codex without blocking this process, once at a time, reused for 30 seconds.
+  const settingsCodexCheck = settingsCheck(codexCheckAsync, 30_000);
   const admission = createPolicyAdmission(home, harnessId, () => harnessConfig.options, options.keys, () => host, readOnly);
   const harnessRegistrationInfo = HARNESSES[harnessId], harnessConfig = harnessConfiguration(home, harnessRegistrationInfo);
   admission.check();
@@ -162,8 +169,12 @@ export function createHost(options: HostOptions): Host {
   let nativeProblem: string | undefined;
   const scriptDir = harnessId === 'scripted' ? process.env.BACKBONE_SCRIPT_DIR : undefined;
   // The master key is in the home's vault, which the core link opens with the host's keys.
-  const credentials = new CredentialStore(home, async () => (await core).vault.masterKey(), options.keychainRoutes ? macosKeychain() : undefined);
+  let credentialVault: CoreLink['vault'] | undefined;
+  const credentials = new CredentialStore(home, async () => (credentialVault ?? (await core).vault).masterKey(), options.keychainRoutes ? macosKeychain() : undefined);
   const routes = new ModelRoutes(home, credentials, process.env, !!harnessRegistrationInfo?.codexRoute, !!options.keychainRoutes, harnessConfig.route, harnessConfig.blocked);
+  const sharedEngine = createSharedEngine(options, credentials, () => hostToolsOnly(harnessId, harnessPiece?.manifest));
+  const execution = () => sharedEngine.current() ?? { engine, routes, id: harnessId, piece: harnessPiece, registration: harnessRegistration };
+  const currentPiece = () => execution().registration;
   const harnessLabel = () => (engine ? `${engine.label} · ${routes.resolve()?.label ?? 'no model set up'}` : scriptDir ? SCRIPTED_LABEL : HARNESS_LABEL);
   let crashAt = process.env.BACKBONE_CRASH_AT as CrashPoint | undefined;
   let crashSeen = 0;
@@ -174,7 +185,7 @@ export function createHost(options: HostOptions): Host {
   };
   const journal = new ThreadJournal(home);
   const sourceReads = createConnectorReadDecisions({ home, material, journal, threads, projectDir, crash, core: () => core,
-    currentPiece: () => harnessRegistration, busy: (id) => running.has(id) || side.isRunning(id) || !!(threads.get(id) && parallel.parentRunning(threads.get(id)!)),
+    currentPiece, busy: (id) => running.has(id) || side.isRunning(id) || !!(threads.get(id) && parallel.parentRunning(threads.get(id)!)),
     saveThread: (thread) => saveThread(thread), hasCheckpoint: (id) => !!checkpointsFor(id).load(), narrow: (...args) => parallel.guard(...args) });
   let staleFiles: string[] = [];
   /** Files in, journal truth out. Only what the journal holds open is interrupted. */
@@ -217,6 +228,8 @@ export function createHost(options: HostOptions): Host {
     if (closing) throw new Error('The host closed while it was opening.');
     return CoreLink.open({ home, baselineSql: options.baselineSql, postgresNative: options.postgresNative, keys: options.keys, readOnly, keychainRoutes:options.keychainRoutes,allowIdentityUpgrade:options.allowIdentityUpgrade });
   }).then(async (link) => {
+    // Startup diagnostics may redact keys before the composed startup promise resolves.
+    credentialVault = link.vault;
     knowledgeNotice = link.knowledgeNotice;
     if (link.materialGuard.state === 'paused') process.stderr.write(`[core] ${JSON.stringify({ materialGuard: link.materialGuard })}\n`);
     withdrawalDelivery=createMaterialWithdrawalDelivery({
@@ -234,7 +247,7 @@ export function createHost(options: HostOptions): Host {
     try { if (ownsHome && !closing) await link.vault.masterKey(); }
     catch {
       try { await link.close(); }
-      finally { throw new Error("This home's keys could not be prepared; nothing was started."); }
+      finally { throw new Error("This data folder's keys could not be prepared; nothing was started."); }
     }
     // Custody reads the file, so a thread only the journal still has gets one back before anything else.
     for (const id of staleFiles) rmSync(join(home, 'threads', `${id}.json`), { force: true });
@@ -250,6 +263,7 @@ export function createHost(options: HostOptions): Host {
         throw error;
       }
     }
+    try { await sharedEngine.prepare(link); } catch { /* A failed shared carrier cannot borrow or disable the personal carrier. */ }
     // A dispatch a kill cut short is settled by inspection, never by sending it again: written if
     // the document holds exactly its words as a new version, UNKNOWN otherwise. A write only
     // claimed is left for its resumed turn to carry on.
@@ -325,7 +339,7 @@ export function createHost(options: HostOptions): Host {
       if (running.has(thread.summary.id)) return true;
       const link = await core; if (closing) return false;
       return retryCheckpoint({ home, threadId: thread.summary.id, projectId: thread.summary.projectId, taskId: thread.task ?? '', turn, link, material, store: checkpointsFor(turn.id) }, thread,
-        { running, register: registerCarrier, closing: () => closing, busy: () => running.has(thread.summary.id) || side.isRunning(thread.summary.id) || parallel.parentRunning(thread) || (parallel.subagents(thread)?.active ?? 0) > 0, piece: () => harnessRegistration, save: () => saveThread(thread), closed: () => closeRecovery(thread, turn) });
+        { running, register: registerCarrier, closing: () => closing, busy: () => running.has(thread.summary.id) || side.isRunning(thread.summary.id) || parallel.parentRunning(thread) || (parallel.subagents(thread)?.active ?? 0) > 0, piece: currentPiece, save: () => saveThread(thread), closed: () => closeRecovery(thread, turn) });
     });
   }
   function card(t: StoredThread): ThreadCard {
@@ -373,19 +387,20 @@ export function createHost(options: HostOptions): Host {
   /** Carry the original run under its renewed lease; finish only after durable work is settled.
    * Retained connector observations keep their identities and need the person's explicit choice. */
   function carry(link: CoreLink, thread: StoredThread, turn: Turn, entries: MaterialEntry[], controller: AbortController, run: Promise<RunHandle>, resumed = false, recoveryRun?: { id?: string }) {
-    return createTurnCarrier({ home, material, threads, running, inflight, carriers, parallel, admission, memory, goalRuns, proactivity, triggers, board, gateway, connectors, routes, credentials, get engine() { return engine; }, harnessId, harnessPiece, scriptDir, writeDelayMs, checkpointsFor, closeRecovery, projectDir, crash, routeFor, coordinationFor, saveThread, classify, emit, watchRecovery })(link, thread, turn, entries, controller, run, resumed, recoveryRun);
+    const selected = execution();
+    return createTurnCarrier({ home, material, threads, running, inflight, carriers, parallel, admission, memory, goalRuns, proactivity, triggers, board, gateway, connectors, restricted: !!sharedEngine.current(), routes: selected.routes, credentials, engine: selected.engine, harnessId: selected.id, harnessPiece: selected.piece, scriptDir: sharedEngine.current() ? undefined : scriptDir, writeDelayMs, checkpointsFor, closeRecovery, projectDir, crash, routeFor, coordinationFor, saveThread, classify, emit, watchRecovery })(link, thread, turn, entries, controller, run, resumed, recoveryRun);
   }
   /** `continuing`: a chosen task as a turn with these settings runs it, a model they name kept, or why not. `routeFor`: the route a turn would run on now, refused if a selected task in its or its parents' history forbids it (`carries`). Both selection/pin.ts. */
   const continuing = (thread: StoredThread, settings: TurnSettings, base: TurnSelection | undefined): { selection?: TurnSelection } | { refused: string } => (base ? withNamedModel(base, settings.model, !!thread.child?.model) : {});
   function routeFor(thread: StoredThread, model: string | undefined, selection: TurnSelection | undefined): (NonNullable<ReturnType<typeof turnRoute>> & { carries?: string }) | null {
-    const decided = turnRoute(selection, model, routes.resolve() ?? null, !!thread.child?.model);
+    const decided = turnRoute(selection, model, execution().routes.resolve() ?? null, !!thread.child?.model);
     let why: string | null | false = null;
     for (let t: StoredThread | undefined = thread; t && !why; t = t.child ? threads.get(t.child.parentThreadId) : undefined) why = !!decided && 'route' in decided && historyRefusal(decided.route, t.turns);
     return why ? { refused: why, carries: why } : decided;
   }
   const { side, ready: sideReady } = createSideWiring({ core, routes, continuing, routeFor,
     engine: () => engine, threads: () => threads.values(), mayRecover: () => !readOnly && !closing,
-    coreDeps: { link: async () => core, piece: () => harnessRegistration, save: saveThread, gateway, ownsHome: () => ownsHome && !readOnly, closing: () => closing },
+    coreDeps: { link: async () => core, piece: currentPiece, save: saveThread, gateway, ownsHome: () => ownsHome && !readOnly, closing: () => closing },
     chatDeps: { home, material, policyAdmission: () => admission.check(true), thread: (id) => threads.get(id), save: saveThread, closing: () => closing, credential: async (handle) => credentials.resolve(handle),
       recall: async (projectId, text, settings) => (await memory.forTurn(projectId, text, settings)) ?? undefined },
   });
@@ -396,7 +411,7 @@ export function createHost(options: HostOptions): Host {
     enter(method) {
       if(method!=='host.status'&&method!=='settings.policy.get')admission.check();
       if(closing&&method!=='host.status')throw new Error(CLOSING);
-      if(importing)throw new Error('An import holds this home: no other call runs until it ends.');
+      if(importing)throw new Error('An import holds this data folder: no other call runs until it ends.');
       if(!READS.has(method)&&method!=='memory.get'&&method!=='host.status'&&method in handlers)usedFor??=method;
       inFlight++;
     },
@@ -413,9 +428,9 @@ export function createHost(options: HostOptions): Host {
     const stopMark = how.stopMark ?? (threadId ? parallel.stopMark(threadId) : 0);
     let made: string | undefined; const drop = () => { const left = made && threads.get(made); if (left && !left.turns.length) threads.delete(made!); }; // A chat made here goes again if no turn was reserved in it.
     const result = await (async (): Promise<Result<'turns.send'>> => {
-      if (harnessConfig.blocked) return refused('NOT_AVAILABLE', harnessConfig.blocked);
+      if (!sharedEngine.current() && harnessConfig.blocked) return refused('NOT_AVAILABLE', harnessConfig.blocked);
       if (closing) return refused('NOT_AVAILABLE', 'The app is closing, so nothing new starts. Your message is kept.');
-      if (harnessRegistrationInfo?.requiresFull && settings.permission !== 'full') return refused('NOT_AVAILABLE', 'This native trial requires Full access within the prepared project workspace. No model call was made.');
+      if (!sharedEngine.current() && harnessRegistrationInfo?.requiresFull && settings.permission !== 'full') return refused('NOT_AVAILABLE', 'This native trial requires Full access within the prepared project workspace. No model call was made.');
       const link = await core;
       if (!projects.some((p) => p.id === projectId)) return refused('NOT_FOUND', 'No such project.');
       const entries = attachments.map((id) => material.load(id)).filter((e) => !!e);
@@ -448,7 +463,7 @@ export function createHost(options: HostOptions): Host {
       settings = parallel.settingsFor(thread, settings);
       const chosen = continuing(thread, settings, how.selection === undefined ? continuedSelection(thread.turns) : how.selection ?? undefined);
       if ('refused' in chosen) return refused('NOT_AVAILABLE', chosen.refused);
-      const goes = engine && routeFor(thread, settings.model, chosen.selection);
+      const goes = execution().engine && routeFor(thread, settings.model, chosen.selection);
       if (goes && goes.carries) return refused('NOT_AVAILABLE', goes.carries); // other route refusals are the turn's, at its start
       if (!asShown(chosen.selection, continues)) return refused('NOT_AVAILABLE', 'The route this chat\'s task runs on changed since you were shown it, so nothing was sent. Ask again to be shown it as it is now.');
       if (thread.task) for (const original of thread.turns) {
@@ -459,11 +474,11 @@ export function createHost(options: HostOptions): Host {
             const run = await checkpointRun({ home, threadId: thread.summary.id, projectId, taskId: thread.task, turn: original, link, material, store: checkpointsFor(original.id) });
             const open = run && (await link.read(link.system(), "SELECT id FROM app.runs WHERE id = $1 AND status IN ('queued', 'running', 'waiting')", [run])).rows.length > 0;
             if (!open) {
-              launch = () => { if (!closing) resume(link, thread, original); };
+              launch = () => { if (!closing) void resume(link, thread, original).catch(() => {}); };
               return refused('NOT_AVAILABLE', 'Saved work is being reconciled from its closed original run. Your unsent message is kept.');
             }
           } catch { return refused('NOT_AVAILABLE', 'Saved recovery data needs inspection. It is retained; other conversations can continue.'); }
-          launch = () => { if (!closing) resume(link, thread, original); };
+          launch = () => { if (!closing) void resume(link, thread, original).catch(() => {}); };
           return refused('NOT_AVAILABLE', 'Saved pieces are being recovered before new work starts. Your unsent message is kept.');
         }
         const run = await custodyRun(home, thread.summary.id, original.id, thread.summary.projectId)
@@ -471,11 +486,12 @@ export function createHost(options: HostOptions): Host {
         const rows = run ? await turnWrites(link, run, original.id) : [];
         if (rows.some((row) => ['proposed', 'awaiting_checker', 'allowed', 'claimed'].includes(row.status))
           || await unconfirmedCustody(home, thread.summary.id, run, original.id, thread.summary.projectId, rows)) {
-          if (run) launch = () => { if (!closing) resume(link, thread, original); };
+          if (run) launch = () => { if (!closing) void resume(link, thread, original).catch(() => {}); };
           return refused('NOT_AVAILABLE', 'An original write is being recovered before new work starts. Your unsent message is kept.');
         }
       }
       const turn = newTurn(text, false, entries.map((e) => ({ materialId: e.id, name: e.name, version: e.current })), settings);
+      if (sharedEngine.current()) turn.sharedEngine = 'harness-pi';
       if (afterTurnId) turn.restartOf = afterTurnId;
       if (thread.personId && thread.personId !== link.id.person) return refused('NOT_AVAILABLE', 'Start your own conversation in this shared project.');
       const task = thread.task ?? await link.createTask(thread.summary.title,projectId);
@@ -524,6 +540,23 @@ export function createHost(options: HostOptions): Host {
   }
   /** Resume a turn a kill interrupted: once its run's lease has lapsed, claim the same run again. */
   function resume(link: CoreLink, thread: StoredThread, turn: Turn) {
+    const pending = identity.resumeAsActor(thread, async () => { resumeAdmitted(link, thread, turn); }, !!turn.sharedEngine).catch(async error => {
+      if (error instanceof IdentityRefused) {
+        const detail = recoveryRefusal(error);
+        await withHomeLock(home, async () => {
+          assertHomeWriteAdmission(home);
+          const event = journal.append({ kind: 'turn.recovery.refused', threadId: thread.summary.id, turnId: turn.id, attempt: { detail, at: now() } });
+          applyEvent(threads, event);
+        });
+        await saveThread(thread);
+      }
+      throw error;
+    });
+    inflight.add(pending);
+    void pending.finally(() => inflight.delete(pending)).catch(() => {});
+    return pending;
+  }
+  function resumeAdmitted(link: CoreLink, thread: StoredThread, turn: Turn) {
     if (running.has(thread.summary.id)) return;
     parallel.orphanSteers(thread, turn);
     if (turn.nativeAccountActivity) {
@@ -552,7 +585,7 @@ export function createHost(options: HostOptions): Host {
         : sourceRun ?? await custodyRun(home, thread.summary.id, turn.id, thread.summary.projectId) ?? await originalTurnRun(link, thread.task ?? '', turn.id) ?? await link.openRun(thread.task ?? '');
       if (!run || (sourceRun && sourceRun !== run)) throw new Error('The original run could not be verified; no replacement run was started.');
       recoveryRun.id = run;
-      return link.reclaimRun(run, harnessRegistration);
+      return link.reclaimRun(run, currentPiece());
     })();
     void carry(link, thread, turn, entries, controller, handle, true, recoveryRun);
   }
@@ -571,23 +604,24 @@ export function createHost(options: HostOptions): Host {
     home, threads, running, registerCarrier, material, journal,
     interrupted: (thread) => interrupted.some((entry) => entry.thread === thread),
     link: () => core,
-    piece: () => harnessRegistration,
-    native: () => !!harnessRegistrationInfo?.nativeCoordination,
-    steers: () => !!engine?.steers,
+    piece: currentPiece,
+    native: () => !sharedEngine.current() && !!harnessRegistrationInfo?.nativeCoordination,
+    steers: () => !!execution().engine?.steers,
     closing: () => closing,
     async models() {
       await core;
       const any = [1, 2, 3, 4, 5] as const;
-      if (!engine) return [{ id: 'stub', efforts: any }];
-      if (harnessRegistrationInfo?.nativeCatalog) {
-        if (!engine.listModels) throw new Error('this engine has no model catalog');
-        return engine.listModels();
+      const selected = execution(), currentEngine = selected.engine;
+      if (!currentEngine) return [{ id: 'stub', efforts: any }];
+      if (!sharedEngine.current() && harnessRegistrationInfo?.nativeCatalog) {
+        if (!currentEngine.listModels) throw new Error('this engine has no model catalog');
+        return currentEngine.listModels();
       }
-      const route = routes.resolve();
-      if (!route) throw new Error(routes.settings().hint ?? NO_ROUTE);
-      return engine.listModels ? engine.listModels(route, (handle) => credentials.resolve(handle)) : [{ id: route.model, efforts: any }];
+      const route = selected.routes.resolve();
+      if (!route) throw new Error(selected.routes.settings().hint ?? NO_ROUTE);
+      return currentEngine.listModels ? currentEngine.listModels(route, (handle) => credentials.resolve(handle)) : [{ id: route.model, efforts: any }];
     },
-    routeModel: () => (engine ? routes.resolve()?.model : undefined),
+    routeModel: () => (execution().engine ? execution().routes.resolve()?.model : undefined),
     admit,
     newTurn: (text, settings) => newTurn(text, false, [], settings),
     saveThread,
@@ -830,8 +864,10 @@ export function createHost(options: HostOptions): Host {
   const keepRecovery = createRecoveryRepair({ home, core: () => core, material, thread: id => threads.get(id), running, registerCarrier, store: checkpointsFor, closed: closeRecovery, save: saveThread, changed: id => emit({ topic: 'material', id }), busy: thread => closing || side.isRunning(thread.summary.id) || parallel.parentRunning(thread) || (parallel.subagents(thread)?.active ?? 0) > 0 });
   const reads = createHostReads({ home, options, core, material, threads, running, routes, connectors, credentials, sourceReads, harnessConfig, harnessRegistrationInfo, harnessLabel, projectDir, draftPath, versionDiff, summaryView, view, nowIn, selectFor, filesOf, linkedPath,
     get projects() { return projects; }, get engine() { return engine; }, get nativeProblem() { return nativeProblem; }, set nativeProblem(problem) { nativeProblem = problem; } });
-  const identity = createIdentityHost({home,readOnly,configuration:options.identity,link:()=>core,projects:()=>projects,threads,summary:summaryView,material,piece:()=>harnessRegistration,
-    nativeEngine:()=>!hostToolsOnly(harnessId,harnessPiece?.manifest),emit,dispatch,
+  const nativeEngine=()=>!hostToolsOnly(harnessId,harnessPiece?.manifest);
+  const identity = createIdentityHost({home,readOnly,configuration:options.identity,link:()=>core,projects:()=>projects,threads,summary:summaryView,material,piece:currentPiece,
+    nativeEngine:()=>nativeEngine()&&!sharedEngine.available(), sharedWork:sharedEngine.run,sharedHint:()=>sharedEngine.settings().hint,sharedActive:()=>!!sharedEngine.current(),
+    checkSharedThread:thread=>{if(sharedEngine.current())assertSharedHistory(thread,sharedEngine.routes.resolve(),threads);},emit,dispatch,
     abort:(person,automation)=>{for(const thread of threads.values())if((person && thread.personId===person)||(automation && thread.automationId===automation))running.get(thread.summary.id)?.abort();},
     on:listener=>{listeners.add(listener);return()=>listeners.delete(listener);}});
   const rewind = createThreadRewind({ home, material, threads, journal, projectDir, unresolved: unresolvedTurn, sync: async revisions => syncRewindVersions(await core, revisions), save: saveThread, changed: id => emit({ topic: 'material', id }), retention: async t => recoveryRetentionReason(home, await core, t, checkpointsFor), busy: t => closing || [...threads.values()].some(other => other.summary.projectId === t.summary.projectId && (other.summary.running || running.has(other.summary.id) || side.isRunning(other.summary.id) || other.turns.some(turn => !!checkpointsFor(turn.id).load()))) || parallel.hasChildren(t) || parallel.parentRunning(t) || goalRuns.view(t.summary.id)?.status === 'running' });
@@ -958,20 +994,31 @@ export function createHost(options: HostOptions): Host {
     },
     'sidechat.ask': async (args) => { await sideReady; return side.ask(args); },
     'sidechat.stop': (args) => side.stop(args),
-    'material.attach': ({ projectId, name, base64, mediaType, relativePath }) => withHomeLock(home, async () => {
-      if (!projects.some((p) => p.id === projectId)) return refused('NOT_FOUND', 'No such project.');
-      if (relativePath !== undefined) {
-        const result = material.attachSource(projectId, relativePath, mediaType, Buffer.from(base64, 'base64'));
-        if (result.ok) emit({ topic: 'material', id: projectId });
-        return result;
-      }
-      const clean = name.split(/[\\/]/).pop() ?? '';
-      if (!clean || isIntermediate(clean)) return refused('INVALID', 'That file name cannot be attached.');
-      const finalName = material.freeName(projectId, clean);
-      const entry = material.create(projectId, finalName, mediaType, Buffer.from(base64, 'base64'), 'original', 'person');
-      emit({ topic: 'material', id: projectId });
-      return { ok: true, value: entry };
-    }),
+    'material.attach': ({ projectId, name, base64, mediaType, relativePath }) => {
+      let began = false;
+      return withHomeLock<Receipt<MaterialEntry>>(home, async () => {
+        if (!projects.some((p) => p.id === projectId)) return refused('NOT_FOUND', 'No such project.');
+        if (relativePath !== undefined) {
+          assertHomeWriteAdmission(home);
+          began = true;
+          const result = material.attachSource(projectId, relativePath, mediaType, Buffer.from(base64, 'base64'));
+          if (result.ok) emit({ topic: 'material', id: projectId });
+          return result;
+        }
+        const clean = attachmentName(name);
+        if (!clean) return refused('INVALID', 'That file name cannot be attached.');
+        const finalName = material.freeName(projectId, clean);
+        assertHomeWriteAdmission(home);
+        began = true;
+        const entry = material.create(projectId, finalName, mediaType, Buffer.from(base64, 'base64'), 'original', 'person');
+        emit({ topic: 'material', id: projectId });
+        return { ok: true, value: entry };
+      }).catch(error => {
+        // Only a typed pre-write admission refusal proves that no attachment began.
+        if (error instanceof HomeWriteUnavailable && !began) return refused<MaterialEntry>('NOT_AVAILABLE', 'Attachment has no write admission. Nothing was attached. Check the data folder before trying again.');
+        throw error;
+      });
+    },
     'material.save': createMaterialSave({ home, core, material, threads, changed: id => emit({ topic: 'material', id }) }),
     'material.lifecycle': ({ id, version, state, lifecycle }) => withHomeLock(home, async () => {
       const changed = (entry: MaterialEntry) => { emit({ topic: 'material', id: entry.projectId }); return { ok: true as const, value: entry }; };
@@ -1030,7 +1077,7 @@ export function createHost(options: HostOptions): Host {
       if (!choice) return none(selection.limitation ?? 'No route can do this task here.');
       // A route runs on its engine: Codex on the Codex harness, a model route or local model on Pi. This home runs one.
       const needs = choice.route.kind === 'agent-engine' ? 'harness-acp' : choice.route.kind === 'native-engine' ? 'harness-codex' : choice.route.kind === 'code-only' ? null : 'harness-pi';
-      if (needs !== harnessId) return none(needs ? `The best route here is ${choice.route.label}, which runs on ${needs === 'harness-codex' ? 'the Codex engine' : 'Pi'}; this home runs ${harnessLabel()}. Choose that engine to run it, or a route this engine has.` : `The best route is ${choice.route.label}, a maintained tool; running tools directly is not built yet.`);
+      if (needs !== harnessId) return none(needs ? `The best route here is ${choice.route.label}, which runs on ${needs === 'harness-codex' ? 'the Codex engine' : 'Pi'}; this data folder runs ${harnessLabel()}. Choose that engine to run it, or a route this engine has.` : `The best route is ${choice.route.label}, a maintained tool; running tools directly is not built yet.`);
       const pin = pinFor(choice.route, choice.reasons, task, local, configured); // pinned on the turn as it is admitted: that route runs, never the configured default
       if ('refused' in pin) return none(pin.refused);
       let launch: (() => void) | undefined;
@@ -1046,9 +1093,16 @@ export function createHost(options: HostOptions): Host {
       return { ok: true, value: { selection, started: { threadId: sent.value.threadId, turnId: sent.value.turnId }, detail: `Started on ${choice.route.label} (${started.pinned.label}): ${started.reasons.join('; ')}.` } };
     },
     'settings.engine.put': ({ engine }) => setEngine(home, engine, () => emit({ topic: 'settings' })),
+    'settings.engines.get': ({ fresh }) => engineChoices(home, harnessId, { fallback: options.harness, codex: () => settingsCodexCheck(fresh === true), pieceDir: (id) => options.pieceDirs?.[id] ?? PIECES[id]?.dir ?? '' }),
     'settings.model.put': async ({ change }) => {
       try {
-        const value: ModelSettings = { ...(await routes.change(change)), harness: engine?.label ?? harnessLabel() };
+        let changed: Omit<ModelSettings, 'harness'>;
+        if (change.route === 'shared') {
+          const sharedChange = await sharedEngine.routes.change(change.change);
+          await sharedEngine.prepare(await core);
+          changed = { ...routes.settings(), ...(sharedChange.localNote ? { localNote: sharedChange.localNote } : {}) };
+        } else changed = await routes.change(change);
+        const value: ModelSettings = { ...changed, harness: engine?.label ?? harnessLabel(), shared: sharedEngine.settings() };
         emit({ topic: 'settings' });
         return { ok: true, value };
       } catch (err) {
@@ -1056,8 +1110,9 @@ export function createHost(options: HostOptions): Host {
       }
     },
     'viewer.put': ({ prefs }) => {
-      writeJson(join(home, 'viewer.json'), prefs);
-      return prefs;
+      const kept = normaliseViewerPrefs(prefs);
+      writeJson(join(home, 'viewer.json'), kept);
+      return kept;
     },
     'tools.list': () => (tools ? tools.list() : { available: false, tools: [], offer: null }),
     'tools.disconnect': async (a) => (tools ? toolsChanged(await tools.disconnect(a)) : noTools),
@@ -1120,7 +1175,7 @@ export function createHost(options: HostOptions): Host {
   async function dispatch<M extends Method>(method:M,args:Args<M>):Promise<Result<M>> {
       if (method !== 'host.status' && method !== 'settings.policy.get') admission.check();
       if (closing && method !== 'host.status') throw new Error(CLOSING); // before argument lookup, home ownership or Core
-      if (importing) throw new Error('An import holds this home: no other call runs until it ends.');
+      if (importing) throw new Error('An import holds this data folder: no other call runs until it ends.');
       const h = handlers[method] as ((a: unknown) => unknown) | undefined;
       if (!h) throw new Error(`Unknown api method ${String(method)}`);
       if (!READS.has(method) && method !== 'memory.get' && method !== 'host.status') usedFor ??= method;
@@ -1134,7 +1189,10 @@ export function createHost(options: HostOptions): Host {
         if (readOnly && !READS.has(method)) return refused('NOT_AVAILABLE', READ_ONLY) as Result<typeof method>;
         const rewindHold = !READS.has(method) && !rewindControl(method, args) && rewindWriteHold(threads.values(), method, args);
         if (rewindHold) return refused('NOT_AVAILABLE', rewindHold) as Result<typeof method>;
-        const result = await h(args); deferred = afterDeferred(result, () => { endStop?.(); inFlight--; }); // in flight and stopping until saved
+        const shared = sharedEngine.current();
+        const result = method === 'models.list' && shared ? [{ id: shared.routes.resolve()?.model ?? 'none', label: shared.routes.resolve()?.label ?? 'No shared model configured', efforts: [1, 2, 3, 4, 5] }]
+          : method === 'settings.model.get' ? { ...await h(args) as ModelSettings, shared: sharedEngine.settings() }
+          : await h(args); deferred = afterDeferred(result, () => { endStop?.(); inFlight--; }); // in flight and stopping until saved
         return result as Result<typeof method>;
       } finally {
         if (!deferred) { endStop?.(); inFlight--; }
@@ -1154,7 +1212,7 @@ export function createHost(options: HostOptions): Host {
       checked: thread => board.checked(thread), recorded: options.unknownCheckRecorded,
     }),
     ...connectorPerson({ connectors, owner, core,
-      unavailable: () => closing ? CLOSING : readOnly ? READ_ONLY : importing ? 'An import holds this home; connector decisions are closed.' : undefined,
+      unavailable: () => closing ? CLOSING : readOnly ? READ_ONLY : importing ? 'An import holds this data folder; connector decisions are closed.' : undefined,
       enter: () => { usedFor ??= 'person connector decision'; inFlight++; return () => { inFlight--; }; },
     }),
     connectorToolsEnableView: (serverId) => connectorView(() => enabling.toolsView(serverId)),
@@ -1169,17 +1227,17 @@ export function createHost(options: HostOptions): Host {
     },
     connectorDoorView: (serverId) => connectorView(() => connectors.doorView(serverId)),
     connectorToolView: (serverId, tool) => connectorView(() => connectors.toolView(serverId, tool)),
-    async importExport(from) {
+    async importExport(from, expect) {
       // Only on a host opened for the import (backbone restore, into a new home it holds alone): one used
       // for anything else, or with a call in flight, is refused; while it runs, every other call is.
-      if (importing || closing) throw new BackupRefused('NOT_AVAILABLE', closing ? CLOSING : 'An import is already running in this home.');
-      if (usedFor) throw new BackupRefused('INVALID', `This home's host was used for something else (${usedFor}) before the import. Import with backbone restore, into a new home.`);
-      if (inFlight) throw new BackupRefused('INVALID', 'A call is in flight on this home, so the import did not start. Import with backbone restore, into a new home.');
+      if (importing || closing) throw new BackupRefused('NOT_AVAILABLE', closing ? CLOSING : 'An import is already running in this data folder.');
+      if (usedFor) throw new BackupRefused('INVALID', `This data folder's host was used for something else (${usedFor}) before the import. Import with backbone restore, into a new data folder.`);
+      if (inFlight) throw new BackupRefused('INVALID', 'A call is in flight on this data folder, so the import did not start. Import with backbone restore, into a new data folder.');
       importing = true;
       try {
         await core;
         if (readOnly) throw new BackupRefused('NOT_AVAILABLE', READ_ONLY);
-        return await withHomeLock(home, (lost) => importHome({ from, home, signal: lost, api: {
+        return await withHomeLock(home, (lost) => importHome({ from, home, signal: lost, expect, api: {
           call: (method, args) => (handlers[method] as (a: unknown) => unknown)(args) as never,
           addDocument: importDocument,
           proposeSkill: memory.proposeImported,
@@ -1214,6 +1272,9 @@ export function createHost(options: HostOptions): Host {
       const capability = (await triageView()).capability;
       return capability ? { ok: true, value: capability } : refused('NOT_AVAILABLE', 'Nothing was signed.');
     },
+    engineBringsOwnTools:()=>nativeEngine()&&!sharedEngine.available(),
+    sharedEngineNotice:sharedEngine.loadError,
+    sharedEngineReady:async()=>{await core;},
     ...deviceRecoveryControls({core:()=>core,ready:()=>admission.ready(),writable:()=>!readOnly&&!closing,inflight}),
     call: (method,args) => request(undefined,method,args),
     callAuthenticated: (session,method,args) => request(session,method,args),
@@ -1235,7 +1296,7 @@ export function createHost(options: HostOptions): Host {
       for (const { thread, turn } of turns) {
         await stoppingRequests.wait(thread.summary.id);
         if(stoppingRequests.has(thread.summary.id))continue;
-        try { await identity.resumeAsActor(thread,async()=>{ resume(link,thread,turn); }); }
+        try { await resume(link,thread,turn); }
         catch { /* Retain the interrupted receipt; revoked work starts no replacement run. */ }
       }
       // Sending can call a model, so a message left waiting goes here and never at opening.
@@ -1268,6 +1329,7 @@ export function createHost(options: HostOptions): Host {
         await Promise.allSettled([...activeRequests]);
         for (const c of running.values()) c.abort();
         while (inflight.size) await Promise.allSettled([...inflight]);
+        await sharedEngine.close();
         await closeHarness(engine);
       });
       CoreLink.closeWhenOpen(home, workers.then(() => core));

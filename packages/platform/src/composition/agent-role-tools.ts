@@ -6,7 +6,7 @@ export function restrictRoleTools(host: ToolHost, allowed: readonly string[] | u
   const has = (name: string) => allowed.includes(name);
   const result: ToolHost = {
     stillGranted: host.stillGranted,
-    list: has('Glob') ? () => host.list() : async () => { throw new Error('This agent role does not allow listing files.'); },
+    list: has('Glob') ? (...args) => host.list(...args) : async () => { throw new Error('This agent role does not allow listing files.'); },
     read: has('Read') ? (...args) => host.read(...args) : async () => { throw new Error('This agent role does not allow reading files.'); },
     write: has('Write') ? (...args) => host.write(...args) : async () => {
       const detail = 'This agent role does not allow writing documents.';

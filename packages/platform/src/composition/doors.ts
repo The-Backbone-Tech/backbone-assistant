@@ -180,7 +180,7 @@ export async function hostDoors(options: { home: string; piece?: string } & Pick
     clearInterval(sweeper);
     await link.release();
     await release();
-    throw new Error('Another process already serves this data home\'s doors.');
+    throw new Error('Another process already serves this data folder\'s doors.');
   }
   return {
     socket: served.socket,

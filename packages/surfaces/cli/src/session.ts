@@ -188,13 +188,13 @@ export async function withHome<T>(
   let entered = false;
   try {
     if (options.readOnly) {
-      if (await servedElsewhere(home)) throw heldBy(home, 'BUSY: another process serves this home; retry through its API line.');
+      if (await servedElsewhere(home)) throw heldBy(home, 'BUSY: another process serves this data folder; retry through its API line.');
       return await inSession();
     }
     return await withHomeLock(lockDir(home), async () => {
       entered = true;
       if (await servedElsewhere(home)) {
-        throw new HomeHeld('BUSY: another process serves this data home (backbone-mcp host, or an app with no api line up yet), and nothing was done. One process holds a home at a time.', null);
+        throw new HomeHeld('BUSY: another process serves this data folder (backbone-mcp host, or an app with no api line up yet), and nothing was done. One process holds a data folder at a time.', null);
       }
       const me: Holder = { pid: process.pid, command };
       writeFileSync(holderFile(home), JSON.stringify(me), { mode: 0o600 });

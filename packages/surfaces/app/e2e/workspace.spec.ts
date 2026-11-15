@@ -53,7 +53,8 @@ test('workspace retains an unacknowledged file edit across tools, readers and pa
     expect(conversationBar!.height).toBeLessThanOrEqual(48);
     expect(workspaceBar!.height).toBeLessThanOrEqual(48);
     expect(transcript!.y - conversationBar!.y - conversationBar!.height).toBeLessThanOrEqual(32);
-    expect(editing!.y - workspaceBar!.y - workspaceBar!.height).toBeLessThanOrEqual(16);
+    // The document's own header (its version and actions, 36 px) is the one row between the pane's tabs and the text (14 November).
+    expect(editing!.y - workspaceBar!.y - workspaceBar!.height).toBeLessThanOrEqual(36 + 16);
     await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Document options', exact: true })).toHaveCount(1);
 

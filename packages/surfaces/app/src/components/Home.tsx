@@ -23,6 +23,8 @@ export function Home() {
           {project ? (
             <>
               What should we work on in{' '}
+              {/* The question mark stays on the project name's line when the heading wraps. */}
+              <span className="inline-flex max-w-full items-baseline">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-auto px-1.5 py-0.5 text-2xl font-medium text-accent sm:text-3xl">
@@ -33,6 +35,7 @@ export function Home() {
                 <ProjectMenu onNew={() => setNewProject(true)} />
               </DropdownMenu>
               ?
+              </span>
             </>
           ) : (
             'What should we work on?'

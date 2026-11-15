@@ -48,7 +48,7 @@ export function prepareHome(home: string, readOnly=false): void {
   const real = realpathSync(home);
   const found = statSync(real);
   if (!found.isDirectory() || found.uid !== process.getuid?.()) {
-    throw new Error(`${real} is not this user's own folder, so this data home is not opened for writing.`);
+    throw new Error(`${real} is not this user's own folder, so this data folder is not opened for writing.`);
   }
   chmodSync(real, 0o700);
   // On macOS an access-control list can still let others in whatever the mode says, so its entries are removed
@@ -56,7 +56,7 @@ export function prepareHome(home: string, readOnly=false): void {
   if (process.platform === 'darwin') {
     execFileSync('/bin/chmod', ['-N', real]);
     if (/^\s*\d+: /m.test(execFileSync('/bin/ls', ['-led', real], { encoding: 'utf8' }))) {
-      throw new Error(`${real} keeps an access list that may let others in, so this data home is not opened for writing.`);
+      throw new Error(`${real} keeps an access list that may let others in, so this data folder is not opened for writing.`);
     }
   }
 }
@@ -64,7 +64,7 @@ export function prepareHome(home: string, readOnly=false): void {
 /** Only this process's Host/Core are drained here. The caller must already have stopped every
  * other owner and independent scope; this is no proof of global quiescence or deletion authority. */
 export async function waitToRemoveHome(home:string,closed:()=>Promise<void>):Promise<void>{
-  if(inActiveHomeLockScope(home))throw new Error('A data home cannot be removed inside its active lock. Stop all owners and independent scopes before removing it.');
+  if(inActiveHomeLockScope(home))throw new Error('A data folder cannot be removed inside its active lock. Stop all owners and independent scopes before removing it.');
   await closed();
 }
 
@@ -79,7 +79,7 @@ export function ownerSocket(home: string, readOnly = false) {
   if (!readOnly && basename(door)==='door.sock') return join(dirname(door),'owner.sock');
   const account=realpathSync(userInfo().homedir),found=lstatSync(account),folder=join(account,'.backbone-runtime');
   if(!found.isDirectory()||found.uid!==process.getuid?.()||(found.mode&0o022)!==0)throw new Error(`${account} is not this user's protected account folder, so no owner socket is used.`);
-  if(folder===at||folder.startsWith(at+sep))throw new Error('The owner runtime folder must be outside the data home; this read cannot create one inside it.');
+  if(folder===at||folder.startsWith(at+sep))throw new Error('The owner runtime folder must be outside the data folder; this read cannot create one inside it.');
   const path=join(folder,`${createHash('sha256').update(at).digest('hex').slice(0,16)}.${readOnly?'readonly-':''}owner.sock`);
   if(Buffer.byteLength(path)>(process.platform==='darwin'?103:107))throw new Error(`${folder} is too long for a private owner socket.`);
   return path;
@@ -94,7 +94,7 @@ function ownersFolder(path: string) {
   // Tightened only when it is a real folder of this user's: a link's target is never touched.
   const found = lstatSync(folder);
   if (found.isDirectory() && found.uid === process.getuid?.()) chmodSync(folder, 0o700);
-  if (!ownFolder(path)) throw new Error(`${folder} is not this user's alone, so this data home is not opened.`);
+  if (!ownFolder(path)) throw new Error(`${folder} is not this user's alone, so this data folder is not opened.`);
 }
 
 /** Inspect before connecting, including candidates owned by the other opening mode. */
@@ -142,7 +142,7 @@ export async function ownHome(given: string, options: {readOnly?: boolean} = {})
   const path = ownerSocket(home, !!options.readOnly);
   ownersFolder(path);
   const inUse = async () => {
-    for (const candidate of [ownerSocket(home), ownerSocket(home,true)]) if (await ownerAnswers(candidate)) throw new HomeOwned('This data home is in use by another host.');
+    for (const candidate of [ownerSocket(home), ownerSocket(home,true)]) if (await ownerAnswers(candidate)) throw new HomeOwned('This data folder is in use by another host.');
   };
   // Asked before the lock too: an owner may hold that lock, and a refusal need not wait for it.
   await inUse();

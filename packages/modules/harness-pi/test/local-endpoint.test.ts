@@ -18,8 +18,11 @@ test('a stopped local model fails clearly without asking for a key or trying ano
   const outcome = await run.outcome;
   assert.equal(outcome.status, 'failed');
   assert.match(outcome.error!, /local model.*owned-local.*unavailable/i);
-  assert.match(outcome.error!, /start.*server/i);
+  assert.match(outcome.error!, new RegExp(`http://127\\.0\\.0\\.1:${port}/v1`), 'the address that was tried is named');
+  assert.match(outcome.error!, /address path/i); assert.match(outcome.error!, /server is running/i); assert.match(outcome.error!, /model is loaded/i);
   assert.match(outcome.error!, /no other route/i);
+  // A turn shows only the first 200 characters of an engine error; what was not done must be inside them.
+  assert.ok(outcome.error!.indexOf('No other route was tried.') >= 0 && outcome.error!.indexOf('No other route was tried.') + 25 <= 160, outcome.error ?? 'no error text');
 });
 
 test('a running local server keeps its context-limit diagnostic instead of suggesting a restart', async t => {

@@ -51,7 +51,7 @@ test('without the step signing and standing release return refusal receipts with
  assert.match(refused.ok?'':refused.detail,/connector-signature-ledger-v1.*incomplete.*backbone doctor.*Update.*operator.*individual/s);assert.equal(p.read().servers[id].tools.draft_note.standing,undefined);
  await p.call('standing attempt');const h=p.held();p.seedSignature(true);const before=p.read().held;
  const resolve=p.service as unknown as {resolve(effect:string,hash:string,verdict:string,standing:boolean):ReturnType<ConnectorService['decide']>};
- const result=await resolve.resolve(h.effect,h.argsHash,'release',true);assert.equal(result.ok,false);assert.match(result.ok?'':result.detail,/Update this home's Core/);
+ const result=await resolve.resolve(h.effect,h.argsHash,'release',true);assert.equal(result.ok,false);assert.match(result.ok?'':result.detail,/Update this data folder's Core/);
  assert.deepEqual(p.read().held,before);assert.equal(p.calls().length,0);
  assert.equal(value(await p.service.decide(h.effect,h.argsHash,'release')).state,'sent');
 });

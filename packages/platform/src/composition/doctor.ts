@@ -1,7 +1,7 @@
 // Machine diagnostics for a data home. Doctor probes only its selected engine's client.
 // Codex's own login-status command reads this machine's client sign-in. Claude is version-only.
 // This code adds no direct key-store access. It prints only a class of client output, never account details.
-import { spawnSync } from 'node:child_process';
+import { execFile, spawnSync } from 'node:child_process';
 import { existsSync, statSync, accessSync, constants } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import { binaries } from '@backbone-next/kernel/cluster';
@@ -58,12 +58,32 @@ export function sharedMemoryCheck(sweep?: string): MachineCheck {
 
 function probeCodex(): MachineCheck {
   const r = run('codex', ['login', 'status']);
-  if ((r.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT') return { name: 'codex', status: 'warn', detail: 'machine client sign-in (codex login status): absent' };
-  if (r.error) return { name: 'codex', status: 'warn', detail: 'machine client sign-in (codex login status): error' };
-  const said = `${r.stdout}\n${r.stderr}`;
+  return classifyCodex(r.error as NodeJS.ErrnoException | undefined, r.status, `${r.stdout}\n${r.stderr}`);
+}
+
+/** Any process error, a timeout included, is an error whatever the client printed or returned: an uncertain check never counts as signed in. */
+export function classifyCodex(error: NodeJS.ErrnoException | undefined, status: number | null, said: string): MachineCheck {
+  if (error?.code === 'ENOENT') return { name: 'codex', status: 'warn', detail: 'machine client sign-in (codex login status): absent' };
+  if (error) return { name: 'codex', status: 'warn', detail: 'machine client sign-in (codex login status): error' };
   if (/not logged in|not signed in|logged out|signed out/i.test(said)) return { name: 'codex', status: 'warn', detail: 'machine client sign-in (codex login status): signed out' };
-  if (r.status === 0) return { name: 'codex', status: 'ok', detail: 'machine client sign-in (codex login status): signed in', billing: /api[ -]?key/i.test(said) ? 'metered' : /ChatGPT|subscription/i.test(said) ? 'plan' : 'unknown' };
+  if (status === 0) return { name: 'codex', status: 'ok', detail: 'machine client sign-in (codex login status): signed in', billing: /api[ -]?key/i.test(said) ? 'metered' : /ChatGPT|subscription/i.test(said) ? 'plan' : 'unknown' };
   return { name: 'codex', status: 'warn', detail: 'machine client sign-in (codex login status): error' };
+}
+
+/**
+ * The same check without blocking this process while the client answers, bounded by the same timeout.
+ * For displays only (Settings' engine list); admission and billing use the fresh synchronous check.
+ */
+export function codexCheckAsync(): Promise<MachineCheck> {
+  return new Promise((resolve) => {
+    // The kill is not one the client can ignore, so the wait always ends.
+    execFile('codex', ['login', 'status'], { encoding: 'utf8', timeout: 5_000, killSignal: 'SIGKILL' }, (error, stdout, stderr) => {
+      const failure = error as (NodeJS.ErrnoException & { code?: string | number; killed?: boolean; signal?: string | null }) | null;
+      // A plain non-zero exit is an answer; a missing client, a timeout or a signal is a process error.
+      const code = failure && typeof failure.code === 'number' && !failure.killed && !failure.signal ? failure.code : undefined;
+      resolve(classifyCodex(failure && code === undefined ? failure : undefined, !failure ? 0 : code ?? null, `${stdout}\n${stderr}`));
+    });
+  });
 }
 
 function probeClaude(): MachineCheck {

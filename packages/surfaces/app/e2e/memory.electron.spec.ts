@@ -209,7 +209,7 @@ test('Settings reports bounded role discovery and manual review of ambiguous leg
     });
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const settings = page.getByRole('dialog', { name: 'Settings' });
-    await settings.getByRole('button', { name: 'Agent roles', exact: true }).click();
+    await settings.getByRole('button', { name: 'Helper roles', exact: true }).click();
     await expect(settings.getByRole('status').filter({ hasText: /64 directory entries/i })).toBeVisible();
     await expect(settings.getByRole('status').filter({ hasText: /manual review/i })).toBeVisible();
     await expect(settings.getByRole('button', { name: 'Reload roles', exact: true })).toBeVisible();

@@ -7,7 +7,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, re
 import { join } from 'node:path';
 import { before, test } from 'node:test';
 import { METHODS } from '../src/api.ts';
-import { BackupRefused, exportDestinations, exportHome, importHome, type ImportApi } from '../src/composition/backup.ts';
+import { BackupRefused, exportDestinations, exportFingerprint, exportHome, importHome, inspectExport, type ImportApi } from '../src/composition/backup.ts';
 import { hostClosed, type Host } from '../src/composition/host.ts';
 import { b64, freshDir, freshHome, open, value } from './helpers.ts';
 
@@ -110,12 +110,12 @@ test('7: an import admits only a home with no work, instructions or skills, and 
   mkdirSync(join(home, 'memory'), { recursive: true });
   writeFileSync(join(home, 'memory', 'instructions.md'), 'Mine.\n');
   const { host } = open(home);
-  await assert.rejects(importExport(host, exported), /not a new, empty home/);
+  await assert.rejects(importExport(host, exported), /not a new, empty data folder/);
   assert.match((await host.call('memory.get', {})).instructions.person, /Mine/);
   const other = open();
   mkdirSync(join(other.home, 'skills', 'mine'), { recursive: true });
   writeFileSync(join(other.home, 'skills', 'mine', 'SKILL.md'), '---\nname: mine\ndescription: Mine.\n---\n');
-  await assert.rejects(importExport(other.host, exported), /not a new, empty home/);
+  await assert.rejects(importExport(other.host, exported), /not a new, empty data folder/);
 });
 
 // ---- Round 4 ----------------------------------------------------------------
@@ -190,7 +190,7 @@ test('r4-2: an import runs only on a host used for nothing else, with no call in
   mkdirSync(join(archived.home, 'skills', '.archive', 'old'), { recursive: true });
   writeFileSync(join(archived.home, 'skills', '.archive', 'old', 'SKILL.md'), '---\nname: old\n---\n');
   await archived.host.call('projects.list', {});
-  await assert.rejects(importExport(archived.host, exported), /not a new, empty home/);
+  await assert.rejects(importExport(archived.host, exported), /not a new, empty data folder/);
 });
 
 test('r4-3: memory comes in through the memory import, with its filtering, its limit and its source', async () => {
@@ -283,8 +283,66 @@ for (const failure of [
   await assert.rejects(importHome({ from: exported, home: freshHome(), api }), (error: unknown) => {
     assert.ok(error instanceof BackupRefused);
     assert.equal(error.reason, 'NOT_AVAILABLE');
-    assert.equal(error.message, `A project: ${failure.detail} The home holds part of the export: import again into another new home.`);
+    assert.equal(error.message, `A project: ${failure.detail} The data folder ${failure.outcome === 'UNKNOWN' ? 'may hold' : 'holds'} part of the export: import again into another new data folder.`);
+    // The app shows the folder as holding part of the export, and an unknown outcome as not known.
+    assert.equal(error.partial, true);
+    assert.equal(error.unknown, failure.outcome === 'UNKNOWN');
     return true;
   });
   assert.deepEqual(writes.map(([method]) => method), ['projects.create'], 'no retry or later import write');
+});
+
+test('a refusal before the first write is not marked partial', async () => {
+  const { api } = recorder();
+  const home = freshHome();
+  mkdirSync(join(home, '.agent-roles'), { recursive: true });
+  await assert.rejects(importHome({ from: exported, home, api }), (error: unknown) => {
+    assert.ok(error instanceof BackupRefused);
+    assert.equal(error.partial, false);
+    assert.equal(error.unknown, false);
+    return true;
+  });
+});
+
+test('an import takes only the export it was shown: a different fingerprint is refused before any write', async () => {
+  const { api, writes } = recorder();
+  const shown = exportFingerprint(inspectExport(exported));
+  await assert.rejects(importHome({ from: exported, home: freshHome(), api, expect: 'f'.repeat(64) }), (error: unknown) => {
+    assert.ok(error instanceof BackupRefused);
+    assert.equal(error.partial, false);
+    assert.match(error.message, /changed since|not the backup/);
+    return true;
+  });
+  assert.deepEqual(writes, [], 'nothing was written');
+  const ok = await importHome({ from: exported, home: freshHome(), api, expect: shown });
+  assert.equal(ok.done, true);
+});
+
+test('the fingerprint follows the content, not the folder name', () => {
+  const copy = crafted({ edit: { 'memory/instructions.md': 'Another instruction.' } });
+  assert.notEqual(exportFingerprint(inspectExport(copy)), exportFingerprint(inspectExport(exported)));
+});
+
+test('a hold lost before the first write reports nothing written, not a partial import', async () => {
+  const { api, writes } = recorder();
+  await assert.rejects(importHome({ from: exported, home: freshHome(), api, signal: AbortSignal.abort() }), (error: unknown) => {
+    assert.ok(error instanceof BackupRefused);
+    assert.equal(error.partial, false);
+    assert.doesNotMatch(error.message, /holds part/);
+    return true;
+  });
+  assert.deepEqual(writes, []);
+});
+
+test('the fingerprint covers the whole manifest: a changed version, date or count is a different backup', () => {
+  const base = exportFingerprint(inspectExport(exported));
+  for (const change of [{ version: 3 }, { createdAt: '2020-01-01T00:00:00.000Z' }, { scrubbed: 99 }]) {
+    const copy = join(freshDir('backbone-manifest-'), 'export');
+    cpSync(exported, copy, { recursive: true });
+    const manifest = JSON.parse(readFileSync(join(copy, 'manifest.json'), 'utf8'));
+    writeFileSync(join(copy, 'manifest.json'), JSON.stringify({ ...manifest, ...change }));
+    let fingerprint: string | undefined;
+    try { fingerprint = exportFingerprint(inspectExport(copy)); } catch { /* an export this version refuses is no match either */ }
+    assert.notEqual(fingerprint, base, JSON.stringify(change));
+  }
 });

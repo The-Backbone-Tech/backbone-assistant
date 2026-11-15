@@ -43,7 +43,7 @@ type DirectMethod = { [M in Method]: Result<M> extends Receipt<unknown> ? never 
 const DIRECT_RESULTS = {
   'core.signatureStatus': true, 'projects.list': true, 'threads.list': true, 'threads.search': true,
   'goals.runs': true, 'host.status': true, 'material.list': true, 'work.now': true, 'files.list': true,
-  'drafts.get': true, 'models.list': true, 'settings.policy.get': true, 'settings.model.get': true,
+  'drafts.get': true, 'models.list': true, 'settings.policy.get': true, 'settings.model.get': true, 'settings.engines.get': true,
   'models.local': true, 'viewer.get': true, 'viewer.put': true, 'tools.list': true, 'triage.get': true,
   'schedules.get': true, 'triggers.get': true, 'solutions.options': true, 'memory.get': true,
   'memory.search': true, 'plugins.parts': true, 'connectors.list': true,

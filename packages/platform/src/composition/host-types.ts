@@ -106,6 +106,12 @@ export interface Host {
   /** Trusted native main only; not a Method, engine tool or HTTP endpoint. */
   deviceRecoveryStatus():Promise<{available:boolean;notice?:string}>;
   restoreDeviceAccess(signal?:AbortSignal):Promise<void>;
+  /** Trusted native main and command line only: true when the engine in use brings its own tools, so colleagues' messages are refused. */
+  engineBringsOwnTools():boolean;
+  /** Owner-only diagnosis; never exposed to an authenticated colleague. */
+  sharedEngineNotice():string | undefined;
+  /** Trusted composition waits for startup before reading its shared-engine diagnosis. */
+  sharedEngineReady():Promise<void>;
   /** Trusted desktop main only. No Host.call, model, automation or remote session method. */
   unknownChecks: ReturnType<typeof import('./unknown-checks.ts').createUnknownChecks>;
   /** Trusted native setup only; absent from Host.call, every engine and every transport. */
@@ -172,7 +178,7 @@ export interface Host {
    * Import an export into this home, which must hold no work: under the home's lock for the whole
    * import, through the host's own methods. Never reachable through `call` or any transport.
    */
-  importExport(from: string): Promise<ImportPlan>;
+  importExport(from: string, expect?: string): Promise<ImportPlan>;
   /** The job itself, for the process that hosts it (main, tests and the measurement); not a transport. */
   readonly triage: TriageService;
   on(listener: (e: ApiEvent) => void): () => void;

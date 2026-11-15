@@ -146,7 +146,7 @@ The Engine under any child can be swapped, and the thread tree, pending effects 
 
 ## Change procedure
 
-An event-schema change goes through the integrator. The composition map (memo 02) owns how the app presents the tree.
+An event-schema change goes through the integrator. The [app contract](../../packages/surfaces/app/CONTRACT.md) owns how the app presents the tree.
 
 
 ## Conversation restart

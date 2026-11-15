@@ -93,7 +93,7 @@ export function AcpAgentForm({ onChange, machineClient }: { onChange: (settings:
       {environment === 'person-rights' && <label className="mt-2 flex gap-2 text-sm"><input type="checkbox" disabled={!prepared} checked={personAccepted} onChange={event => setPersonAccepted(event.target.checked)} />I accept that this agent can read and write this app’s data folder, including settings.json, and access machine credentials with my own rights</label>}
       {error && <p role="alert" className="mt-2 text-xs text-danger">{error}</p>}
       {message && <p role="status" aria-label="Agent save result" className="mt-2 text-xs text-muted">{message}</p>}
-      <div className="mt-3 flex justify-end"><Button type="submit" variant="outline" disabled={!accepted || !prepared || (environment === 'person-rights' && !personAccepted) || busy}>{busy ? 'Saving…' : 'Save ACP agent'}</Button></div>
+      <div className="mt-3 flex justify-end"><Button type="submit" disabled={!accepted || !prepared || (environment === 'person-rights' && !personAccepted) || busy}>{busy ? 'Saving…' : 'Save ACP agent'}</Button></div>
     </fieldset>
   </form>;
 }

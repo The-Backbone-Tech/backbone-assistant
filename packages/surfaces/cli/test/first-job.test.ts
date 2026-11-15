@@ -1,6 +1,7 @@
 import { childHangTimer, observeChild } from '../../../../scripts/lib/test-child.ts';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:http';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -47,6 +48,22 @@ test('the guide path stores the shared engine/route, attaches, reads, saves and 
   const accepted = await run(home, ['files', 'save', 'brief.md', '--base-version', '3']); assert.equal(accepted.code, 0, accepted.err);
   assert.match((await run(home, ['files'])).out, /accepted.*brief.md.*v4.*person/);
   const override = await run(home, ['models'], { BACKBONE_HARNESS: 'stub' }); assert.match(override.out, /Stub/);
+});
+
+test('model local adds the missing /v1 for a known runtime, says so, and reports the model check', async t => {
+  const home = freshDataHome('local-address'); t.after(() => removeDataHome(home));
+  const server = await startScriptedModel(); t.after(() => server.close());
+  const bare = new URL(server.url).origin;
+  assert.equal((await run(home, ['projects', 'create', 'Sales'])).code, 0);
+  const found = await run(home, ['model', 'local', '--runtime', 'ollama', '--endpoint', bare, '--model', server.model]); assert.equal(found.code, 0, found.err);
+  assert.match(found.out, new RegExp(`Using ${bare.replace(/[.]/g, '\\.')}/v1 `)); assert.match(found.out, /is listed/);
+  const missing = await run(home, ['model', 'local', '--runtime', 'ollama', '--endpoint', bare, '--model', 'not-loaded:1b']); assert.equal(missing.code, 0, missing.err);
+  assert.match(missing.out, /does not list not-loaded:1b/);
+  const closed = createServer(); await new Promise<void>(r => closed.listen(0, '127.0.0.1', r));
+  const port = (closed.address() as { port: number }).port; await new Promise(r => closed.close(r));
+  const off = await run(home, ['model', 'local', '--runtime', 'ollama', '--endpoint', `http://127.0.0.1:${port}`, '--model', 'gemma4:e4b']); assert.equal(off.code, 0, off.err);
+  assert.match(off.out, /could not be checked/);
+  assert.equal(JSON.parse(readFileSync(join(home, 'model-route.json'), 'utf8')).local.baseUrl, `http://127.0.0.1:${port}/v1`);
 });
 
 for (const finish of ['length', null] as const) test(`send exits nonzero and records an unfinished answer: ${finish}`, async t => {

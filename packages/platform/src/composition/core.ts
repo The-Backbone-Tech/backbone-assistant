@@ -95,7 +95,7 @@ export class CoreRefusal extends Error {
 export class CoreCloseWaitRefusal extends Error {
   readonly closed: Promise<void>;
   constructor(closed: Promise<void>) {
-    super('This data home is closing; nothing was granted or revoked by this attempt. Try again after it closes.');
+    super('This data folder is closing; nothing was granted or revoked by this attempt. Try again after it closes.');
     this.name = 'CoreCloseWaitRefusal';
     this.closed = closed;
   }
@@ -302,8 +302,8 @@ export class CoreLink {
     if (readOnly) {
       requireCompleteHome(options.home); refuseStampedHome(options.home);
       try { readIdentity = JSON.parse(readFileSync(join(options.home,'core.json'),'utf8')) as Identity; }
-      catch { throw new CoreRefusal('incomplete','This home is missing a valid Core identity; restore its original identity before opening.'); }
-      if (!readIdentity || ![readIdentity.workspace,readIdentity.person,readIdentity.system,readIdentity.agent].every(value=>typeof value==='string'&&/^[a-f0-9-]{36}$/i.test(value))) throw new CoreRefusal('incomplete','This home is missing a valid Core identity; restore its original identity before opening.');
+      catch { throw new CoreRefusal('incomplete','This data folder is missing a valid Core identity; restore its original identity before opening.'); }
+      if (!readIdentity || ![readIdentity.workspace,readIdentity.person,readIdentity.system,readIdentity.agent].every(value=>typeof value==='string'&&/^[a-f0-9-]{36}$/i.test(value))) throw new CoreRefusal('incomplete','This data folder is missing a valid Core identity; restore its original identity before opening.');
     }
     else { assertHomeWriteAdmission(options.home,join(options.home,'keys'),join(options.home,'pg')); await claimCoreHome(options.home); }
     await before;
@@ -335,7 +335,7 @@ export class CoreLink {
     try {
       for (const p of [pool, operator]) {
         const { rows } = await p.query(LOG_POLICY_QUERY);
-        if (!safeLogPolicy(rows[0])) throw new Error('PostgreSQL may log secret parameters; configure the database logging policy before opening this home.');
+        if (!safeLogPolicy(rows[0])) throw new Error('PostgreSQL may log secret parameters; configure the database logging policy before opening this data folder.');
       }
     const path = join(options.home, 'core.json');
     const known = () => (existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as Identity) : null);
@@ -598,7 +598,7 @@ export class CoreLink {
   async recordMaterialSourceRead(h:RunHandle,request:MaterialSourceReadRequest,
     beforeCommit:(tentative:MaterialReadTentative)=>undefined,signal:AbortSignal):Promise<MaterialReadTentative>{
     this.requireWritable();
-    if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','Material registration requires the source owner to hold the home lock.');
+    if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','Material registration requires the source owner to hold the data folder lock.');
     if(this.materialGuard.state!=='verified'||this.materialLink.state!=='verified'||this.materialEnforcement.state!=='verified')
       throw new CoreRefusal('paused','Native material source enforcement is not verified.');
     signal.throwIfAborted();
@@ -616,7 +616,7 @@ export class CoreLink {
     let tentative:MaterialReadTentative|undefined,retained=false,acknowledged=false,rolledBack=false;
     const held=()=>{
       signal.throwIfAborted();
-      if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','The material source home lock is no longer held.');
+      if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','The material source data folder lock is no longer held.');
     };
     try{return await this.materialTransport(signal,async client=>{
       await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
@@ -653,7 +653,7 @@ export class CoreLink {
     this.requireWritable();
     const held=()=>{
       signal.throwIfAborted();
-      if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','Connector admission requires the home lock.');
+      if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','Connector admission requires the data folder lock.');
     };
     held();
     if(this.materialGuard.state!=='verified'||this.materialLink.state!=='verified'||this.materialEnforcement.state!=='verified')
@@ -680,7 +680,7 @@ export class CoreLink {
     this.requireWritable();
     const held=()=>{
       signal.throwIfAborted();
-      if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','Material recovery claim requires the home lock.');
+      if(!inActiveHomeLockScope(dirname(this.path)))throw new CoreRefusal('paused','Material recovery claim requires the data folder lock.');
     };
     held();
     if(this.materialGuard.state!=='verified'||this.materialLink.state!=='verified'||this.materialEnforcement.state!=='verified')
@@ -1041,7 +1041,7 @@ export class CoreLink {
         current.lastFailure = own.reason;
         // No original error text, path or credentials in the process log. Keep the actual failure
         // on this attempt and report it to openers that captured it while it was pending.
-        process.emitWarning('A Core close attempt failed; a later open will inspect the home again.', { code: 'CORE_CLOSE_FAILED' });
+        process.emitWarning('A Core close attempt failed; a later open will inspect the data folder again.', { code: 'CORE_CLOSE_FAILED' });
         throw own.reason;
       }
     }).finally(() => { current.pending = false; });

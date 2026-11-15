@@ -47,6 +47,7 @@ export const USAGE = `usage: backbone <command> [--home <data folder>] [--json]
   models
   engine [pi|codex|acp|stub]          show or store the engine for this data folder (next process)
   model codex --model <id>
+  model shared local --endpoint <loopback-url> --model <id> [--runtime ollama|lmstudio|llamacpp|vllm|other]
   model local --endpoint <loopback-url> --model <id> [--runtime ollama|lmstudio|llamacpp|vllm|other]
   files attach <path> [--project <project>]
   files read <name-or-id> [--version <n>] [--project <project>]
@@ -245,7 +246,7 @@ export function parse(argv: string[], env: NodeJS.ProcessEnv = process.env): Par
   // The thing a command takes, in plain words, for the messages below.
   const noun = name === 'team share' ? 'project id' : name === 'team remove' ? 'person id' : name.startsWith('audit ') ? 'file' : 'thread';
   if (shape === 'one' && words.some(word => !word.trim()) && name.startsWith('team ')) return blank(`${name} needs a ${noun}.`);
-  if ((shape === 'one' || shape === 'optional') && words.length > 1) return blank(name === 'telemetry endpoint' ? 'telemetry endpoint takes one URL.' : `${name} takes one ${noun}.`);
+  if ((shape === 'one' || shape === 'optional') && words.length > 1 && !(name === 'model' && words[0] === 'shared' && words.length === 2)) return blank(name === 'telemetry endpoint' ? 'telemetry endpoint takes one URL.' : `${name} takes one ${noun}.`);
   const what: Record<string, string> = { send: 'the text to send', queue: 'the text to send', 'goal set': 'the goal', 'schedule add': 'what each run says' };
   if ((shape === 'one' || shape === 'text') && !words.length) return blank(name === 'telemetry endpoint' ? 'telemetry endpoint needs a full OTLP traces URL.' : shape === 'one' ? `${name} needs ${name.endsWith(' verify') ? 'a file' : `a ${noun}`}.` : `${name} needs ${what[name] ?? 'a name'}.`);
   if ((name === 'goal set' || name === 'queue') && !values.thread) return blank(`${name} needs --thread <thread>.`);
@@ -268,7 +269,7 @@ export function parse(argv: string[], env: NodeJS.ProcessEnv = process.env): Par
   if (values['output-schema'] !== undefined && name !== 'exec') return blank('--output-schema is for exec.');
   if (name === 'exec' && /^\/goal(?:\s|$)/.test(words.join(' ').trim())) return blank('exec runs one turn; use goal for a goal run.');
   if (values.attach && name !== 'send' && name !== 'exec') return blank('--attach is for send; use files attach to attach separately.');
-  if (name === 'model' && (!['codex', 'local'].includes(words[0]) || !values.model || (words[0] === 'local' && !values.endpoint))) return blank('use model codex --model <id>, or model local --endpoint <loopback-url> --model <id>. Hosted keys are added in the app Settings > AI and models; never type them into CLI arguments.');
+  if (name === 'model' && (!['codex', 'local', 'shared local'].includes(words.join(' ')) || !values.model || (words.at(-1) === 'local' && !values.endpoint))) return blank('use model codex --model <id>, model local --endpoint <loopback-url> --model <id>, or model shared local --endpoint <loopback-url> --model <id>. Hosted keys are added in the app Settings > AI and models; never type them into CLI arguments.');
   if ((values.endpoint || values.runtime) && name !== 'model') return blank('--endpoint and --runtime are for model local.');
   if (values.from && name !== 'files save') return blank('--from is for files save.');
   if (values.version && name !== 'files read') return blank('--version is for files read.');
@@ -687,7 +688,7 @@ export async function runCommand(parsed: Parsed, api: Api, io: Io): Promise<numb
         const models = await api.call('models.list', {});
         const settings = await api.call('settings.model.get', {});
         show({ models, settings }, () =>
-          [...models.map((m) => `${m.id}  ${m.label}`), `Engine: ${settings.harness}`, `Route: ${settings.active?.label ?? terminalModelHint(settings.hint ?? 'none')}`].join('\n'));
+          [...models.map((m) => `${m.id}  ${m.label}`), `Engine: ${settings.harness}`, `Route: ${settings.active?.label ?? terminalModelHint(settings.hint ?? 'none')}`, `Shared work: Pi · ${settings.shared?.active?.label ?? 'not configured'}`].join('\n'));
         return EXIT.OK;
       }
       default:

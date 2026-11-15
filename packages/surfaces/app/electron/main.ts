@@ -1,3 +1,4 @@
+import { registerBrowserPane } from './browser-pane';
 import { confirmUnknownCheck } from './unknown-check';
 import { listNotices, readNotice } from '@backbone-next/platform/notices';
 import { governedPolicy, keyDecision, PolicyRefused } from '@backbone-next/platform/policy';
@@ -23,8 +24,9 @@ import { makeJoinLink, RemoteError } from '@backbone-next/platform/remote/client
 import { RendererIdentitySessions } from './identity-session.ts';
 import { companyBrowserSignIn } from './identity-company.ts';
 import {assertHomeWriteAdmission} from '@backbone-next/platform/composition/home-lock';
-import { ApiLineProjectBudget, type ApiLineServer, serveApiLine } from '@backbone-next/platform/composition/api-line';
+import { ApiLineAttachmentBudget, ApiLineProjectBudget, type ApiLineServer, serveApiLine } from '@backbone-next/platform/composition/api-line';
 import { exportDestinations, rendererExport } from '@backbone-next/platform/composition/backup';
+import { answerRestore, createRestorer } from './restore.ts';
 import { keychainKeys, plaintextKeys } from '@backbone-next/platform/keys';
 import { brand } from '../src/brand';
 import { confirmLine } from './api-line';
@@ -127,7 +129,7 @@ const host = createHost({
   keychainRoutes: personKeychainRoutes(process.env),
   // Its files ship beside the bundle (scripts/build.mjs); the platform checks them against its registration.
   pieceDirs: { 'harness-pi': join(__dirname, '..', 'pieces', 'harness-pi'), 'harness-codex': join(__dirname, '..', 'pieces', 'harness-codex'), 'harness-acp': join(__dirname, '..', 'pieces', 'harness-acp') },
-  // Settings › Connect your AI tools: the door the tools start (it checks its own files).
+  // Settings › Assistants using this app: the door the tools start (it checks its own files).
   tools: { label: brand.name, door: { command: doorCommand, piece: doorPiece } },
   // The doors the tools start hold no secret: they reach their grants through this process, the
   // only one holding the home's keys, over a socket only the person's user can open.
@@ -184,8 +186,9 @@ void telemetry.then(() => host.resumeInterrupted()).catch(() => {});
 let line: ApiLineServer | undefined;
 let lineEnded = false;
 const projectCreationBudget = new ApiLineProjectBudget();
+const attachmentBudget = new ApiLineAttachmentBudget();
 void telemetry.then(() => stage('core (first call)', () => host.call('projects.list', {})))
-  .then(() => (lineEnded ? undefined : stage('api line', () => serveApiLine({ home, projectCreationBudget, projectCreation: companyConfiguration ? 'signed-in-app' : true, call: (method, args) => host.call(method, args), connectorEffects: host.connectorEffectDecisions, unknownChecks: host.unknownChecks, confirm: (ask, signal) => confirmLine(ask, signal) }))))
+  .then(() => (lineEnded ? undefined : stage('api line', () => serveApiLine({ home, attachmentBudget, attachment: companyConfiguration ? 'signed-in-app' : true, projectCreationBudget, projectCreation: companyConfiguration ? 'signed-in-app' : true, call: (method, args) => host.call(method, args), connectorEffects: host.connectorEffectDecisions, unknownChecks: host.unknownChecks, confirm: (ask, signal) => confirmLine(ask, signal) }))))
   .then((served) => { if (lineEnded) void served?.close(); else line = served; })
   .catch(() => {}); // With no line the command line says the app is not reachable; the app itself goes on.
 
@@ -195,6 +198,8 @@ const remote = telemetry.then(()=>remoteWorkspace(home,keys));
 const identitySessions = new RendererIdentitySessions(host,()=>remote,!!companyConfiguration);
 const sharing = observeSharing(telemetry.then(async () => appSharing(home, keys, {
   addresses: computerAddresses,
+  engineBringsOwnTools: () => host.engineBringsOwnTools(),
+  sharedEngineNotice: () => host.sharedEngineNotice(),
   start: async (address, port) => {
     const tls = await sharedCertificate(home, keys);
     const listener = await serveIdentityApi({host, address, port, tls});
@@ -209,6 +214,10 @@ const refuseOthers = (e: IpcMainEvent | IpcMainInvokeEvent) => {
   refusePage(e);
   if (!identitySessions.deviceOwner(e.sender.id)) throw new Error('This operation requires the local device owner.');
 };
+registerBrowserPane(refusePage, home, {unavailable: event =>
+  identitySessions.remoteView(event.sender.id) ? 'Browser is not available in a joined workspace. Pages belong to the local device owner.' :
+  companyConfiguration ? 'Browser is not available in a company configuration. Company policy does not define personal browser access.' :
+  identitySessions.deviceOwner(event.sender.id) ? undefined : 'Browser is not available here. Pages belong to the local device owner.'});
 async function localAdministrator(e:IpcMainInvokeEvent,ownerOnly=false){
   refusePage(e);
   if(identitySessions.remoteView(e.sender.id))throw new Error('Manage this computer from its local window.');
@@ -247,6 +256,14 @@ ipcMain.handle('remote-send-checked',async(e,key:unknown)=>{refusePage(e);if(typ
 ipcMain.handle('identity-leave-remote',async e=>{refusePage(e);await identitySessions.leaveRemote(e.sender.id);return{ok:true};});
 ipcMain.handle('identity-company',(e,invitation:unknown)=>{refusePage(e);if(invitation!==undefined&&typeof invitation!=='string')throw new Error('Invalid invitation.');return companySignIn.begin(e.sender.id,invitation);});
 const exportTickets = exportDestinations();
+// Restore a backup into a new data folder, through the same operation `backbone restore` runs. The new
+// data folder is opened with this app's own keys, so the app can open it when the person starts it there.
+const restorer = createRestorer({
+  home,
+  unavailable: () => companyConfiguration ? 'This app is set up by your company, which keeps data folders under its own control. Ask your administrator to restore a backup.' : undefined,
+  openHost: (target) => createHost({ home: target, keys, baselineSql: readFileSync(baselineFile, 'utf8'), postgresNative, harness: 'harness-pi' }),
+});
+ipcMain.handle('backup-restore', (e, request: unknown) => { refuseOthers(e); return answerRestore(restorer, request, e.sender.id); });
 ipcMain.handle('telemetry-settings', (e) => { refuseOthers(e); return telemetryView(home); });
 ipcMain.handle('telemetry-configure', (e, request: unknown) => { refuseOthers(e); return configureTelemetry(home, keys, request); });
 const noticesDirectory = join(__dirname, '..', 'notices');
@@ -320,6 +337,23 @@ ipcMain.handle('choose-export-folder', async (e) => {
   if (!picked) return null;
   // Bound to this window and to the folder as it is now: another window, or the folder swapped for a link, is refused.
   return exportTickets.issue(picked, e.sender.id);
+});
+// A backup to restore, and a place for the new data folder, are picked by the person here, in the native picker.
+ipcMain.handle('choose-backup-folder', async (e) => {
+  refuseOthers(e);
+  const window = BrowserWindow.fromWebContents(e.sender);
+  const options = { title: 'Choose the backup folder', message: 'The folder an export made, the one that holds manifest.json', properties: ['openDirectory'] as 'openDirectory'[] };
+  const chosen = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+  const picked = chosen.canceled ? undefined : chosen.filePaths[0];
+  return picked ? restorer.source(picked, e.sender.id) : null;
+});
+ipcMain.handle('choose-restore-place', async (e) => {
+  refuseOthers(e);
+  const window = BrowserWindow.fromWebContents(e.sender);
+  const options = { title: 'Choose where the restored data folder goes', message: 'A new folder is made inside the one you choose', properties: ['openDirectory', 'createDirectory'] as ('openDirectory' | 'createDirectory')[] };
+  const chosen = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+  const picked = chosen.canceled ? undefined : chosen.filePaths[0];
+  return picked ? restorer.target(picked, e.sender.id) : null;
 });
 ipcMain.handle('connector-read', (e, request: unknown) => {
   refuseOthers(e);
@@ -481,7 +515,7 @@ app.on('before-quit', (event) => {
     companySignIn.close();
     lineEnded = true;
     releaseAwake();
-    void (async()=>{await closeSharedHost(sharing,host);await Promise.race([hostClosed(home),new Promise(resolve=>setTimeout(resolve,3_000))]);})().catch(()=>{}).finally(()=>app.exit(0));
+    void (async()=>{await Promise.race([restorer.drain(),new Promise(resolve=>setTimeout(resolve,10_000))]);await closeSharedHost(sharing,host);await Promise.race([hostClosed(home),new Promise(resolve=>setTimeout(resolve,3_000))]);})().catch(()=>{}).finally(()=>app.exit(0));
     return;
   }
   quitting = (async () => {
@@ -497,6 +531,8 @@ app.on('before-quit', (event) => {
     // A flushed renderer must leave before Host shutdown refuses live view refreshes.
     // Otherwise its live subscriptions refresh against a Host that now refuses calls.
     for (const win of BrowserWindow.getAllWindows()) if (!win.isDestroyed()) win.destroy();
+    // A restore that is running finishes first, as the current host does: its result is then kept for the next start.
+    await Promise.race([restorer.drain(), new Promise((r) => setTimeout(r, 60_000))]);
     host.close(); // Existing host shutdown/recovery ownership is unchanged; close() returns void.
     quitReady = true;
     // Every window has flushed. Exit directly once the host has stopped, or after a bound: a second

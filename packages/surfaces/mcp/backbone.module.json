@@ -85,5 +85,5 @@
     "rule": "revoke its grants first; held UNKNOWNs stay with the core's gateway and their resolvers"
   },
   "swap": "any door over the same gateway port (OpenAPI, ACP); a client can also be pointed at another MCP server",
-  "digest": "sha256:37999a993b8b01eb06239bd411341479f0c3a35976ab942c2fec4598d599d5f7"
+  "digest": "sha256:a1054a4d607f4ae6ca34e528620ddf4d1b42dc4f9e0a39dd8f089fe6fe43230d"
 }

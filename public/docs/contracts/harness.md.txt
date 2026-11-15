@@ -361,7 +361,7 @@ before starting the adapter. No Core crossing is awaited under a home lock.
 
 A person-rights agent can persist a different next-launch engine by rewriting
 settings.json. Claude's machine configuration can also load the backbone-door
-server installed by Connect your AI tools. That is a second Host route under the
+server installed from Settings › Assistants using this app. That is a second Host route under the
 door's own grants, rather than the current turn's grants; asked writes still need
 the person's app approval. The mcp__backbone__* pre-approval does not match
 mcp__backbone-door__*. A machine server literally named backbone collides with the

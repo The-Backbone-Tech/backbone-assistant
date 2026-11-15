@@ -58,7 +58,7 @@ test('a second opener in another process is refused with a clear error', { timeo
   const first = createHost({ home });
   await first.call('projects.list', {});
   const said = execFileSync(process.execPath, [join(import.meta.dirname, 'second-opener.ts'), home], { encoding: 'utf8' });
-  assert.match(said, /refused: This data home is in use by another host/);
+  assert.match(said, /refused: This data folder is in use by another host/);
   await shut(home, first);
 });
 
@@ -137,7 +137,7 @@ test('a home too long for a socket is held in a folder only this user may enter'
   assert.ok(ownFolder(socket), 'never a shared folder such as /tmp itself');
   assert.equal(statSync(socket).mode & 0o777, 0o600, 'as the door\'s and the api line\'s sockets beside it');
   const said = execFileSync(process.execPath, [join(import.meta.dirname, 'second-opener.ts'), home], { encoding: 'utf8' });
-  assert.match(said, /refused: This data home is in use by another host/);
+  assert.match(said, /refused: This data folder is in use by another host/);
   await shut(home, first);
 });
 
@@ -156,7 +156,7 @@ test('a home reached through a link is the same home: its second opener is refus
     assert.equal(ownerSocket(link), ownerSocket(home));
     // A second owner would hold on and never answer: bounded, so that fails rather than hangs.
     const said = execFileSyncHang(process.execPath, [join(import.meta.dirname, 'second-opener.ts'), link], { encoding: 'utf8', timeout: TEST_HANG_MS, killSignal: 'SIGTERM' });
-    assert.match(said, /refused: This data home is in use by another host/);
+    assert.match(said, /refused: This data folder is in use by another host/);
   } finally { await shut(home, first); }
 });
 

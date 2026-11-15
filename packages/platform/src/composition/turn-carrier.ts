@@ -1,3 +1,7 @@
+import { assertSharedHistory, recordCarrier } from './shared-history.ts';
+import { IdentityRefused, SharedEngineRequired, OwnerAutomationThreadRefused, PersonalConversationRequired } from './identity-core.ts';
+import { hostToolsOnly } from './harnesses.ts';
+import { engineDecision } from '../policy/index.ts';
 import {nativeTurnForProject,SharedEngineRefusal} from './engine-admission.ts';
 import {noteSharedCodex} from './shared-codex.ts';
 import { withdrawalNotice } from './work-now.ts';
@@ -38,7 +42,7 @@ type Deps = {
  memory: ReturnType<typeof createMemory>; goalRuns: ReturnType<typeof createGoalRuns>; proactivity: ReturnType<typeof createProactivity>;
  triggers: ReturnType<typeof createTriggers>; board: ReturnType<typeof createTaskBoard>;
  gateway: ReturnType<typeof createConnectorReadDecisions>['gateway']; connectors: ConnectorService;
- routes: ModelRoutes; credentials: CredentialStore; engine: HarnessV1 | undefined; harnessId: string;
+ restricted?: boolean; routes: ModelRoutes; credentials: CredentialStore; engine: HarnessV1 | undefined; harnessId: string;
  harnessPiece: ReturnType<typeof pieceOnDisk> | undefined; scriptDir: string | undefined; writeDelayMs: number;
  checkpointsFor: (id: string) => {load: () => Checkpoint | null; save: (checkpoint: Checkpoint) => Promise<void>; clear: () => Promise<void>};
  closeRecovery: (thread: StoredThread, turn: Turn) => Promise<void>;
@@ -63,12 +67,18 @@ export function createTurnCarrier(deps: Deps) {
     let heartbeat: ReturnType<typeof setInterval> | undefined;
     let recoveredFiles: import('../api.ts').FileLink[] = [];
     let keepRunOpen = resumed;
-    let terminalRecovery = false;
+    let terminalRecovery = false, producerStarted = false;
     let recoveryReading = resumed, retryRead = false;
     let recovery: ReturnType<typeof createCheckpointRecovery> | undefined;
     const recoveryContext: CheckpointContext = { home, threadId: thread.summary.id, projectId, taskId: task, turn, link, material, store: checkpointsFor(turn.id) };
     try {
       handle = await run;
+      const restrictedIdentity = deps.restricted || link.id.person !== link.identities.devicePerson || !!thread.automationId;
+      if (restrictedIdentity && !hostToolsOnly(harnessId, harnessPiece?.manifest)) {
+        // The owner on their own computer is restricted only by the automation's thread: say what is true for them.
+        const ownerOnly = !deps.restricted && link.id.person === link.identities.devicePerson;
+        throw ownerOnly ? new OwnerAutomationThreadRefused() : new SharedEngineRequired();
+      }
       admission.check(true);
       const h = handle;
       recovery = createCheckpointRecovery(recoveryContext, h, resumed && !turn.stopRequested, () => closeRecovery(thread, turn));
@@ -125,7 +135,6 @@ export function createTurnCarrier(deps: Deps) {
       const notice = withdrawalNotice([...threads.values()].filter((t) => t.summary.projectId === projectId), material.list(projectId, true));
       if (notice) turn.work.steps.push({ kind: 'note', label: notice });
       const tell = () => parallel.tell(thread, turn);
-      const restrictedIdentity = link.id.person !== link.identities.devicePerson || !!thread.automationId;
       const ctx = { ...(restrictedIdentity ? {} : {telemetry: { home, runId: h.run }}), material, projectId, gateway: gateway(link, h, thread.summary.id, turn.id, projectId, controller.signal, checkpointRecovery ? true : undefined), writeDelayMs, signal: controller.signal };
       const identityAdmission = restrictedIdentity ? (work:()=>Promise<unknown>) => link.identities.admitPerson(link.id.person,async()=>{
         if (controller.signal.aborted || !['owner','editor'].includes(await link.call<string>(link.person(),'SELECT gov.identity_project_access($1)',[projectId]) ?? '')) throw new Error('Identity or project access ended.');
@@ -134,8 +143,12 @@ export function createTurnCarrier(deps: Deps) {
       // A selected turn runs on its pinned route or not at all; any turn, on a route its history's selected tasks allow (selection/pin.ts).
       const pin = deps.engine ? routeFor(thread, turn.user.settings?.model, turn.selection) : undefined, route = pin && 'route' in pin ? pin.route : null;
       if (checkpointRecovery && (!deps.engine || !route || turn.merge)) throw new Error('The interrupted checkpoint needs its original import path; no producer or substitute turn was started.');
-      if (deps.engine && route && !turn.merge) turn.work.harness = `${deps.engine.label} · ${route.label}`;
-      if (turn.merge) await parallel.carryMerge(thread, turn, ctx.gateway, controller.signal);
+      if (deps.restricted && link.id.person === link.identities.devicePerson && !thread.automationId) assertSharedHistory({ ...thread, turns: resumed ? thread.turns : thread.turns.filter(t => t.id !== turn.id) }, route, threads);
+      if (deps.engine && route && !turn.merge) {
+        recordCarrier(turn, harnessId, route, !!deps.restricted);
+        turn.work.harness = `${deps.engine.label} · ${route.label}`;
+      }
+      if (turn.merge) { producerStarted = true; await parallel.carryMerge(thread, turn, ctx.gateway, controller.signal); }
       else if (deps.engine && !route) {
         const hint = pin && 'refused' in pin ? pin.refused : routes.settings().hint ?? NO_ROUTE;
         turn.refusal = { reason: 'NOT_AVAILABLE', detail: hint };
@@ -151,10 +164,12 @@ export function createTurnCarrier(deps: Deps) {
         try{
         const {nativeAccountTools}=nativeTurn;
         if (!nativeAccountTools&&harnessId==='harness-codex') noteSharedCodex(turn);
-        await runHarnessTurn({ ...ctx, nativeAccountTools, identityAdmission, policyAdmission: () => admission.check(true), ...(dispatched ? { dispatched } : {}), ...(recall ? { memory: bounded ? { ...recall, propose: undefined } : recall } : {}), threadId: thread.summary.id, harness: deps.engine, route, credential: async (h) => credentials.resolve(h), credentials: () => credentials.values(), history, notice, tell, resumed, steerable: (deliver) => parallel.steerable(thread.summary.id, deliver), readOnly: thread.child?.role === 'reviewer' || !!turn.judge, coordination: bounded || restrictedIdentity ? undefined : coordinationFor(thread, turn, h, controller.signal), connectors: offline || restrictedIdentity ? undefined : connectors, recoveredFiles, progress, checkpoints: recovery.store }, turn, entries);
+        producerStarted = true;
+        await runHarnessTurn({ ...ctx, nativeAccountTools, identityAdmission, policyAdmission: () => { const policy = admission.check(true); engineDecision(policy, harnessId); }, ...(dispatched ? { dispatched } : {}), ...(recall ? { memory: bounded ? { ...recall, propose: undefined } : recall } : {}), threadId: thread.summary.id, harness: deps.engine, route, credential: async (h) => { if (restrictedIdentity && h !== route.credential) throw new Error('This credential is outside the shared model route.'); return credentials.resolve(h); }, credentials: () => credentials.values(), history, notice, tell, resumed, steerable: (deliver) => parallel.steerable(thread.summary.id, deliver), readOnly: thread.child?.role === 'reviewer' || !!turn.judge, coordination: bounded || restrictedIdentity ? undefined : coordinationFor(thread, turn, h, controller.signal), connectors: offline || restrictedIdentity ? undefined : connectors, recoveredFiles, progress, checkpoints: recovery.store }, turn, entries);
         }finally{await nativeTurn.release();}
       } else {
         // An engine with no words to take is still on the record: the stand-ins go through the same step.
+        producerStarted = true;
         tell();
         const saved = { ...ctx, progress: () => saveThread(thread) };
         if (scriptDir) await runScriptedTurn(saved, scriptDir, turn);
@@ -184,9 +199,17 @@ export function createTurnCarrier(deps: Deps) {
           }
         } catch { /* Retain the last known effects; an unavailable read cannot erase uncertainty. */ }
       }
-      turn.status = err instanceof SharedEngineRefusal?'refused':'stopped';
-      if(err instanceof SharedEngineRefusal)turn.refusal={reason:'NOT_AVAILABLE',detail:err.message};
-      turn.answer = { text: err instanceof SharedEngineRefusal?err.message:`The turn failed: ${String(err)}`, files: recoveredFiles };
+      const refused = !resumed && !producerStarted && (err instanceof SharedEngineRefusal || err instanceof SharedEngineRequired || err instanceof PersonalConversationRequired);
+      if (resumed && !producerStarted && err instanceof IdentityRefused) {
+        turn.status = turn.completed ? 'done' : 'stopped';
+        const detail = 'Recovery did not start. Earlier work and its receipts are kept; inspect them before continuing.';
+        turn.work.steps.push({ kind: 'note', label: detail });
+        turn.answer ??= { text: detail, files: recoveredFiles };
+      } else {
+        turn.status = refused?'refused':'stopped';
+        if(refused)turn.refusal={reason:'NOT_AVAILABLE',detail:err.message};
+        turn.answer = { text: refused?err.message:`The turn failed: ${String(err)}`, files: recoveredFiles };
+      }
     } finally {
       if (heartbeat) clearInterval(heartbeat);
       parallel.closed(thread.summary.id);
@@ -232,7 +255,7 @@ export function createTurnCarrier(deps: Deps) {
       thread.summary.running = false;
       thread.summary.unread = true;
       goalRuns.judged(turn);
-      if (!boundedSelection(turn.selection)) await memory.learn(thread, turn).catch(() => {});
+      if (!deps.restricted && link.id.person === link.identities.devicePerson && !thread.automationId && !boundedSelection(turn.selection)) await memory.learn(thread, turn).catch(() => {});
       await saveThread(thread);
       proactivity.ended(thread, turn);
       triggers.ended(thread, turn);

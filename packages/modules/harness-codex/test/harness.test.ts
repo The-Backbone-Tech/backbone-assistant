@@ -479,6 +479,17 @@ test('a staged source withdrawn before the model request stops the turn with not
   await assert.rejects(confirmSources(listing(['sales.md']), sources), /A staged source was withdrawn before the model request/);
 });
 
+test('staging lists the project as availability, not as an observed listing', async () => {
+  const purposes: unknown[] = [];
+  const host = { list: async (observation?: unknown) => { purposes.push(observation); return [{ name: 'hiring.md', version: 1 }]; } } as unknown as ToolHost;
+  await confirmSources(host, [{ name: 'hiring.md' }]);
+  assert.deepEqual(purposes, [{ purpose: 'staging' }], 'the last check marks its listing as staging');
+  const root = await mkdtemp(join(tmpdir(), 'staging-purpose-'));
+  try { await stageSources(root, { ...host, read: async () => null } as unknown as ToolHost, { threadId: 't', turnId: 'u', text: '', history: [], attachments: [], effort: 3, resumed: false } as never, new AbortController().signal).catch(() => undefined); }
+  finally { await rm(root, { recursive: true, force: true }); }
+  assert.deepEqual(purposes, [{ purpose: 'staging' }, { purpose: 'staging' }], 'staging marks its listing too');
+});
+
 test('a staged file counts as finished only once a later command left it unchanged', () => {
   const file = (name: string, body: string) => ({ name, body, existing: false });
   assert.deepEqual(stableFiles(new Map(), [file('a.md', '1')]), []);

@@ -36,7 +36,7 @@ test('a person enables a plugin command in Settings and invokes it from the comp
 
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
-    await dialog.getByRole('navigation', { name: 'Settings sections' }).getByRole('button', { name: 'Plugin commands and agents' }).click();
+    await dialog.getByRole('navigation', { name: 'Settings sections' }).getByRole('button', { name: 'Plugins', exact: true }).click();
     const plugin = dialog.getByRole('region', { name: 'tools@market' });
     const greet = plugin.getByTestId('plugin-part').filter({ hasText: '/greet' });
     await expect(greet).toContainText('Off');

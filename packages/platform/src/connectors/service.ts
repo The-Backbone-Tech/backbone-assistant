@@ -98,7 +98,7 @@ interface Stored { signatureEndConflicts?: { id: string; reason: SignatureEndRea
 const seedGen = (s: Stored) => { s.gen = Math.max(s.gen ?? 0, ...Object.values(s.servers).flatMap((c) => [c.rev ?? 0, ...Object.values(c.tools).map((t) => t.rev ?? 0)])); };
 const nextGen = (s: Stored) => {
   seedGen(s);
-  if (!Number.isSafeInteger(s.gen! + 1)) throw new Error('The revision counter of this home is exhausted; nothing was changed.');
+  if (!Number.isSafeInteger(s.gen! + 1)) throw new Error('The revision counter of this data folder is exhausted; nothing was changed.');
   return (s.gen = s.gen! + 1);
 };
 
@@ -178,7 +178,7 @@ const WITHHELD = '(withheld: it holds a credential)';
 const REFERENCE = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
 /** A path a plugin server may name inside its own folder: absolute, with none of the characters a list or a second path is written with. */
 const PLAIN_PATH = /^\/[^\s,;:=|"'`<>()[\]{}]*$/;
-const MOVES_CACHE = 'It moves its sign-in token cache, or its home, through its own config, so it is never started, enabled or offered.';
+const MOVES_CACHE = 'It moves its sign-in token cache, or its data folder, through its own config, so it is never started, enabled or offered.';
 const REACHES = 'It is started in, or names, a place that holds credentials or sign-in tokens, so it is never started, enabled or offered.';
 const ENABLE_FIRST = 'Enable it to list its tools: a plugin\'s server runs its command only once you turn it on.';
 /** A string as a server would read it: percent-decoded, a few times over. */
@@ -345,7 +345,7 @@ export class ConnectorService {
   }
   private async requireLink(): Promise<CoreLink> {
     const link = await this.linkWithin(this.requestLink(), 2_000);
-    if (!link) throw new SignatureUnavailable(`${SIGNATURE_LEDGER_VERSION}: Core is unavailable. Run backbone doctor and try again once this home's Core can open.`);
+    if (!link) throw new SignatureUnavailable(`${SIGNATURE_LEDGER_VERSION}: Core is unavailable. Run backbone doctor and try again once this data folder's Core can open.`);
     return link;
   }
   private deferEnds(pending: Promise<CoreLink | undefined>): void {
@@ -427,7 +427,7 @@ export class ConnectorService {
 
   private async signatureLink(link: CoreLink): Promise<CoreLink> {
     const status = await this.signatureStatus(link);
-    if (status.state !== 'verified') throw new SignatureUnavailable(`${SIGNATURE_LEDGER_VERSION}: ${status.reason} Run backbone doctor to check this home's standing signatures. Update this home's Core, or ask its operator to update it. You can release individual calls yourself meanwhile.`);
+    if (status.state !== 'verified') throw new SignatureUnavailable(`${SIGNATURE_LEDGER_VERSION}: ${status.reason} Run backbone doctor to check this data folder's standing signatures. Update this data folder's Core, or ask its operator to update it. You can release individual calls yourself meanwhile.`);
     return link;
   }
 
@@ -1092,7 +1092,7 @@ export class ConnectorService {
           const current = this.standing(held.serverId, held.tool);
           approval = written ?? (!standing ? { by: 'person' } : current ? { by: 'standing', signature: current } : undefined);
           if (!approval) return 'ended';
-          if (standing && approval.by === 'standing' && !qualified) throw new SignatureUnavailable(`${SIGNATURE_LEDGER_VERSION} could not be verified. Run backbone doctor. Update this home's Core, or ask its operator to update it. You can release individual calls yourself meanwhile.`);
+          if (standing && approval.by === 'standing' && !qualified) throw new SignatureUnavailable(`${SIGNATURE_LEDGER_VERSION} could not be verified. Run backbone doctor. Update this data folder's Core, or ask its operator to update it. You can release individual calls yourself meanwhile.`);
           if (!standing) local.personReleasedAt = now();
           if (!written || !standing) {
             if (!written) local.approval = approval;

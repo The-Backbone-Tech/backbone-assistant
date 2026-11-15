@@ -153,11 +153,11 @@ const anchorOf = async (source: AuditSource, redigest:AuditRedigest, raw: boolea
 export async function openAuditExport(source: AuditSource, supplied: AuditOptions, transport: 'direct' | 'api-line' = 'direct') {
   const options=auditOptions(supplied), after=options.after ? decodeAuditCursor(options.after) : null;
   if(transport==='api-line'&&options.includeContent)throw new AuditInvalid(AUDIT_CONTENT_DIRECT_ONLY);
-  if(after&&after.homeId!==source.homeId)throw new AuditInvalid('This audit cursor belongs to another home.');
+  if(after&&after.homeId!==source.homeId)throw new AuditInvalid('This audit cursor belongs to another data folder.');
   const parameters=(cursor:string,through:string|null)=>[cursor,options.since,options.until,options.includeContent,through,AUDIT_PAGE_SIZE,options.limit??null];
   const first=await source.snapshot(AUDIT_QUERY,parameters(after?.sequence??'0',null));
-  if(!first.allowed)throw new AuditInvalid('Audit export requires the home’s active person, outside a run, with the existing owner or admin role.');
-  if(after&&!first.anchor)throw new AuditInvalid('The audit cursor has no committed Core receipt in this home.');
+  if(!first.allowed)throw new AuditInvalid('Audit export requires the data folder’s active person, outside a run, with the existing owner or admin role.');
+  if(after&&!first.anchor)throw new AuditInvalid('The audit cursor has no committed Core receipt in this data folder.');
   const digester=source.digester(),redigest=digester.redigest;
   const header:AuditHeader={schema:AUDIT_SCHEMA,type:'header',homeId:source.homeId,transport,
     exportedBy:transport==='direct'?{kind:'home-person',personId:source.personId}:{kind:'same-user-process',uid:process.getuid?.()??null},

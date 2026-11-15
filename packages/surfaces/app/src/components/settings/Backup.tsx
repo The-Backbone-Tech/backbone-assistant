@@ -1,10 +1,13 @@
-// Backup: the whole home exported in plain files, and an export checked file for file. Restoring
-// writes a home, so it is done with the app closed (`backbone restore`); this section says how.
+// Backup: the whole data folder exported in plain files, an export checked file for file, and a backup
+// restored into a new data folder by a guided dialog (RestoreBackup.tsx). The terminal command stays
+// here as a secondary way in, for people who want it.
 import type { HomeExport } from '@backbone-next/platform';
 import * as React from 'react';
-import { call, chooseExportFolder } from '../../lib/api';
+import type { RestoreView } from '../../../electron/restore';
+import { call, chooseExportFolder, restore } from '../../lib/api';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { RestoreDialog } from './RestoreBackup';
 import { SettingsRow } from './SettingsRow';
 
 const quoted = (path: string) => `"${path.replace(/(["\\$`])/g, '\\$1')}"`;
@@ -15,6 +18,57 @@ function Counts({ made }: { made: HomeExport }) {
     <p className="text-xs leading-5 text-muted">
       {c.projects} projects, {c.threads} chats, {c.documents} documents ({c.versions} versions), {c.memoryFiles} memory files, {c.skills} skills; {c.receipts} receipts in a report to read, {c.unresolved} unresolved. {made.files} files; {made.scrubbed} credential values cut out.
     </p>
+  );
+}
+
+const ended = (job: NonNullable<RestoreView['job']>) =>
+  job.state === 'running' ? 'A restore is running' : job.state === 'done' ? 'The last restore finished' : job.state === 'unknown' ? 'It is not known whether the last restore finished' : 'The last restore did not finish';
+
+/** Restoring a backup: where it starts, what the last attempt came to, and the terminal way for those who want it. */
+function RestoreRow({ folder }: { folder: string }) {
+  const [view, setView] = React.useState<RestoreView>();
+  const [open, setOpen] = React.useState(false);
+  const [failed, setFailed] = React.useState<string>();
+  const running = view?.job?.state === 'running';
+  const load = React.useCallback(() => { setFailed(undefined); restore.view().then(setView, (error: Error) => setFailed(error.message)); }, []);
+  React.useEffect(load, [load]);
+  // Main holds the job: while it runs, ask how it is getting on.
+  React.useEffect(() => {
+    if (!running) return;
+    const timer = setInterval(() => { void restore.view().then(setView, () => {}); }, 700);
+    return () => clearInterval(timer);
+  }, [running]);
+  const off = view && !view.availability.available ? view.availability.reason : undefined;
+  const job = view?.job;
+  const tone = job?.state === 'done' ? 'text-committed' : job && job.state !== 'running' ? 'text-danger' : 'text-muted';
+  return (
+    <>
+      <SettingsRow title="Restore from a backup" about="Bring an export back as a new data folder, with a preview first. Your current data folder is not changed, and nothing comes in that gives permission or runs by itself.">
+        {failed ? (
+          <>
+            <p role="alert" className="max-w-sm text-xs leading-5 text-danger">Restore could not be checked: {failed}</p>
+            <Button size="sm" variant="outline" onClick={load}>Retry</Button>
+          </>
+        ) : off ? <p data-testid="restore-unavailable" className="max-w-sm text-xs leading-5 text-muted">{off}</p> : (
+          <Button size="sm" variant="outline" disabled={!view} onClick={() => setOpen(true)}>
+            {!view ? 'Loading…' : job ? 'View restore' : 'Restore from a backup…'}
+          </Button>
+        )}
+      </SettingsRow>
+      {job && !off && !failed && (
+        <p role="status" data-testid="restore-status" className={`border-b border-border py-2 text-xs leading-5 ${tone}`}>
+          {ended(job)}: {job.target}
+        </p>
+      )}
+      <details data-testid="restore-terminal" className="border-b border-border py-3 text-xs leading-5 text-muted">
+        <summary className="cursor-pointer text-ui font-medium text-fg">From a terminal</summary>
+        <div className="mt-2 space-y-1.5">
+          <p>Into a new, empty data folder, with this app closed. First a dry run that changes nothing, then the restore:</p>
+          <pre className="overflow-x-auto rounded-md bg-sunken px-2.5 py-1.5 font-mono text-xs">{`backbone restore ${folder ? quoted(folder) : '<backup-folder>'} --home <new-data-folder> --dry-run\nbackbone restore ${folder ? quoted(folder) : '<backup-folder>'} --home <new-data-folder>`}</pre>
+        </div>
+      </details>
+      {view && <RestoreDialog open={open} onOpenChange={setOpen} view={view} onChange={setView} />}
+    </>
   );
 }
 
@@ -76,12 +130,11 @@ export function BackupSection() {
         <div role="status" data-testid="backup-checked" className="space-y-1 border-b border-border py-3">
           <p className="text-ui font-medium">Every file matches. Exported {new Date(checked.createdAt).toLocaleString()}.</p>
           <Counts made={checked} />
-          <p className="text-xs leading-5 text-muted">Bring it into a new, empty data folder with the app closed, first as a dry run that changes nothing:</p>
-          <pre className="overflow-x-auto rounded-md bg-sunken px-2.5 py-1.5 font-mono text-xs">{`backbone restore ${quoted(checked.folder)} --home <new-data-folder> --dry-run`}</pre>
-          <p className="text-xs leading-5 text-muted">Your work comes in as you would add it; chats and receipts come in as documents to read. Nothing in it gives permission or runs by itself, and the data folder it came from is not touched.</p>
+          <p className="text-xs leading-5 text-muted">Restore it below, into a new data folder. Your work comes in as you would add it; chats and receipts come in as documents to read. Nothing in it gives permission or runs by itself, and the data folder it came from is not touched.</p>
         </div>
       )}
       {problem && <p role="alert" className="py-2 text-xs text-danger">{problem}</p>}
+      <RestoreRow folder={(checked?.folder ?? from).trim()} />
     </div>
   );
 }

@@ -5,7 +5,9 @@ import { Vault, type HomeKeys } from '@backbone-next/platform/keys';
 import { withHomeLock } from '@backbone-next/platform/composition/home-lock';
 
 export interface SharingChoice { enabled:boolean; address:string; port:number }
-export interface SharingView extends SharingChoice { addresses:string[]; origin?:string; fingerprint?:string; notice?:string }
+export interface SharingView extends SharingChoice { addresses:string[]; origin?:string; fingerprint?:string; notice?:string;
+  /** True when the engine in use brings its own tools: colleagues can join and read, but their messages are refused. Read-only. */
+  engineRefusesColleagues:boolean;engineNotice?:string }
 interface Listener { origin:string; fingerprint:string; close():Promise<void> }
 type Interfaces=Record<string,{address:string;family:string|number;internal:boolean}[]|undefined>;
 // Offer the addresses another computer can reach first, then this computer's own. A link-local IPv6
@@ -15,7 +17,7 @@ export function computerAddresses(interfaces:Interfaces=networkInterfaces()):str
   const rank=(entry:{address:string;internal:boolean})=>(entry.internal?2:0)+(isIP(entry.address)===6?1:0);
   return [...new Set(usable.map((entry,index)=>({entry,index})).sort((a,b)=>rank(a.entry)-rank(b.entry)||a.index-b.index).map(({entry})=>entry.address))];
 }
-export async function appSharing(home:string,keys:HomeKeys,dependencies:{addresses():string[];start(address:string,port:number):Promise<Listener>}) {
+export async function appSharing(home:string,keys:HomeKeys,dependencies:{addresses():string[];start(address:string,port:number):Promise<Listener>;engineBringsOwnTools():boolean;sharedEngineNotice?():string|undefined}) {
   const vault=await Vault.open(home,keys),entry='app.sharing';
   let pending:Promise<SharingView>|undefined;
   let listener:Listener|undefined,notice:string|undefined,closed=false,busy=false;
@@ -33,7 +35,7 @@ export async function appSharing(home:string,keys:HomeKeys,dependencies:{address
   if(saved)try{choice=checked(JSON.parse(saved.toString('utf8')));if(choice.enabled)await start();}
   catch(error){notice=error instanceof Error?error.message:'Sharing could not start. Choose an address and try again.';}
   return {
-    view():SharingView {return {...choice,enabled:!!listener,addresses:dependencies.addresses(),...(listener?{origin:listener.origin,fingerprint:listener.fingerprint}:{}),...(notice?{notice}:{})};},
+    view():SharingView {return {...choice,enabled:!!listener,addresses:dependencies.addresses(),engineRefusesColleagues:dependencies.engineBringsOwnTools(),engineNotice:dependencies.sharedEngineNotice?.(),...(listener?{origin:listener.origin,fingerprint:listener.fingerprint}:{}),...(notice?{notice}:{})};},
     configure(value:unknown):Promise<SharingView> {
       if(closed||busy)return Promise.reject(new Error('Sharing is already changing or the app is closing.'));
       let next:SharingChoice;
@@ -60,7 +62,7 @@ export async function appSharing(home:string,keys:HomeKeys,dependencies:{address
 // A failed setup owns no listener and therefore has nothing to close on quit.
 export function observeSharing(setup:Promise<Awaited<ReturnType<typeof appSharing>>>):Promise<Awaited<ReturnType<typeof appSharing>>> {
   return setup.catch(()=>({
-    view:()=>({enabled:false,address:'127.0.0.1',port:8443,addresses:computerAddresses(),notice:'Sharing could not start. Restart the app to try again.'}),
+    view:()=>({enabled:false,address:'127.0.0.1',port:8443,addresses:computerAddresses(),engineRefusesColleagues:false,notice:'Sharing could not start. Restart the app to try again.'}),
     configure:async()=>{throw new Error('Sharing could not start. Restart the app to try again.');},
     close:async()=>{},
   }));

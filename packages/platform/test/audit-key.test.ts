@@ -37,7 +37,7 @@ test('line and direct files use the same derived audit key, other homes differ a
     const vault=await Vault.open(home),replacement=randomBytes(32);await vault.put('credentials.master',replacement);
     const changed=value(await collectAuditHome(home,{...AUDIT_PERIOD,after:first.trailer.cursor!.id}));readAudit(changed.jsonl);
     assert.notEqual(changed.header.digestKey.id,first.header.digestKey.id);
-    assert.throws(()=>readAudit(changed.jsonl,first.jsonl),/these files were digested under different keys \(the home's keys changed between them\); each verifies alone/);
+    assert.throws(()=>readAudit(changed.jsonl,first.jsonl),/these files were digested under different keys \(the data folder's keys changed between them\); each verifies alone/);
     const opted=value(await collectAuditHome(home,{...AUDIT_PERIOD,includeContent:true}));secretsAbsent(opted.jsonl,[master,derived,replacement,Buffer.from(hkdfSync('sha256',replacement,Buffer.from(link.id.workspace),Buffer.from('backbone.audit.v1/digest-key'),32))]);
     // A different home remains an unrelated history, not a rotation claim.
     assert.throws(()=>readAudit(otherFile.jsonl,first.jsonl),/do not join/);

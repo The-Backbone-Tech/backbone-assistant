@@ -5,7 +5,7 @@ export const POLICY_LABELS: Record<string, string> = {
   harnesses: 'the engines a person may choose',
   acceptsProcessVisibility: 'whether an engine may inspect the person’s processes',
   personRights: 'whether ACP may run with the person’s unrestricted rights',
-  keyHolders: 'the permitted ways to protect a home’s keys',
+  keyHolders: 'the permitted ways to protect a data folder’s keys',
   standingSignatures: 'whether tools may receive standing signatures',
   standingServers: 'the connector servers eligible for standing signatures',
   telemetryRequired: 'whether telemetry must run',

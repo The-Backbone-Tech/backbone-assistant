@@ -1,9 +1,10 @@
 import { MacSettings } from './MacFileAccess';
 import { NoticesSection } from './settings/Notices';
 import { ManagedPolicy } from './settings/ManagedPolicy';
-// Settings, sectioned as the old Backbone app had it: a left column with search and two groups,
-// You and Workspace; each row is a title, one line of explanation and its control on the right.
-// A section joins the list when it works; nothing unbuilt is shown as a placeholder.
+// Settings: a left column with search and groups named by the decision a person makes there (You, AI,
+// Apps and tools, Team, This computer); each row is a title, one line of explanation and its control on
+// the right. A section joins the list when it works; nothing unbuilt is shown as a placeholder.
+// Renamed sections keep their old names as search words, so a guide or habit that uses them still finds them.
 import { AgentRolesSection } from './settings/AgentRoles';
 import { PeopleRoles } from './settings/PeopleRoles';
 import { ProjectSharing } from './settings/ProjectSharing';
@@ -11,6 +12,7 @@ import { ArchiveRestore, ArrowLeft, Blocks, Cable, HeartPulse, type LucideIcon, 
 import * as React from 'react';
 import { brand } from '../brand';
 import { compiledBuild } from '../lib/build';
+import type { SettingsSectionId } from '@backbone-next/platform';
 import { useApp } from '../lib/state';
 import { cn } from '../lib/utils';
 import { AiToolsSection } from './settings/AiTools';
@@ -24,48 +26,72 @@ import { TelemetrySection } from './settings/Telemetry';
 import { SettingsRow } from './settings/SettingsRow';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
-import { Input, Select } from './ui/input';
+import { Input } from './ui/input';
+import { RadioGroup } from 'radix-ui';
+import { buttonVariants } from './ui/button';
 
-export type SectionId =
-  'notices' | 'general' | 'ai-tools' | 'connectors' | 'signed-tools' | 'plugins' | 'agent-roles' | 'model-route' | 'proactive' | 'backup' | 'telemetry' | 'people' | 'sharing';
+/** One set of section ids, shared with the stored last-used section (the platform drops any other value). */
+export type SectionId = SettingsSectionId;
+
+const GROUPS = ['You', 'AI', 'Apps and tools', 'Team', 'This computer'] as const;
 
 interface Part {
   id: SectionId;
-  group: 'You' | 'Workspace';
+  group: (typeof GROUPS)[number];
   label: string;
   icon: LucideIcon;
-  /** One line under the title. */
+  /** One line under the title: what the person decides there. */
   about: string;
-  /** Extra words the search also matches. */
+  /** Extra words the search also matches, including a section's former name. */
   keywords?: string;
 }
 
+// In the order a person meets them. Product messages and guides point to "People and roles", "AI and
+// models", "Backup", "Connected tools", "Tool permissions" and "Sharing": those names stay.
 const PARTS: Part[] = [
-  { id: 'notices', group: 'Workspace', label: 'Licences and notices', icon: Blocks, about: 'Every bundled piece and its attribution.', keywords: 'about license licence legal notice copyright third party' },
-  {id:'people',group:'Workspace',label:'People and roles',icon:Settings2,about:'Invitations, roles and named automation identities.',keywords:'identity team company admin member guest invite'},
-  {id:'sharing',group:'Workspace',label:'Sharing',icon:Settings2,about:'Give a colleague viewer or editor access to one project.',keywords:'project viewer editor access permissions'},
-  { id: 'general', group: 'You', label: 'General', icon: Settings2, about: 'Appearance and language.', keywords: 'theme light dark system appearance language' },
-  { id: 'ai-tools', group: 'You', label: 'Connect your AI tools', icon: Plug, about: `Claude Code, Codex, Cursor and Claude Desktop, acting through ${brand.name} with a receipt for each action.`, keywords: 'mcp door claude code codex cursor desktop connect permission receipts' },
-  { id: 'connectors', group: 'You', label: 'Connected tools', icon: Cable, about: 'Your MCP servers, from your own configs, offered to every engine. Reads flow; changes wait for you.', keywords: 'mcp server connector gmail tools read held permission integrations' },
-  { id: 'signed-tools', group: 'You', label: 'Tool permissions', icon: Cable, about: 'What you permitted to act without asking, and how to end it.', keywords: 'permission autonomy full balanced strict custom receipts' },
-  { id: 'plugins', group: 'You', label: 'Plugin commands and agents', icon: Blocks, about: 'Commands, agents and hooks of the Claude Code plugins you enabled. Each is off until you enable it; hooks are never run.', keywords: 'plugin command slash agent subagent hook claude code' },
-  { id: 'agent-roles', group: 'You', label: 'Agent roles', icon: Blocks, about: 'Reusable instructions, model and tools for your helpers.', keywords: 'custom agent role subagent helper markdown' },
-  { id: 'proactive', group: 'Workspace', label: 'Heartbeat and brief', icon: HeartPulse, about: 'A standing check inside active hours, and when the daily brief comes.', keywords: 'schedule heartbeat brief proactive routine cron daily morning' },
-  { id: 'telemetry', group: 'Workspace', label: 'Telemetry', icon: Route, about: 'Content-free spans in your own collector.', keywords: 'otel otlp observability tracing collector headers' },
-  { id: 'backup', group: 'Workspace', label: 'Backup', icon: ArchiveRestore, about: 'The whole data folder in plain files, without any key or credential, and a check of an export.', keywords: 'backup export restore copy move computer data files archive' },
-  { id: 'model-route', group: 'You', label: 'AI and models', icon: Route, about: 'How chats connect to a model, and who bills the connection.', keywords: 'key api gateway openrouter vercel anthropic openai model engine route local ollama lm studio llama.cpp vllm' },
+  { id: 'general', group: 'You', label: 'General', icon: Settings2, about: 'How the app looks, its language and the build running here.', keywords: 'theme light dark system appearance language version revision build' },
+  { id: 'model-route', group: 'AI', label: 'AI and models', icon: Route, about: 'The engine your chats run on, the model it uses, and who bills it.', keywords: 'key api gateway openrouter vercel anthropic openai model engine codex pi acp agent route local ollama lm studio llama.cpp vllm shared work colleagues' },
+  { id: 'agent-roles', group: 'AI', label: 'Helper roles', icon: Blocks, about: 'Saved instructions, model and tools for the helpers a chat starts. Colleagues are in People and roles.', keywords: 'agent roles custom agent role subagent helper markdown' },
+  { id: 'connectors', group: 'Apps and tools', label: 'Connected tools', icon: Cable, about: `Apps this assistant can use, such as mail or notes, and what each may change.`, keywords: 'mcp server connector gmail tools read held permission integrations' },
+  { id: 'signed-tools', group: 'Apps and tools', label: 'Tool permissions', icon: Cable, about: 'What may act without asking you first, and how to end it.', keywords: 'permission autonomy full balanced strict custom receipts' },
+  { id: 'plugins', group: 'Apps and tools', label: 'Plugins', icon: Blocks, about: 'Commands and agents from the Claude Code plugins you enabled. Each is off until you turn it on; hooks never run.', keywords: 'plugin commands and agents command slash agent subagent hook claude code' },
+  { id: 'ai-tools', group: 'Apps and tools', label: 'Assistants using this app', icon: Plug, about: `Other assistants that may act through this one: Claude Code, Codex, Cursor and Claude Desktop, with a receipt for each action in ${brand.name}.`, keywords: 'connect your ai tools mcp door claude code codex cursor desktop connect permission receipts' },
+  { id: 'people', group: 'Team', label: 'People and roles', icon: Settings2, about: 'Who is in this workspace, what each may do, invitations and automation identities.', keywords: 'identity team company admin member guest invite colleague' },
+  { id: 'sharing', group: 'Team', label: 'Sharing', icon: Settings2, about: 'Give a colleague viewer or editor access to one project.', keywords: 'project viewer editor access permissions' },
+  { id: 'proactive', group: 'This computer', label: 'Heartbeat and brief', icon: HeartPulse, about: 'A standing check inside active hours, and when the daily brief comes.', keywords: 'schedule heartbeat brief proactive routine cron daily morning' },
+  { id: 'backup', group: 'This computer', label: 'Backup', icon: ArchiveRestore, about: 'Export the whole data folder as plain files, without any key or credential, and check an export.', keywords: 'backup export restore copy move computer data files archive' },
+  { id: 'telemetry', group: 'This computer', label: 'Telemetry', icon: Route, about: 'Send content-free traces to a collector of your own, or nowhere.', keywords: 'otel otlp observability tracing collector headers' },
+  { id: 'notices', group: 'This computer', label: 'Licences and notices', icon: Blocks, about: 'Every bundled piece and its attribution.', keywords: 'about license licence legal notice copyright third party' },
 ];
 
 export function SettingsDialog({ open, onOpenChange, section, onReturnFocus }: { open: boolean; onOpenChange: (o: boolean) => void; section?: SectionId; onReturnFocus?: () => void }) {
   const [current, setCurrent] = React.useState<SectionId>('general');
   const [query, setQuery] = React.useState('');
-  // On a phone the list and the section take turns.
+  // On a narrow window the list and the section take turns.
   const [detail, setDetail] = React.useState(false);
-  // Opened at a section (Needs you sends a held call's person straight to Connected tools).
-  React.useEffect(() => { if (open && section) { setCurrent(section); setDetail(true); } }, [open, section]);
+  const back = React.useRef<HTMLButtonElement>(null);
+  const list = React.useRef<HTMLElement>(null);
+  // Where focus goes once the list or the section is shown: keyboard users keep their place.
+  const focusNext = React.useRef<'back' | 'list' | null>(null);
+  const { prefs, setPrefs } = useApp();
+  // Opened at a section (Needs you sends a held call's person straight to Connected tools); otherwise
+  // at the section this viewer used last, which their viewer settings keep across reopening the app.
+  React.useEffect(() => {
+    if (open && section) { setCurrent(section); setDetail(true); }
+    else if (open && PARTS.some((p) => p.id === prefs.settingsSection)) setCurrent(prefs.settingsSection!);
+    // Read once as Settings opens; a later change of the stored value must not move an open dialog.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, section]);
+  React.useEffect(() => {
+    const target = focusNext.current;
+    focusNext.current = null;
+    if (target === 'back' && back.current?.offsetParent) back.current.focus();
+    if (target === 'list') list.current?.querySelector<HTMLButtonElement>('[aria-current=page]')?.focus();
+  }, [detail]);
   const q = query.trim().toLowerCase();
   const found = PARTS.filter((p) => !q || `${p.label} ${p.about} ${p.keywords ?? ''}`.toLowerCase().includes(q));
   const part = PARTS.find((p) => p.id === current) ?? PARTS[0];
+  const choose = (id: SectionId) => { setCurrent(id); focusNext.current = 'back'; setDetail(true); if (prefs.settingsSection !== id) setPrefs((p) => ({ ...p, settingsSection: id })); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => (onOpenChange(o), o || setDetail(false))}>
@@ -80,22 +106,24 @@ export function SettingsDialog({ open, onOpenChange, section, onReturnFocus }: {
               <Search className="pointer-events-none absolute left-2.5 size-4 text-muted" aria-hidden />
             </label>
           </div>
-          <nav aria-label="Settings sections" className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-            {(['You', 'Workspace'] as const).map((group) => {
+          <nav ref={list} aria-label="Settings sections" className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+            {GROUPS.map((group) => {
               const parts = found.filter((p) => p.group === group);
               if (!parts.length) return null;
+              const id = `settings-group-${group.replace(/\W+/g, '-').toLowerCase()}`;
               return (
                 <div key={group} className="mb-3">
-                  <p className="px-2 py-1 text-xs font-medium text-muted">{group}</p>
-                  <ul>
+                  <h3 id={id} className="px-2 py-1 text-xs font-medium text-muted">{group}</h3>
+                  <ul role="group" aria-labelledby={id}>
                     {parts.map((p) => (
                       <li key={p.id}>
                         <Button
                           variant="ghost"
                           size="sm"
+                          title={p.about}
                           aria-current={p.id === current ? 'page' : undefined}
                           className={cn('h-8 w-full justify-start gap-2 px-2 text-left text-ui', p.id === current ? 'bg-hover font-medium' : 'text-muted')}
-                          onClick={() => (setCurrent(p.id), setDetail(true))}
+                          onClick={() => choose(p.id)}
                         >
                           <p.icon className="size-4 shrink-0 text-muted" aria-hidden />
                           <span className="truncate">{p.label}</span>
@@ -111,7 +139,7 @@ export function SettingsDialog({ open, onOpenChange, section, onReturnFocus }: {
         </div>
         <section data-workspace aria-labelledby="settings-section-title" className={cn('min-w-0 flex-1 flex-col bg-bg text-fg', detail ? 'flex' : 'hidden sm:flex')}>
           <header className="flex items-center gap-2 border-b border-border px-4 py-4 sm:px-7">
-            <Button variant="ghost" size="icon-sm" className="sm:hidden" aria-label="All settings" onClick={() => setDetail(false)}>
+            <Button ref={back} variant="ghost" size="icon-sm" className="sm:hidden" aria-label="All settings" title="All settings" onClick={() => { focusNext.current = 'list'; setDetail(false); }}>
               <ArrowLeft />
             </Button>
             <div className="min-w-0">
@@ -139,7 +167,7 @@ function General() {
   return (
     <div>
       <SettingsRow title="Appearance" about="Light, Dark, or follow this computer.">
-        <div role="radiogroup" aria-label="Appearance" className="inline-flex rounded-lg border border-border bg-sunken p-1">
+        <RadioGroup.Root aria-label="Appearance" orientation="horizontal" value={prefs.theme} onValueChange={(theme) => setPrefs((p) => ({ ...p, theme: theme as typeof p.theme }))} className="inline-flex rounded-lg border border-border bg-sunken p-1">
           {(
             [
               ['system', Monitor, 'System'],
@@ -147,28 +175,18 @@ function General() {
               ['dark', Moon, 'Dark'],
             ] as const
           ).map(([id, Icon, label]) => (
-            <Button
-              key={id}
-              role="radio"
-              aria-checked={prefs.theme === id}
-              variant="ghost"
-              size="sm"
-              className={cn('h-8 gap-1.5 rounded-md px-3', prefs.theme === id ? 'bg-surface text-fg shadow-sm' : 'text-muted')}
-              onClick={() => setPrefs((p) => ({ ...p, theme: id }))}
-            >
+            // Radix's radio group gives the segmented control one tab stop and arrow keys; the look is unchanged.
+            <RadioGroup.Item key={id} value={id} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8 gap-1.5 rounded-md px-3', prefs.theme === id ? 'bg-surface text-fg shadow-sm' : 'text-muted')}>
               <Icon className="size-3.5" aria-hidden /> {label}
-            </Button>
+            </RadioGroup.Item>
           ))}
-        </div>
+        </RadioGroup.Root>
       </SettingsRow>
-      <SettingsRow title="Language" about="The language of the app.">
-        <Select aria-label="Language">
-          <option>English</option>
-        </Select>
+      <SettingsRow title="Language" about="The app is available in English.">
+        <span className="text-sm text-muted">English</span>
       </SettingsRow>
       <MacSettings />
       <BuildDetails />
-      <p className="pt-4 text-xs text-muted">{brand.name} · Apache-2.0 · fonts IBM Plex Sans and JetBrains Mono (OFL-1.1)</p>
     </div>
   );
 }
@@ -188,8 +206,14 @@ function BuildDetails() {
       {compiledBuild ? <>
         <p>Build version {compiledBuild.version} · {compiledBuild.revision ? <span title={compiledBuild.revision}>Revision {compiledBuild.revision.slice(0, 12)}</span> : 'Revision unknown (Git unavailable)'}</p>
         <p>{compiledBuild.dirty === null ? 'Working tree unknown' : compiledBuild.dirty ? 'Includes uncommitted changes' : 'Clean source checkout'}</p>
-        <p className="text-xs text-muted">Build {compiledBuild.id} · {compiledBuild.builtAt}</p>
       </> : <p className="text-muted">Development preview · no compiled revision</p>}
+      <details className="mt-2 text-xs text-muted">
+        <summary className="cursor-pointer">Build details</summary>
+        <div className="mt-2 space-y-2">
+          {compiledBuild && <p>Build {compiledBuild.id} · {compiledBuild.builtAt}</p>}
+          <p>{brand.name} · Apache-2.0 · fonts IBM Plex Sans and JetBrains Mono (OFL-1.1)</p>
+        </div>
+      </details>
     </div>
   </SettingsRow>;
 }

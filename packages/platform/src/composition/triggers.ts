@@ -659,7 +659,7 @@ export function createTriggers(deps: TriggersDeps) {
       } catch {
         // No retry promise after an uncertain local write. An operator must inspect this home.
         deps.readOnly = true;
-        reply(res, 503, { error: 'Delivery persistence failed. Inspect the home before retrying.' });
+        reply(res, 503, { error: 'Delivery persistence failed. Inspect the data folder before retrying.' });
       }
     });
     req.on('error', () => {});
@@ -761,7 +761,7 @@ export function createTriggers(deps: TriggersDeps) {
     // As a goal run: a new turn could write again while the first write's outcome is unknown, so none starts.
     const cut = prior.threadId && prior.turnId ? deps.threads.get(prior.threadId)?.turns.find((x) => x.id === prior.turnId) : undefined;
     if (!cut || cut.effects.some((e) => e.outcome === 'UNKNOWN')) return refused('NOT_AVAILABLE', 'A write of this run\'s turn has an UNKNOWN outcome. Resolve it before the run goes on; nothing was started.');
-    if (!live()) return refused('NOT_AVAILABLE', 'Nothing starts while the app is closing or the home is read-only.');
+    if (!live()) return refused('NOT_AVAILABLE', 'Nothing starts while the app is closing or the data folder is read-only.');
     const t = find(prior.triggerId);
     if (!t) return refused('NOT_FOUND', 'Its trigger was removed.');
     if (stored.open[t.id]) return refused('NOT_AVAILABLE', 'Its trigger has a run going; resume this one once that ends.');

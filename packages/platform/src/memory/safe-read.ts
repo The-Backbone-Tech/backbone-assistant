@@ -134,7 +134,7 @@ export function markdownIn(root: Root, dir = root.path, depth = 3): string[] {
 
 // ---- Writing under an anchored root ------------------------------------------------------------
 
-const UNSAFE = 'That skills folder is not a plain folder in the data home (a link, or moved), so nothing was written.';
+const UNSAFE = 'That skills folder is not a plain folder in the data folder (a link, or moved), so nothing was written.';
 const missing = (path: string) => { try { lstatSync(path); return false; } catch (e) { if ((e as NodeJS.ErrnoException).code === 'ENOENT') return true; throw e; } };
 
 /** The data home's skills folder, made if missing: a plain folder at exactly <home>/skills. Throws otherwise. */

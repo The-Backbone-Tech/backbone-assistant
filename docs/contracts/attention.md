@@ -8,7 +8,7 @@
 
 ## Purpose
 
-The "needs me" inbox and notifications. They tell the person what needs them, without becoming a separate page or a sort key (`reference-baseline.md` §2.7).
+The "needs me" inbox and notifications. They tell the person what needs them, without becoming a separate page or a sort key (the [app contract](../../packages/surfaces/app/CONTRACT.md) owns the composition).
 
 ## Owns
 

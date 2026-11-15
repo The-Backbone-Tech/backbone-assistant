@@ -48,7 +48,10 @@ function Shell() {
       const s = SHORTCUTS.find((x) => x.match(e, mac));
       if (!s) return;
       e.preventDefault();
-      if(!remote)openTab(s.kind);
+      if(!remote) {
+        openTab(s.kind);
+        if (s.kind === 'browser') setTimeout(() => document.querySelector<HTMLInputElement>('[aria-label="Page address"]')?.focus(), 0);
+      }
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
@@ -76,7 +79,7 @@ function Shell() {
       <Sidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         {identityRecovery?.notice&&<p role="status" className="border-b border-border px-4 py-2 text-sm">{identityRecovery.notice}</p>}
-        {remote&&<div role="status" className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 text-sm"><span className="min-w-0 flex-1 break-all">Workspace at {remote.origin} · Runs on the owner’s computer{remote.connection==='temporary'?' · Temporary connection problem. Reconnecting automatically.':''}</span><LeaveWorkspace /></div>}
+        {remote&&<div role="status" className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 text-sm"><span className="min-w-0 flex-1 break-all">Workspace at {remote.origin} · Runs on the owner’s computer{remote.connection==='temporary'?' · Temporary connection problem. Reconnecting automatically.':''}</span><span>Browser is not available here; pages belong to the local device owner.</span><LeaveWorkspace /></div>}
         {!remote&&<Urgent />}
         {sentNotice && <div role={sentNotice.attention ? "alert" : "status"} data-testid={sentNotice.attention ? "side-chat-notice" : "sent-notice"} className="flex flex-wrap items-center gap-2 border-b border-border bg-sunken px-4 py-2 text-sm"><p className="min-w-0 flex-1">{sentNotice.detail}</p><button type="button" className="underline" onClick={() => { selectThread(sentNotice.threadId); if (sentNotice.target === 'side-chat') openTab('side-chat'); dismissSentNotice(); }}>{sentNotice.target === 'side-chat' ? 'Open side chat' : 'Open sent chat'}</button></div>}
         <Group

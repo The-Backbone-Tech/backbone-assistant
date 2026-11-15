@@ -375,8 +375,9 @@ export function createPiHarness(options: PiContextOptions = {}): HarnessV1 {
       let refused: string | undefined;
       let localProblem: string | undefined;
       const localEndpoint = route.kind === 'endpoint' && route.credential === null && /^http:\/\/(?:127\.0\.0\.1|localhost|\[::1\]):\d+(?:\/|$)/.test(route.baseUrl);
+      // A turn shows the first 200 characters of an engine error: what was not done comes before the advice.
       const localFailure = (status?: number) => {
-        if (localEndpoint && (status === undefined || [404, 502, 503].includes(status))) localProblem = `${status ? `${status}: ` : ''}Local model ${route.model} is unavailable. Start the local model server and check that this model is loaded, then try again. No other route was tried.`;
+        if (localEndpoint && (status === undefined || [404, 502, 503].includes(status))) localProblem = `${status ? `${status}: ` : ''}Local model ${route.model} is unavailable at ${route.baseUrl}. No other route was tried. Check the address path (usually /v1), that the server is running and that the model is loaded.`;
       };
       const gatedFetch: typeof fetch = (input, init) => {
         gated = true;

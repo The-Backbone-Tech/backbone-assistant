@@ -87,7 +87,7 @@ The existing `send --json` still returns its single Turn object.
 
 ## Backup, export and restore
 
-Export and restore work on a data folder this command can hold: a test or headless data folder, with the app closed. With the app running, `export` is refused (use Settings › Backup); `restore` goes only into a new data folder. A restore exits 0 only when it finished, and 1, changing nothing, on a conflict; its `--json` is the plan.
+Export and restore work on a data folder this command can hold: a test or headless data folder, with the app closed. With the app running, `export` is refused (use Settings › Backup); `restore` goes only into a new data folder, and Settings › Backup › Restore from a backup runs the same operation from the app, with a preview first. A restore exits 0 only when it finished, and 1, changing nothing, on a conflict; its `--json` is the plan.
 
 ## The chat
 

@@ -61,7 +61,7 @@ function roleAt(root: Root, path: string, exact: readonly string[], text?: strin
 }
 function writableRoles(home: string): Root {
   const base = anchoredRoot(home, []);
-  if (!base) throw new AgentRoleError('NOT_AVAILABLE', 'The data home could not be opened safely.');
+  if (!base) throw new AgentRoleError('NOT_AVAILABLE', 'The data folder could not be opened safely.');
   assertHomeWriteAdmission(home, home);
   plainUnder(base, [ROLE_FOLDER], true);
   const root = anchoredRoot(home, [ROLE_FOLDER]);

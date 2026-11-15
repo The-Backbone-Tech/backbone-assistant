@@ -13,7 +13,7 @@ export function harnessDecision(policy: VerifiedPolicy | undefined, personal: st
   return selected;
 }
 export function keyDecision(policy: VerifiedPolicy | undefined, holder: string): void {
-  if (!allowed(policy?.requirements.keyHolders, holder)) refuse('requirement', 'the home key holder is forbidden by policy.');
+  if (!allowed(policy?.requirements.keyHolders, holder)) refuse('requirement', 'the data folder key holder is forbidden by policy.');
 }
 export function standingDecision(policy: VerifiedPolicy | undefined, server: string): void {
   if (policy?.requirements.standingSignatures === false || !allowed(policy?.requirements.standingServers, server)) refuse('requirement', 'standing signatures for this connector server are forbidden by policy.');

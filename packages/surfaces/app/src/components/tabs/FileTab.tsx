@@ -5,7 +5,6 @@
 import type { MaterialEntry } from '@backbone-next/platform';
 import { BookOpen, CircleAlert, Download, Maximize2, Minimize2, MoreHorizontal, Pencil } from 'lucide-react';
 import * as React from 'react';
-import { createPortal } from 'react-dom';
 import { WITHDRAWAL_WORDS } from '@backbone-next/platform';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { call, canExport, exportDocument, type ExportFormat } from '../../lib/api';
@@ -17,13 +16,17 @@ import { Editor } from '../files/Editor';
 import { DraftConflictCopies } from '../DraftConflictCopies';
 import { FileIcon, isText, kindOf } from '../files/kind';
 import { Reader } from '../files/Reader';
+import { DocumentPreview } from '../files/DocumentPreview';
+import { previewKind, previewKindLabel } from '../files/preview-boundary';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
 type State = 'saved' | 'draft' | 'saving';
 const EXPORTS: [ExportFormat, string][] = [['pdf', 'PDF'], ['slides', 'PDF slides'], ['html', 'HTML'], ['md', 'Markdown']];
+const CsvEditor = React.lazy(() => import('../files/CsvEditor'));
 
-export function FileTab({ materialId, version, active, onSaved, headerTarget }: { materialId: string; version?: number; active?: boolean; onSaved?(): void; headerTarget?: HTMLElement | null }) {
+/** `extra` is the pane's own control for this view (Browse files), shown at the end of the document's header. */
+export function FileTab({ materialId, version, active, onSaved, extra }: { materialId: string; version?: number; active?: boolean; onSaved?(): void; extra?: React.ReactNode }) {
   const { tick, openTab, prefs, projects } = useApp();
   const viewerOnly=projects.find(project=>project.id===prefs.selectedProjectId)?.access==='viewer';
   const [entry, setEntry] = React.useState<MaterialEntry>();
@@ -36,8 +39,11 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
   const [reviewingDraft, setReviewingDraft] = React.useState(false);
   const [confirmSavedDraft, setConfirmSavedDraft] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string>();
+  const [loadAttempt, setLoadAttempt] = React.useState(0);
   const [staleDraft, setStaleDraft] = React.useState<number>();
   const [mode, setMode] = React.useState<'read' | 'edit'>('read');
+  const [csvMode, setCsvMode] = React.useState<'table' | 'text'>('text');
+  const [csvSeparator, setCsvSeparator] = React.useState<string>();
   const [full, setFull] = React.useState(false);
   const [confirming, setConfirming] = React.useState(false);
   // A live editor owns newer text; asynchronous draft hydration cannot replace it.
@@ -95,7 +101,7 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
       live = false;
     };
   // Tabs stay mounted, so a tab reads again on becoming active: another tab of this file may hold newer typing.
-  }, [materialId, version, draftKey, tick, state, active]);
+  }, [materialId, version, draftKey, tick, state, active, loadAttempt]);
 
   React.useEffect(() => {
     if (!full) return;
@@ -193,15 +199,27 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
     });
   }
 
-  if (!entry) return <p role={loadError ? 'alert' : undefined} className="p-4 text-sm text-muted">{loadError ?? 'Loading…'}</p>;
+  if (!entry) return <div className="space-y-3 p-4 text-sm text-muted"><p role={loadError ? 'alert' : 'status'}>{loadError ?? 'Loading…'}</p>{loadError && <Button variant="outline" size="sm" onClick={() => { setLoadError(undefined); setLoadAttempt(n => n + 1); }}>Retry document</Button>}</div>;
   const displayVersion = version ?? entry.current;
   const historical = displayVersion !== entry.current;
   const current = entry.versions.find((v) => v.n === displayVersion);
   const original = entry.class === 'original';
   const recovery = 'recovery' in entry && !!entry.recovery;
   const shown: State = state === 'saving' ? 'saving' : dirty ? 'draft' : 'saved';
-  const textual = base64 === undefined && isText(entry.name, entry.mediaType);
+  const preview = previewKind(entry.name);
+  const textual = (!preview || /\.csv$/i.test(entry.name)) && base64 === undefined && isText(entry.name, entry.mediaType);
   const editing = !viewerOnly && !recovery && !original && !historical && textual && mode === 'edit';
+  const csvEditing = editing && /\.csv$/i.test(entry.name);
+  const changeText = (value: string) => {
+    ++editGeneration.current;
+    localEdit.current = true;
+    latestEdit.current = value;
+    editBase.current ??= entry.current;
+    setEdit(value);
+    if (!saving.current) setState('draft');
+    persist(value, editBase.current);
+  };
+  const draftVisible = !preview || editing;
   const lastWithdrawal = entry.withdrawals?.at(-1);
   const withdrawn = !!lastWithdrawal && !lastWithdrawal.restoredAt;
   const lifecycle = async (state: 'withdrawn' | 'current') => {
@@ -213,7 +231,6 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
       setError('That could not be confirmed. Reopen this document to see its state before trying again.');
     }
   };
-  const showToolbar = full || headerTarget === undefined;
   // Export is a read of the version shown in this project: main checks it, asks where, renders and writes.
   const projectId = prefs.selectedProjectId;
   const exportable = canExport() && !!projectId && textual && kindOf(entry.name) === 'markdown' && !entry.held && !withdrawn;
@@ -229,13 +246,14 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
 
   const actions = (
     <span className="flex shrink-0 items-center gap-1">
-      <span role="status" className="sr-only">{recovery ? 'Recovery copy · read only' : original ? 'Original · read only' : historical ? `Historical version ${displayVersion} · read only` : shown === 'saved' ? 'Saved' : shown === 'saving' ? 'Saving…' : 'Unsaved edit'}</span>
+      {/* Announced as it changes; not a status region, since the document's own loading and preview states are. */}
+      <span aria-live="polite" className="sr-only">{recovery ? 'Recovery copy · read only' : original ? 'Original · read only' : historical ? `Historical version ${displayVersion} · read only` : !draftVisible || shown === 'saved' ? 'Saved' : shown === 'saving' ? 'Saving…' : 'Unsaved edit'}</span>
       {textual && (
-        <Button variant="ghost" size="icon-sm" aria-label={editing ? 'Read' : 'Edit'} disabled={viewerOnly || recovery || original || historical} title={viewerOnly ? 'Viewer access' : recovery ? 'Recovery copy · read only' : original ? 'Original · read only' : historical ? 'Historical version · read only' : editing ? 'Preview document' : 'Edit document'} onClick={() => setMode(editing ? 'read' : 'edit')}>
+        <Button variant="ghost" size="icon-sm" tip aria-label={editing ? 'Read' : 'Edit'} disabled={viewerOnly || recovery || original || historical} title={viewerOnly ? 'Viewer access' : recovery ? 'Recovery copy · read only' : original ? 'Original · read only' : historical ? 'Historical version · read only' : editing ? 'Preview document' : 'Edit document'} onClick={() => setMode(editing ? 'read' : 'edit')}>
           {editing ? <BookOpen /> : <Pencil />}
         </Button>
       )}
-      {!recovery && !original && !historical && (dirty || state === 'saving') && (
+      {draftVisible && !recovery && !original && !historical && (dirty || state === 'saving') && (
         <>
           <span data-testid="edit-state" className="sr-only">{state === 'saving' ? 'Saving…' : 'Unsaved edit'}</span>
           <span aria-hidden className="size-1.5 rounded-full bg-draft" title={state === 'saving' ? 'Saving…' : 'Unsaved edit'} />
@@ -244,12 +262,12 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
           </Button>
         </>
       )}
-      <Button variant="ghost" size="icon-sm" aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen' : 'Full screen'} onClick={() => setFull(!full)}>
+      <Button variant="ghost" size="icon-sm" tip aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen' : 'Full screen'} onClick={() => setFull(!full)}>
         {full ? <Minimize2 /> : <Maximize2 />}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button ref={documentOptions} variant="ghost" size="icon-sm" aria-label="Document options" title="Document options"><MoreHorizontal /></Button>
+          <Button ref={documentOptions} variant="ghost" size="icon-sm" tip aria-label="Document options" title="Document options"><MoreHorizontal /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent data-workspace align="end" className="w-64">
           <DropdownMenuLabel className="break-words">{entry.name}</DropdownMenuLabel>
@@ -259,12 +277,13 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
           <div className="px-2 py-1 text-xs text-muted">
             {recovery ? 'Recovery copy · inspection only' : historical ? 'Historical version · read only' : original ? 'Original · read-only, bytes kept untouched' : entry.class === 'accepted' ? 'Saved current document' : 'Working copy'}
           </div>
-          <div className={cn('px-2 py-1 text-xs', dirty || state === 'saving' ? 'text-draft' : 'text-muted')} data-testid="document-state">
-            {recovery || original || historical ? 'Read-only' : shown === 'saving' ? 'Saving…' : dirty ? 'Unsaved edit' : 'Saved'}
+          <div className={cn('px-2 py-1 text-xs', draftVisible && (dirty || state === 'saving') ? 'text-draft' : 'text-muted')} data-testid="document-state">
+            {recovery || original || historical ? 'Read-only' : draftVisible && shown === 'saving' ? 'Saving…' : draftVisible && dirty ? 'Unsaved edit' : 'Saved'}
           </div>
+          <div className="px-2 py-1 text-xs text-muted">{entry.mediaType}</div>
           <DropdownMenuSeparator />
-          {!original && !historical && dirty && state !== 'saving' && <DropdownMenuItem onSelect={() => void discard()}>Discard unsaved edit</DropdownMenuItem>}
-          <DropdownMenuItem onSelect={() => void downloadMaterial(materialId, version).then(setError)}>Download</DropdownMenuItem>
+          {draftVisible && !original && !historical && dirty && state !== 'saving' && <DropdownMenuItem onSelect={() => void discard()}>Discard unsaved edit</DropdownMenuItem>}
+          <DropdownMenuItem onSelect={() => void downloadMaterial(materialId, displayVersion).then(setError)}>Download</DropdownMenuItem>
           {exportable && EXPORTS.map(([format, label]) => <DropdownMenuItem key={format} onSelect={() => void exportAs(format)}>Export as {label}…</DropdownMenuItem>)}
           {original && !withdrawn && <DropdownMenuItem onSelect={() => setConfirming(true)}>Withdraw from later work…</DropdownMenuItem>}
         </DropdownMenuContent>
@@ -274,14 +293,16 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
 
   return (
     <div className={cn('flex h-full flex-col bg-surface', full && 'fixed inset-0 z-50')} data-testid="file-tab">
-      {showToolbar && <div data-workspace-toolbar className="file-toolbar-inline app-window-bar flex h-[42px] shrink-0 items-center gap-2 border-b border-border bg-surface px-2">
+      {/* The document's own header: what it is and what can be done with it. The pane's top bar holds only tabs. */}
+      <div data-document-header {...(full ? { 'data-workspace-toolbar': true } : {})} className={cn('flex shrink-0 items-center gap-2 border-b border-border bg-surface px-2', full ? 'file-toolbar-inline app-window-bar h-[42px]' : 'h-9')}>
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <FileIcon name={entry.name} />
-          <span className="min-w-0 truncate text-ui font-medium">{entry.name}</span>
+          {full ? <><FileIcon name={entry.name} /><span className="min-w-0 truncate text-ui font-medium">{entry.name}</span></> : (
+            <span aria-hidden data-testid="document-header-version" className="min-w-0 truncate text-xs text-muted">v{displayVersion}{recovery ? ' · recovery copy, read only' : original ? ' · original, read only' : historical ? ' · historical, read only' : ''}</span>
+          )}
         </div>
         {actions}
-      </div>}
-      {!showToolbar && headerTarget && createPortal(actions, headerTarget)}
+        {!full && extra}
+      </div>
       {!recovery && <DraftConflictCopies draftKey={draftKey} />}
       {recovery && <p role="status" data-testid="recovery-copy-notice" className="border-b border-border px-3 py-2 text-xs text-muted">This saved piece was not imported and is not an authorised output. You can inspect or retire it; later work cannot use it.</p>}
       {withdrawn && <div role="status" data-testid="withdrawn-banner" className="flex items-center gap-2 border-b border-border px-3 py-2 text-xs text-muted">
@@ -359,33 +380,36 @@ export function FileTab({ materialId, version, active, onSaved, headerTarget }: 
         </div>}
       </div>}
       <div className="min-h-0 flex-1 overflow-auto bg-bg">
-        {!textual ? (
-          <div className="flex flex-col items-center px-6 py-14 text-center">
-            <FileIcon name={entry.name} className="size-8" />
-            <p className="mt-3 text-sm font-medium">{entry.name}</p>
-            <p className="mt-1 text-xs text-muted">
-              {kindOf(entry.name) === 'file' ? 'File' : entry.mediaType} · {((current?.bytes ?? 0) / 1024).toFixed(1)} KB. A preview of this format arrives with the Documents port.
-            </p>
-            <Button variant="outline" size="sm" className="mt-4" onClick={() => void downloadMaterial(materialId, version).then(setError)}>
-              <Download /> Download
-            </Button>
+        {!editing && (preview || !textual) ? (
+          <div className="flex h-full min-h-0 flex-col">
+            <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2 text-xs text-muted">
+              <FileIcon name={entry.name} />
+              <span className="min-w-0 flex-1 truncate" title={entry.name}>{entry.name}</span>
+              <span className="max-w-40 truncate" title={entry.mediaType}>{preview ? previewKindLabel(preview) : entry.mediaType} · {((current?.bytes ?? 0) / 1024).toFixed(1)} KB</span>
+              <Button variant="outline" size="sm" onClick={() => void downloadMaterial(materialId, displayVersion).then(setError).catch(() => setError('The download could not finish. Try Download again.'))}><Download /> Download</Button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <DocumentPreview key={`${materialId}:${displayVersion}`} cacheKey={`${materialId}:${displayVersion}`} name={entry.name} base64={base64} text={text} bytes={current?.bytes ?? 0} />
+            </div>
           </div>
         ) : editing ? (
-          <Editor
+          <div className="flex h-full min-h-0 flex-col">
+          {csvEditing && <div className="flex shrink-0 gap-1 border-b border-border px-3 py-1" role="group" aria-label="CSV editing view">
+            <Button variant={csvMode === 'table' ? 'subtle' : 'ghost'} size="sm" aria-pressed={csvMode === 'table'} onClick={() => setCsvMode('table')}>Table</Button>
+            <Button variant={csvMode === 'text' ? 'subtle' : 'ghost'} size="sm" aria-pressed={csvMode === 'text'} onClick={() => setCsvMode('text')}>Text</Button>
+          </div>}
+          <div className="min-h-0 flex-1">
+          {csvEditing && csvMode === 'table' ? <React.Suspense fallback={<p role="status" className="p-4 text-sm text-muted">Opening table…</p>}>
+            <CsvEditor name={entry.name} value={edit ?? text ?? ''} separator={csvSeparator} onSeparator={setCsvSeparator} onChange={changeText} onSave={() => void save()} onText={() => setCsvMode('text')} />
+          </React.Suspense> : <Editor
             label={`Edit ${entry.name}`}
             lang={kindOf(entry.name) === 'markdown' ? 'markdown' : 'text'}
             value={edit ?? text ?? ''}
             onSave={() => void save()}
-            onChange={(v) => {
-              ++editGeneration.current;
-              localEdit.current = true;
-              latestEdit.current = v;
-              editBase.current ??= entry.current;
-              setEdit(v);
-              if (!saving.current) setState('draft');
-              persist(v, editBase.current);
-            }}
-          />
+            onChange={changeText}
+          />}
+          </div>
+          </div>
         ) : (
           <Reader name={entry.name} text={edit ?? text ?? ''} />
         )}

@@ -21,21 +21,21 @@ An installed proof must identify the freshly packaged app and actual installed r
 
 ## What the integrated evidence now covers
 
-**Reviewed 14 November 2026:** this release exports qualified upstream runtime `b1a152ff70fa00786a5ea080722fb25b3a0c9b86` (0.2.0 pre-release 3). Its package suites, static checks, app journeys and installed-app tests passed on one Mac. The [source release record](source-release.md) separates that upstream evidence from the clean export's own checks and explains remaining Team and Company qualification. The later moving integration candidate is not included here.
+**Reviewed 13 November 2026:** the integrator qualifies runtime `cdaeeada` (12 November); `00721c3c` adds its record. The gate summary and native acceptance record were inspected at their original owner, not rerun for this page. Later failed candidate `5a85cd67` is not a promotion. [Execution](execution.md) records that distinction and the next diagnosis.
 
 The following groups connect the catalogue's families to the existing owners; their entries are evidence leads, not complete family acceptance.
 
 | Families | Integrated work to inspect | Evidence still needed |
 | --- | --- | --- |
-| 1 Parallel work; 2 threads; 3 goals | Task board, saved roles, restart/branch/search, bounded goals and native compaction integration | Complete delegated work and real-model goals; context-limit continuation per engine; broader rewind and recovery use remains to be recorded |
+| 1 Parallel work; 2 threads; 3 goals | Task board, saved roles, restart/branch/search, bounded goals and native compaction integration | Complete delegated work and real-model goals; context-limit continuation per engine; rewind remains outside the qualified head |
 | 4 CLI; 5 messaging | Headless structured execution, selection, installed CLI checks and additional channel adapters | Published distribution and real bots; per-sender identity for group work |
 | 6 memory; 9 learning | Source withdrawal, injection scans, trust marks, proposed skills and correction paths | Complete user control and reversal journeys; held-out evidence that learned guidance improves later work |
 | 7 skills/plugins/MCP; 10 engine choice | Pinned local tools, connector catalogue, solution tools, ACP adapters and local-model selection | Each actual engine/account combination; catalogue and route usefulness against eligible native alternatives |
 | 8 proactivity | Scheduled/triggered work; installed preview, edit, pause and heartbeat/brief journeys | Personal work while the app is closed and actual findings from that use; scripted tests retain their limited scope |
 | 11 permissions; 17 audit | Per-tool permissions, receipts, explicit unknown outcomes, audit export and read-only diagnostics | Consumer-specific adverse cases and complete audit coverage; lab v0.8 acceptance does not establish ordinary app enforcement |
 | 12 files/UI; 13 connectors | Versioned editable work, browser connection and Gmail signed send | Calendar/Drive and complete real-account jobs; general desktop automation and editable office artifacts remain separate configurations |
-| 14 deployment; 15 licence | Local install/restore, Linux packaging, Docker, bundled notices and licence checks | Signed/notarised Mac installation and broader upgrade/rollback evidence; each public binary must pass the implemented ADR 0005 native-source checks |
-| 16 identity; 18 administration; 19 fleet | Workspace separation, managed policy and Helm/Compose manifests | Team people, roles and shared projects have single-machine installed evidence; real two-computer, identity-provider and full Company/fleet operation remain open |
+| 14 deployment; 15 licence | Local install/restore, Linux packaging, Docker, bundled notices and licence checks | Signed/notarised Mac installation, safe upgrades and rollback; ADR 0005's native LGPL enforcement follow-up |
+| 16 identity; 18 administration; 19 fleet | Workspace separation, managed policy and Helm/Compose manifests | Integrated second-person roles, identity-provider setup and full shared/fleet operation; manifests alone are not an operated deployment |
 
 Use [the source map](map.md), each package contract and the catalogue's named tests for the actual consumer.
 
@@ -48,4 +48,4 @@ The [acceptance jobs](../acceptance/README.md) cover J-01 (editable work), J-tri
 - **J-co:** company requests, fixture and rubric still need qualification; the work is parked under the personal-first order. Source connectors or a schema do not establish a working company function.
 - **J-01 and J-ma:** use their existing contracts and exact consumer evidence. A family-level source count cannot substitute for the complete editable-work or collaboration job.
 
-No human acceptance is claimed. The 0.2.0 installed source has agent-run real-work observations on one Mac and two-instance Team tests, as scoped in the source release record; these do not establish physical two-computer use. Real use is recorded when it happens. Claimed advantages require the same complete job against an eligible alternative, including where Backbone loses, setup, correction, recovery and upkeep.
+No real use by a person is recorded in the inspected current owners. The 10 November agent-run terminal trial is controlled evidence with real engines on disposable data folders, not owner acceptance. Real use is recorded when it happens. Claimed advantages require the same complete job against an eligible alternative, including where Backbone loses, setup, correction, recovery and upkeep.

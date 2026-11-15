@@ -83,7 +83,7 @@ Platform and some modules depend on each other today. Pi imports shared tool def
 
 Source and test coverage do not establish real use of every engine or the combined build.
 
-The [CLI guide](how-to/use-the-cli.md) owns the exact commands now available: `backbone engine codex`, `backbone model codex --model gpt-6.1-sol`, `backbone files attach "$SOURCE"`, `backbone files read summary.md --version 1`, `backbone files save summary.md --base-version 1`, and `backbone send "Read this file and describe its columns." --thread "$THREAD" --attach "$SOURCE" --permission full`. The guide also gives the Pi route and the account-free stub practice job. Standalone data folders support these writes; the running app's API line does not carry engine/model changes, attachment or Save.
+The [CLI guide](how-to/use-the-cli.md) owns the exact commands now available: `backbone engine codex`, `backbone model codex --model gpt-6.1-sol`, `backbone files attach "$SOURCE"`, `backbone files read summary.md --version 1`, `backbone files save summary.md --base-version 1`, and `backbone send "Read this file and describe its columns." --thread "$THREAD" --attach "$SOURCE" --permission full`. The guide also gives the Pi route and the account-free stub practice job. Standalone data folders support these writes. The running personal app or daemon also carries `files attach` through its API line, with the same 25 MiB file limit; company sign-in directs attachment to the signed-in app. The line does not carry engine/model changes, send attachments or Save.
 
 | Behaviour | Source | Controls and limits |
 | --- | --- | --- |

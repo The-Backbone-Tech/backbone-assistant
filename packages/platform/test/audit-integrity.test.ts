@@ -47,7 +47,7 @@ test('resumption emits exactly the remaining events and joins source receipt anc
     assert.throws(() => readAudit(changedPeriod.jsonl, first.jsonl), /do not join/);
     const changedContent = await exportAudit(source, { ...AUDIT_PERIOD, includeContent: true, after: first.trailer.cursor!.id });
     assert.throws(() => readAudit(changedContent.jsonl, first.jsonl), /do not join/);
-    await assert.rejects(exportAudit(source, { ...AUDIT_PERIOD, after: auditCursor('00000000-0000-0000-0000-000000000000', '1') }), /another home/);
+    await assert.rejects(exportAudit(source, { ...AUDIT_PERIOD, after: auditCursor('00000000-0000-0000-0000-000000000000', '1') }), /another data folder/);
     await assert.rejects(exportAudit(source, { ...AUDIT_PERIOD, after: auditCursor(link.id.workspace, '9000000') }), /no committed/);
     const future = await exportAudit(source, { since: '2090-01-01T00:00:00Z', until: AUDIT_PERIOD.until });
     assert.equal(future.header.count, 0); assert.ok(future.trailer.cursor, 'even a filtered empty file advances only the scanned source head');

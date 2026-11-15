@@ -2,8 +2,10 @@
 // the conversation; any other local path stays text. Web links keep Streamdown's safe handling.
 import type { FileLink } from '@backbone-next/platform';
 import * as React from 'react';
-import { Streamdown, type StreamdownProps } from 'streamdown';
+import { Streamdown, type StreamdownProps, type LinkSafetyModalProps } from 'streamdown';
 import { useApp } from '../lib/state';
+import { Dialog, DialogContent } from './ui/dialog';
+import { Button } from './ui/button';
 import { call } from '../lib/api';
 import { answerPlugins } from '../lib/answer-plugins';
 import { resolveLink, type LinkContext } from '../lib/workspace-links';
@@ -67,9 +69,38 @@ export function Answer({ text, projectId, workspace, touched = NO_FILES, streami
   });
   return (
     <Targets.Provider value={context}>
-      <Streamdown mode="streaming" isAnimating={streaming} controls={CONTROLS} rehypePlugins={plugins} components={COMPONENTS}>
+      <Streamdown mode="streaming" isAnimating={streaming} controls={CONTROLS} linkSafety={{ enabled: true, renderModal: props => <WebLinkDialog {...props} /> }} rehypePlugins={plugins} components={COMPONENTS}>
         {text}
       </Streamdown>
     </Targets.Provider>
   );
+}
+
+
+function WebLinkDialog({isOpen, onClose, onConfirm, url}: LinkSafetyModalProps) {
+  const {openTab} = useApp();
+  const [message, setMessage] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  React.useEffect(() => {setMessage(''); setBusy(false);}, [isOpen, url]);
+  async function open(beside: boolean) {
+    if (!window.backbone?.browserRequest) {onConfirm(); return;}
+    setBusy(true); setMessage('');
+    try {
+      const result = await window.backbone.browserRequest({action:beside?'navigate':'external',url});
+      if ((result.requestRefused || result.phase === 'blocked') && !result.externalDispatched) {setMessage(result.detail ?? 'This page is blocked.'); return;}
+      if (beside) openTab('browser');
+      onClose();
+    } catch {setMessage('Opening was not confirmed. Check the pane or your browser before trying again.');}
+    finally {setBusy(false);}
+  }
+  return <Dialog open={isOpen} onOpenChange={value => {if (!value) onClose();}}>
+    <DialogContent title="Open link" description={url}>
+      {message && <p role="alert" className="mb-3 text-sm text-danger">{message}</p>}
+      <div className="flex flex-wrap gap-2">
+        {window.backbone?.browserRequest && <Button disabled={busy} onClick={() => void open(true)}>Open beside</Button>}
+        <Button variant="outline" disabled={busy} onClick={() => void open(false)}>Open in my browser</Button>
+        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+      </div>
+    </DialogContent>
+  </Dialog>;
 }

@@ -126,6 +126,8 @@ async function command(parsed: Parsed, io: Io): Promise<number> {
     // The line carries no export: the database is read as its installer, which only the app's own process does.
     if (parsed.name === 'export') { line.close(); io.err('REFUSED (NOT_AVAILABLE): the app holds this data folder. Export it from Settings › Backup, or close the app and run this again.'); return EXIT.REFUSED; }
     try {
+      // These sends cannot carry attachments; refuse before the shared helper uploads an original.
+      if (parsed.options.attach?.length) { io.err('REFUSED (NOT_AVAILABLE): Send attachments in the app, or stop the app or background service holding this data folder and send through a standalone data folder. Nothing was attached or started.'); return EXIT.REFUSED; }
       if (ASKED.has(parsed.name) && line.send === 'ask') io.err('Waiting for you in the app: it asks whether each message, goal or schedule may go ahead.');
       return await run(line, { ...io, live: true });
     } finally {

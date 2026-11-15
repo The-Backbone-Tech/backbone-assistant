@@ -46,7 +46,7 @@ export class WorkspaceStore {
       const home = canonicalHome(this.owner), candidate = canonicalHome(this.directory);
       const contains = (parent: string, child: string) => parent === child || child.startsWith(parent + '/');
       const runtimeReads = process.platform === 'linux' ? LINUX_RUNTIME_READS : WORKSPACE_RUNTIME_READS;
-      if (runtimeReads.some(path => contains(path, home) || contains(home, path)) || contains(home, candidate) || contains(candidate, home)) throw new WorkspaceRefusal('This data-home location overlaps the qualified workspace runtime; execution is refused.');
+      if (runtimeReads.some(path => contains(path, home) || contains(home, path)) || contains(home, candidate) || contains(candidate, home)) throw new WorkspaceRefusal('This data folder location overlaps the qualified workspace runtime; execution is refused.');
     }
     for (const path of [join(this.directory, '..'), this.directory]) {
       mkdirSync(path, { recursive: true, mode: 0o700 });

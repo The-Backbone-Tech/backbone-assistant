@@ -78,6 +78,8 @@ backbone threads show "$THREAD"
 backbone doctor
 ```
 
+For Ollama, LM Studio, llama.cpp and vLLM, an address with no path gets `/v1` added, because those servers answer there; the command prints "Using ..." when it does this. It then asks the server for its model list: it says the model is listed, or that the server does not list it, or that the check could not be made (a server that is off is still saved). `--runtime other` saves the address exactly as given.
+
 This changes the data folder setting for the next process. Each turn records its engine; the thread and its registered material stay. To switch back:
 
 ```bash
@@ -98,7 +100,7 @@ A `length` finish reason or a stream ending without a normal stop produces an un
 
 For a hosted API or gateway key, add it in the app's **Settings → AI and models** for that data folder. The product seals it under a credential handle in the data folder's `credentials` folder using the data folder's vault master key; settings contain the handle, never the key value. `models`, `engine` and `doctor` never echo a key. There is no CLI key argument or key prompt: do not put secrets in argv, shell history or conversation text. This guide's real runs need no hosted API key.
 
-The running app’s API line carries reads, Stop and project creation (create projects in the signed-in app when company sign-in is configured), and asks in the app before each send, queue, goal or schedule. It does not carry engine/model changes, attachments or document Saves; use the app for those. A CLI-managed standalone data folder supports the full sequence above. An app-kept data folder can require the app open to read its keys. See [the CLI contract](../../packages/surfaces/cli/CONTRACT.md).
+The running app’s API line carries reads, `files attach`, Stop and project creation (create projects and attach files in the signed-in app when company sign-in is configured), and asks in the app before each send, queue, goal or schedule. It does not carry engine/model changes, send attachments or document Saves; use the app for those. The background service also carries `files attach` without stopping it, with the same 25 MiB file limit as the standalone command. A CLI-managed standalone data folder supports the full sequence above. An app-kept data folder can require the app open to read its keys. See [the CLI contract](../../packages/surfaces/cli/CONTRACT.md).
 
 ## A runnable practice job without a model
 

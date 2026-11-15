@@ -45,7 +45,8 @@ export interface ToolHost {
    * This is not a grant: callers must also invoke the request's stillAllowed check, and check
    * run/mandate authority at their own send boundary. */
   stillGranted?(sources: readonly { materialId: string; projectId: string; version: number; withdrawals: number }[]): true | string;
-  list(): Promise<ToolFile[]>;
+  /** The project's files. Trusted staging marks availability, not an observed engine listing, so it records no listing step. */
+  list(observation?: { purpose: 'staging' }): Promise<ToolFile[]>;
   /** The current version's text (an Office workbook as cell text), or null.
    * Trusted staging marks availability, not an observed engine read; dependency checks are identical. */
   read(name: string, observation?: { purpose: 'staging' }): Promise<(ToolFile & { text: string }) | null>;

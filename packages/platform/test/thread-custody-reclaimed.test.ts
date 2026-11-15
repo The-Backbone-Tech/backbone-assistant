@@ -108,7 +108,7 @@ for (const phase of [1, 2, 3]) test('a lost home lock at Core wait ' + phase + '
   const s = setup(t); await s.retain(); const before = s.bytes();
   const v = view(); let reads = 0;
   v.control.afterRead = async () => { if (++reads === phase) { const observed=await replaceHeldHomeLock(s.home);assert.ok(observed.aborted); } };
-  await assert.rejects(reconcileReclaimedCustody(s.context, v.core, s.handle, s.checkpoint()), /home lock was lost/);
+  await assert.rejects(reconcileReclaimedCustody(s.context, v.core, s.handle, s.checkpoint()), /data folder lock was lost/);
   assert.equal(s.bytes(), before);
 });
 

@@ -37,9 +37,13 @@ More > Memory shows each remembered fact with its origin and lets the person edi
 
 ## Composition (slices 1–2, from `reference-baseline.md` §2)
 
-- **Slice 1:** Home; sidebar (R-UX-SIDEBAR-01); thread with on-demand details (R-UX-THREAD-01); composer (R-UX-COMPOSER-01); right pane with a tab registry (R-UX-PANES-01) holding Changes, Files, Terminal and the read-only Side chat (R-UX-SIDECHAT-01).
+- **Slice 1:** Home; sidebar (R-UX-SIDEBAR-01); thread with on-demand details (R-UX-THREAD-01); composer (R-UX-COMPOSER-01); right pane with a tab registry (R-UX-PANES-01) holding Changes, Files, Terminal, Browser and the read-only Side chat (R-UX-SIDECHAT-01).
 - **Slice 2:** split view (R-UX-SPLIT-01); attention mode (R-UX-INBOX-01); phone (R-UX-PHONE-01); Subagents tab and child rows (R-MA-*).
 - **Keyboard (R-UX-KEYS-01):** where the references agree, use the shared shortcut: Terminal ⌃\`. Where they differ, Backbone uses Codex's: Changes ⌃⇧G, Files ⌘P, Side chat ⌥⌘S. The reason is that Codex was navigated live while Claude's shortcuts are from docs. Browser is ⌘⇧B in both (Codex browser split, Claude browser). These choices can be revisited after the second P-03 pass.
+- **Personal browser (14 November).** Browser opens from the existing pane launcher or ⌘⇧B (Ctrl+Shift+B elsewhere). Its shared tab displays the page title; its toolbar provides address, Back, Forward, Reload/Stop and Open in my browser, with shared help on hover and keyboard focus. Answer links offer Open beside in the existing link confirmation. Loading, stopped, failed with explicit Retry, blocked and unconfirmed state are visible; page requests are never retried automatically. Bare local/private hosts use HTTP; other bare hosts use HTTPS. The address shows the canonical URL actually opened. Answer links require an explicit HTTP(S) scheme; bare-host completion applies only to typed addresses. For typed addresses and answer links, credentials, backslashes, control characters and addresses over 8,192 characters are refused. Escape or ⌘L/Ctrl+L from a page returns focus to the address; ⌘R/Ctrl+R reloads that page. A page cannot veto navigation or close through beforeunload. Refused links show a toolbar notice and preserve the current page; refusing a subframe does not hide its parent. Closing or hiding the tab retains the view and history until the window closes, with audio muted while hidden. Timers and network activity continue while hidden. Page addresses and history are not written to preferences. The company configuration and non-owner local windows receive an explicit refusal. The joined view has no browser and explains that pages belong to the local device owner.
+- **Browser boundary.** Local tests prove a separate in-memory Electron WebContentsView session, absent app cookies/storage and renderer bridge, refused IPC from a foreign page and a non-owner window, denied new windows/downloads, denied permission requests/checks and the configured sandbox, isolation, web security and Node/preload settings. Top-level addresses stay HTTP(S); the request filter also admits WS(S) for live previews and local document resources. Chromium-permitted about:blank, srcdoc, data and blob subframes remain usable; file and custom schemes are refused. A privileged custom subresource control distinguishes session-filter enforcement from Chromium defaults. Invalid server certificates are refused, and the local HTTPS fixture receives no client certificate. Explicit handler refusal is proved separately by an offered-certificate callback test; the fixture does not install an identity in the operating-system store. Electron does not return navigateOnDragDrop in its runtime preferences; the constructor-input test asserts it, without claiming native drag/drop coverage. Device and display-capture denial callbacks and frame/redirect cancellation are exercised with inert ports in controller tests, without claiming physical device or operating-system chooser coverage. Native bounds follow the pane; app menus, dialogs and fixed alerts hide the page. Pages belong to the person; the assistant has no port to read or control them. This is separate from the assistant-driven browser-task journey.
+- **Browser and managed policy.** Main rechecks the existing protected policy reader before navigation, every request and once per second while a view exists. Any active policy blocks personal browsing: the current schema describes engine routes but has no complete browser destination rule. A refused policy preserves its reason. Live revocation closes the browsing context, closes session connections and clears page storage; it never merely hides a running page. This intentionally conservative restriction can be relaxed only with an enforceable browser network policy.
+- **Browser proof.** `e2e/browser-pane.electron.spec.ts` drives the development Electron app against local HTTP, HTTPS and WebSocket fixtures, including unload cancellation, srcdoc, refused links, native preferences, owner IPC, fixed alerts, page reload and shared help. Its managed-policy test uses production registerBrowserPane with an injected policy reader, checks the retired session storage and an idle session connection, then recreates a clean page. `e2e/browser-feedback.browser.spec.ts` drives the real renderer with synthetic company and joined responses. `test/browser-pane.test.ts` executes the production controller with inert Electron ports, including offered certificates, device/display callbacks, navigation events, disposal, hidden audio and production registration with an upstream policy fixture. `test/browser-address.test.ts` and `test/browser-policy.test.ts` cover address and policy decisions. These are local test evidence, with light/dark and narrow screenshots; they do not establish an installed app, real keychain client identity, physical device, signed system-policy deployment or real-use acceptance. The CLI installation check is packaging regression evidence only.
 - **Version and pin fields** of every row are filled by the P-03 second pass.
 - **Work while it happens, 4 November.** A running turn shows its steps, the engine's commentary among them, as they happen, the way Codex, Claude and Cursor do; it folds when the turn ends unless the person opened or closed it, and a folded running turn shows its latest step beside "Working…".
 - **Task route selection, 5 November (app candidate).** The model/effort menu opens an explicit comparison of available routes against capability, model-connection and spending-category requirements. It displays the selector's reasons, alternatives and exclusions; starting rechecks availability and either starts the chosen route or retains the draft with a concrete reason. Unconfirmed submissions retain their exact task, text, settings and idempotency key across reload, without falling back to ordinary Send. Edits preserve the original pending identity and a newer draft separately; an explicit discard forgets only the local retry record and keeps the draft, without cancelling remote work or resolving unknown outcome. Its warning remains visible through edits until a confirmed send or a chat change. Late confirmations offer Open sent chat; goal-setup errors do not relabel admitted messages as unsent. Late responses from a superseded composer cannot overwrite the active draft. A selected turn records the pinned/execution route and can check its written file versions through the existing API; these checks do not establish content quality or whole-task completion. This is the current route selector, not the complete workflow/Arena selection promise. Goal-run records remain visible on their own turns and do not replace the person's previous chat choice or its prefilled requirements in the composer. The app candidate's attachment and follow-up qualification depends on the owning backend composition; its scoped report records that boundary.
@@ -167,3 +171,68 @@ that window's session storage, which Main clears before an account switch. It
 is not resent through the ended session. Draft and document drains still refuse
 close when their work is unconfirmed; they never borrow the device owner's
 identity. This separates cosmetic layout persistence from preserving work.
+
+## Read-only document previews
+
+A file tab previews PNG, JPEG, GIF, WebP and SVG as image resources; PDF as
+scrolling pages with selectable text and keyboard page/zoom controls; DOCX as
+headings, paragraphs, lists, tables and embedded raster images; XLSX/CSV as
+sheet tabs and cell values; and PPTX as numbered slides with text and embedded
+raster images in shape order. Slide layout is explicitly simplified. These
+views preserve the existing cited/current version identity, Download and close
+focus. Other file types show their type, size and an explicit no-preview message.
+
+A listed material can open by its file-list identity before document details
+finish loading; the read still passes through the backend access checks.
+
+The preview boundary accepts at most 20 MB of source bytes. Office archives
+expand in a dedicated worker, with 2,000 entries, 16 MB per entry, 48 MB total,
+200,000 XML delimiters and a 15-second deadline. DTDs/entities are refused.
+Word/slide output also caps 10,000 nodes, 500,000 text characters and 8 MB
+of embedded content; decks cap 200 slides.
+Rebuilt archives carry verified byte lengths into the maintained Office Kit
+readers. Workbook loading additionally caps 100,000 cells and 50,000 rows.
+XLSX and CSV share an output budget of 500,000 characters and 20,000 nonempty
+cells across all sheets in one conversion; empty coordinates do not spend it. Reaching
+either budget stops conversion and keeps the converted cells, including an
+incomplete last row. XLSX output keeps only populated rows and cells at their
+sparse coordinates; empty grid positions are filled only in the visible window.
+Row extents stay within 1,000 rows per sheet, column extents within 100, and the
+archive entry ceiling also bounds the sheet count. At most the first 1,000 rows
+and 100 columns are converted,
+and the page lays out at most 100 rows by 10 columns at a time. A partial preview
+says "Showing the first N rows of M" when the workbook model supplies M, or
+"Showing the first N rows" when CSV parsing stops before its end. It identifies
+an incomplete last row and omitted columns, and keeps Download for the whole file.
+CSV stops parsing when its row or output budget is reached; its remaining rows
+are not counted or validated. CSV uses the same 20 MB source ceiling and
+15-second worker deadline; the archive expansion ceilings apply only to Office
+ZIP files. A displayed cell over 10,000 characters refuses preview with its limit stated. Formulas are never evaluated.
+PDF previews cap 200 pages and render only nearby pages with bounded canvases.
+Image dimensions are checked while detached, before page insertion; PNG headers
+are also checked before decoding. Standalone images cap 40 million pixels. Failed conversions
+are remembered by material/version and limits version across restart, before any
+PDF chunk or worker loads. Changing the limits version invalidates those records.
+Only the latest 32 failures are retained, bounding storage when files or versions
+are no longer visited. Legacy unversioned entries are removed. Remembered failures
+offer Try again, which clears the record and makes one explicit conversion attempt;
+the 20 MB source refusal keeps Download alone. A PDF canvas over 16 million pixels
+is refused only for its current zoom, is never remembered, and recovers at a lower
+zoom. PDF code and scoped text styles load on demand; a failed chunk is contained
+in the tab with "This preview could not be loaded", Retry and Download.
+
+Documents never supply live markup, styles, event handlers or URLs to the app.
+Word model nodes and slide text become a fixed set of React elements with
+escaped text; known Word content controls, insertions, fields, smart tags and custom XML
+containers retain their text; block content controls keep separate paragraphs
+and contained tables through the maintained reader. Tracked deletions stay out.
+Embedded images accept only bounded raster data URLs. SVG is loaded only as an image resource, where
+Chromium disables script and external resources. PDF.js receives bytes with no
+viewer scripting, annotation, link or form layer, XFA, font fetching or wasm
+support. Annotation appearances are painted onto the canvas. Office
+workers additionally refuse network primitives. The renderer CSP is unchanged.
+A failed or timed-out read keeps Download and offers explicit Retry; a size
+refusal explains its ceiling without automatic retry. This is a read-only
+preview contract. CSV retains its existing text editor: drafts and Save appear
+only with that editor; the grid and Download use the displayed saved version.
+This is separate from the Documents port's future editing codecs.

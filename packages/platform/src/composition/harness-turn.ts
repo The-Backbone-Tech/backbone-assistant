@@ -407,9 +407,9 @@ export async function runHarnessTurn(ctx: HarnessTurnContext, turn: Turn, given:
         return true;
       } catch { return 'A source could not be checked.'; }
     },
-    list: async () => {
+    list: async (observation) => {
       const all = files();
-      turn.work.steps.push({ kind: 'list', label: `Listed ${all.length} file(s)` });
+      if (observation?.purpose !== 'staging') turn.work.steps.push({ kind: 'list', label: `Listed ${all.length} file(s)` });
       await ctx.progress();
       return all.map(fileOf);
     },

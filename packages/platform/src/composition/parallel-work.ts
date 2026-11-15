@@ -969,7 +969,7 @@ export function createParallelWork(deps: ParallelDeps) {
     ended(thread: StoredThread, turn: Turn) {
       for (const s of turn.steers ?? []) if (s.state === 'sending') settleSteer(thread, turn, s, { outcome: 'UNKNOWN', detail: 'The turn ended before the engine answered.' });
       const { status, effects, answer, completed, withheld, unknownSources, reads, refusal, failure, unknownOutcome, unknownEvidence, nativeAccountActivity, work } = turn;
-      record({ kind: 'turn.closed', threadId: thread.summary.id, turnId: turn.id, state: { status, effects, answer, completed, withheld, unknownSources, reads, refusal, ...(unknownOutcome ? { unknownOutcome } : {}), ...(unknownEvidence ? { unknownEvidence } : {}), ...(nativeAccountActivity ? { nativeAccountActivity } : {}), ...(failure ? { failure } : {}), endedAt: work.endedAt, usage: work.usage } });
+      record({ kind: 'turn.closed', threadId: thread.summary.id, turnId: turn.id, state: { status, effects, answer, completed, withheld, unknownSources, reads, refusal, ...(unknownOutcome ? { unknownOutcome } : {}), ...(unknownEvidence ? { unknownEvidence } : {}), ...(nativeAccountActivity ? { nativeAccountActivity } : {}), ...(failure ? { failure } : {}), endedAt: work.endedAt, usage: work.usage, carriers: work.carriers } });
     },
     stopTurn(thread: StoredThread, turn: Turn) { record({ kind: 'turn.stop', threadId: thread.summary.id, turnId: turn.id }); },
     /** Off the journal, and its file with it. The record of what it did stays in the core and here. */

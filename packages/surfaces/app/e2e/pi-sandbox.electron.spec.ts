@@ -120,7 +120,9 @@ print(json.dumps(dict(
     expect(identity.version).toBe(compiled.version);
     expect(identity.packaged).toBe(true);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    await expect(page.getByTestId('build-identity')).toContainText(compiled.id);
+    const buildDetails = page.getByTestId('build-identity');
+    await buildDetails.getByText('Build details', { exact: true }).click();
+    await expect(buildDetails.getByText(`Build ${compiled.id} · ${compiled.builtAt}`, { exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
     const call = async <T>(method: string, args: unknown) => {
       const receipt = await api<Receipt<T>>(page, method, args);

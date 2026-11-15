@@ -72,7 +72,7 @@ function SignatureRow({ row, ended, busy, onEnd, paused, statusKnown, unconfirme
   return <article aria-label={`${tool.name} on ${server.name}`} className="min-w-0 border-b border-border py-4 text-xs leading-5 [overflow-wrap:anywhere]">
     <div className="flex flex-wrap items-center gap-2 text-ui font-medium">
       <span>{tool.name} · {server.name}</span><Badge tone={ended || paused || unconfirmed ? 'neutral' : 'committed'}>{unconfirmed ? 'End not confirmed' : ended === 'pending' ? 'Ending pending in Core' : ended === 'conflict' ? 'Conflict' : ended === 'ended' ? 'Ended' : ended ? 'Ended locally' : paused ? (statusKnown ? 'Paused' : 'Status unavailable') : 'Acts without asking'}</Badge>
-      {!ended && <Button className="ml-auto" size="sm" variant="outline" disabled={busy} onClick={onEnd}>{unconfirmed ? 'End again' : 'End permission'}</Button>}
+      {!ended && <Button className="ml-auto border-danger text-danger" size="sm" variant="outline" disabled={busy} onClick={onEnd}>{unconfirmed ? 'End again' : 'End permission'}</Button>}
     </div>
     {!!row.unknowns && <p className="mt-2 text-muted">{tool.name} has an unresolved unknown outcome on this connection. Inspect it in Connected tools; ending or giving permission does not resolve it.</p>}
     <dl className="mt-2 grid gap-1 text-muted">

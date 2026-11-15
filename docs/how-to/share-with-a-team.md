@@ -30,13 +30,44 @@ project and person, selects Editor or Viewer and saves. Only shared projects
 appear in the colleague’s window. Editors start conversations and continue their
 own; other people’s conversations remain readable. Viewers have a read-only
 composer. Local file panes, schedules, memory, engine controls and settings for
-the owner’s computer are unavailable in joined windows. Colleagues cannot use
-the owner’s native account tools. To use Pi, quit the owner’s app, set
-`BACKBONE_HOME` to that app’s existing data folder in a terminal, and run
-`backbone engine pi` as described in [the CLI guide](use-the-cli.md). Reopen the
-app and configure the model under **Settings › AI and models**. This version
-displays the engine there; the terminal command changes it. The sharing page
-warns while a non-shareable engine is selected.
+the owner’s computer are unavailable in joined windows. Colleagues use Pi with
+an explicit model route under **Settings › AI and models › Shared work**. Choose
+a local model or add a provider key there; keys stay sealed and are never shown
+again. Choosing a shared local model keeps the stored shared provider key;
+clearing the local selection uses that stored shared provider route again. The
+owner's own engine and model stay selected on the owner's computer. Colleagues cannot use the
+owner's native account tools or personal model route. If the workspace already
+uses Pi and no shared route is configured, colleagues keep using that workspace
+route as before.
+
+Shared work is used for colleagues and for your own sessions from other computers,
+and for named automations. A signed-in owner on another computer also uses this
+narrower shared carrier. To keep personal context from crossing to a different
+model route, an owner's conversation that already used a personal route refuses
+continuation from that other computer when the shared route differs. The message
+says: "This conversation was started on the owner's computer with its own model.
+Continue it there, or start a new conversation here." Start a new conversation
+there to use shared work, or continue the original on the owner's computer.
+Older personal conversations without a recorded route identity also require this.
+This protects conversation history only. If you start a new conversation from
+another computer and attach or ask about a file in one of your projects, that
+file's content goes to the shared model, because you asked for it there.
+A colleague's own conversations are unaffected. When the workspace uses Pi and no
+shared route is set, sessions keep the workspace route as before.
+
+Settings › People and roles shows a notice when the owner's engine brings its
+own tools and no shared model is configured. Colleagues can join and read what
+is shared with them, but their messages are refused until the owner configures
+Shared work. The terminal prints the same guidance after the shared service
+starts and after `backbone team invite`. A colleague whose message is refused is
+told it was not sent and what the owner has to configure. In the app, choose
+**Settings › AI and models › Shared work**. For the background service, stop it,
+run `backbone model shared local --endpoint <loopback-url> --model <id>`, then start
+it again with the same sharing address. A running app also holds the data folder:
+use its settings, or close the app before the command and open it again afterward.
+Model settings are never writable through the command line's connection to a
+running holder. If the shared engine fails to load, settings and the owner's
+notices show its last load error. The personal engine remains selected.
 
 Reopening the colleague’s app restores the joined workspace from its saved
 session in the one-person setup. With company sign-in configured, sign in locally
@@ -70,14 +101,18 @@ to each other; no certificate authority or reverse proxy is required.
 
 On the **owner's computer**, set `BACKBONE_HOME` to the data folder you want to
 share. For a new folder, create the first project before configuring the engine.
-Close the app before starting the daemon: one process holds the folder. Select
-Pi and configure its model first, following [the CLI guide](use-the-cli.md).
-A colleague cannot use the owner's native Codex or ACP account tools.
+Close the app before starting the daemon: one process holds the folder. Keep
+your own engine selected and configure a shared model route. The example below
+uses a model already running locally; use its actual address and model id. A
+provider route is configured under Settings › AI and models › Shared work before
+closing the app. A colleague cannot use the owner's native Codex or ACP account
+tools. `backbone models` shows the personal route and shared route separately.
 
 ```bash
 export BACKBONE_HOME="$HOME/.local/share/backbone"
 backbone projects create "Launch plan"
-backbone engine pi
+backbone model shared local --runtime ollama --endpoint http://127.0.0.1:11434/v1 --model qwen3.5:4b
+backbone models
 backbone daemon run --share 192.168.1.10:8443
 ```
 

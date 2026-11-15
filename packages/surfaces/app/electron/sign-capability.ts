@@ -1,5 +1,5 @@
 // The one screen on which the person signs the mail triage capability, owned by the main process
-// (as Connect your AI tools is). Main reads the offer itself, shows a summary of the signed payload
+// (as Settings › Assistants using this app is). Main reads the offer itself, shows a summary of the signed payload
 // and its hash in its own native window, and on Sign asks the operating system for the person's
 // presence: Touch ID where the Mac has it, else the system's own authentication prompt for the
 // session's owner. Only then does it sign, naming the hash it showed. The renderer can only ask for

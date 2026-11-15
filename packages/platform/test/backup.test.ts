@@ -230,9 +230,9 @@ test('a crafted export is refused before anything is written: protected names, c
 
 test('import goes only into a new, empty home, which it leaves as it is when not', async () => {
   const dry = await importHome({ from: source.exported, home: source.home, dryRun: true });
-  assert.match(dry.conflicts.join(' '), /not a new, empty home/);
+  assert.match(dry.conflicts.join(' '), /not a new, empty data folder/);
   const { host } = open(source.home);
-  await assert.rejects(host.importExport(source.exported), /not a new, empty home/);
+  await assert.rejects(host.importExport(source.exported), /not a new, empty data folder/);
   assert.equal((await host.call('projects.list', {})).length, 2);
 });
 
@@ -263,5 +263,5 @@ test('a renderer exports only through a ticket bound to its window and to the fo
   const outside = freshDir('backbone-link-');
   symlinkSync(home, join(outside, 'home-link'));
   const inside = await host.call('backup.export', { to: join(outside, 'home-link', 'export') });
-  assert.match(!inside.ok ? inside.detail : '', /inside the data home/);
+  assert.match(!inside.ok ? inside.detail : '', /inside the data folder/);
 });

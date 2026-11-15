@@ -1,32 +1,27 @@
 # Roadmap and status
 
-Source pre-release 0.2.0, reviewed 14 November 2026. This repository contains a clean source snapshot with fresh Git history. It does not host a previously built private binary. [README](../README.md) and the [source release record](source-release.md) explain installation and evidence.
+Pre-release, version 0.2.0. This page describes supported work and remaining qualification; it does not promise a public binary download. Build instructions are in [README](../README.md).
 
-## Public Mac download
+## What works
 
-The [unsigned Apple-silicon pre-release](https://github.com/The-Backbone-Tech/backbone-assistant/releases/tag/v0.2.0-macos-arm64.1) is built from clean public source `b1bcaa865e572a14a2d48c759bbd39cd04162cb5`, preserved by `v0.2.0-source.1`. Its two focused installed tests cover the scripted file/document journey with restart and edits, and reading every bundled notice. The actual extracted native libraries passed PostgreSQL, encoding and translation smoke checks. The complete installed inventory and privacy review passed; the release includes exact digests, provenance, notices inventory and GNU source archives.
+The source includes a desktop conversation, CLI and MCP surface; editable documents and versions; engine and model selection; connector discovery and installation; signed connector tools; memory and skills; schedules; audit and data export; managed policy; and deployment manifests.
 
-This is a source-linked binary delivery, not full J-01, human, two-physical-computer Team or Company acceptance. It remains unsigned and unnotarised. Later private-runtime fixes are outside this frozen public build.
-
-## Personal and Team
-
-Personal includes the desktop conversation, CLI and MCP surface, editable versioned files, engine/model choice, connectors, memory and skills, scheduled/background work, audit and data export. Team adds people and roles, shared projects, joining from another client, viewer restrictions and removal. The source includes both terminal and app joining paths.
-
-The upstream candidate passed its composed gate and was installed on one macOS arm64/APFS machine. An agent used the installed product for real jobs through an existing signed-in client. An installed test used two app instances on that machine to exercise join, read/send, session restoration, viewer access and removal. This is not a recorded successful journey between two physical computers or human acceptance. [Sharing a project](how-to/share-with-a-team.md) states the network and operator setup.
-
-The public export has its own privacy, source and structural checks, recorded separately from upstream installed evidence. Tests using scripted engines, fake providers and local pages retain those limits. [Contracts](contracts/), [guides](how-to/), [map](map.md) and [coverage](scorecard.md) locate each consumer.
+Supported paths and their limits are in the [guides](how-to/), [source map](map.md), [contracts](contracts/) and [journey scorecard](scorecard.md). Scripted engines, fake providers and local pages prove their bounded test cases. They do not qualify every real account, engine, installation or company deployment. An integrated gate, installed check and human acceptance are distinct evidence.
 
 ## Open work
 
-- Record human use and feedback on everyday Personal and Team work.
-- Exercise Team joining, recovery and access control on two physical computers and the actual network configuration.
-- Complete the Company configuration, including identity-provider operation, directory lifecycle, policy, audit and fleet qualification.
-- Sign and notarise macOS builds; independently build and inspect each future public binary before publication.
-- Continue platform-specific real-engine, account, upgrade and recovery qualification.
-- Compare complete jobs when a claim of being better depends on the result.
+- Qualify everyday personal work across conversations, mail, calendar, files, memory and background work with human feedback.
+- Finish installation, updates, signing and notarisation, and validate each downloadable artifact.
+- Exercise continuation and recovery through each supported real engine and connector.
+- Compare complete jobs when a recommendation depends on being better than an existing arrangement.
+- Deliver team and company identity, roles, collaboration and fleet as qualified configurations.
+- Complete remaining [reference journeys](journeys.json) at their named evidence level.
+- Resolve the distribution obligations in [ADR 0005](adr/0005-lgpl-native-libraries.md) before shipping the affected native payload.
 
-macOS arm64/APFS is the qualified writable profile. Linux writes require explicit experimental opt-in; Windows writable data folders remain unsupported. GNU native-library source provenance, rebuild recipe, notices and public-payload checks are implemented under [ADR 0005](adr/0005-lgpl-native-libraries.md); each future shipped binary must pass those checks on its own bytes.
+macOS arm64 with a local APFS data folder is the qualified writable profile. Linux writes require explicit experimental opt-in; Windows writable data folders are unsupported. Shared database and fleet examples require operator qualification. See [installation and recovery](how-to/install-and-open-the-app.md).
 
-## Contribute
+## How to contribute
 
-Choose a useful user journey, inspect its actual contract and consumer, preserve unrelated work, run focused tests/typechecks and regeneration, then the relevant integration checks. [CONTRIBUTING](../CONTRIBUTING.md) and the [development guide](development-map.md) own the workflow. Test counts support their declared scope; they do not establish complete Company or human acceptance.
+Choose a useful user journey, read its contract and named tests, and describe the smallest complete change. Preserve existing work and outside outcomes, add a failing test for behaviour changes, then run focused tests, typechecks and regeneration. Follow [CONTRIBUTING](../CONTRIBUTING.md) and the [development guide](development-map.md).
+
+The [goal](../GOAL.md) sets completion by shipped, used and trustworthy results. Coverage and passing tests support that claim at their stated scope; they do not replace installed checks or human acceptance.

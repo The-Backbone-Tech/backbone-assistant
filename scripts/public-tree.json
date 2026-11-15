@@ -77,8 +77,7 @@
     "scripts/notices/sources.json": "public/scripts/notices/sources.json.txt",
     "scripts/notices/README.md": "public/scripts/notices/README.md.txt",
     "docs/how-to/install-and-open-the-app.md": "public/docs/how-to/install-and-open-the-app.md.txt",
-    "packages/platform/README.md": "public/packages/platform/README.md.txt",
-    "docs/how-to/share-with-a-team.md": "public/docs/how-to/share-with-a-team.md.txt"
+    "packages/platform/README.md": "public/packages/platform/README.md.txt"
   },
   "forbiddenPatterns": [
     {

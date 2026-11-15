@@ -572,6 +572,8 @@
 !packages/platform/src/composition/selection-line.ts
 !packages/platform/src/composition/shared-certificate.ts
 !packages/platform/src/composition/shared-codex.ts
+!packages/platform/src/composition/shared-engine.ts
+!packages/platform/src/composition/shared-history.ts
 !packages/platform/src/composition/sidechat-core.ts
 !packages/platform/src/composition/sidechat-wiring.ts
 !packages/platform/src/composition/sidechat.ts
@@ -624,6 +626,7 @@
 !packages/platform/src/gateway.ts
 !packages/platform/src/keys/vault.ts
 !packages/platform/src/machine-client.ts
+!packages/platform/src/material-attachment.ts
 !packages/platform/src/memory/agent-roles.ts
 !packages/platform/src/memory/embeddings.ts
 !packages/platform/src/memory/imports.ts
@@ -772,6 +775,7 @@
 !packages/surfaces/cli/src/remote.ts
 !packages/surfaces/cli/src/screen.ts
 !packages/surfaces/cli/src/session.ts
+!packages/surfaces/cli/src/shared-engine-note.ts
 !packages/surfaces/cli/src/telemetry.ts
 !packages/surfaces/cli/src/version.ts
 !packages/surfaces/cli/tsconfig.json

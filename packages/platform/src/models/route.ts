@@ -13,6 +13,7 @@ import { routeFingerprint } from '../selection/route-identity.ts';
 import { join } from 'node:path';
 import { LOCAL_RUNTIMES, ROUTE_CHOICES, type GatewayProvider, type LocalProvider, type ModelSettings, type ModelSettingsChange, type OwnProvider } from '../api.ts';
 import type { ModelRoute } from '../ports/harness.ts';
+import { checkLocalModel, describeLocalSave, normaliseLocalEndpoint } from './local.ts';
 import { readJson, writeJson } from '../stub/fsx.ts';
 import type { CredentialStore } from '../credentials/store.ts';
 import { assertHomeWriteAdmission, withHomeLock } from '../composition/home-lock.ts';
@@ -72,19 +73,24 @@ export class ModelRoutes {
    * test or journey on this machine never finds that key and spends.
    */
   private readonly keychainGateway: boolean;
-  constructor(home: string, credentials: CredentialStore, env: NodeJS.ProcessEnv = process.env, nativeClient = false, keychainGateway = false, agentRoute?: ModelRoute, agentProblem?: string) {
+  private readonly shared: boolean;
+  constructor(home: string, credentials: CredentialStore, env: NodeJS.ProcessEnv = process.env, nativeClient = false, keychainGateway = false, agentRoute?: ModelRoute, agentProblem?: string, shared = false) {
+    this.shared = shared;
     this.agentRoute = agentRoute; this.agentProblem = agentProblem;
     if (agentRoute?.machineClient) this.machineState = new MachineClientStatusCache(agentRoute.machineClientEnvironment ?? env, agentRoute.machineExecutable);
-    this.keychainGateway = keychainGateway;
+    this.keychainGateway = !shared && keychainGateway;
     this.home = home;
-    this.path = join(home, 'model-route.json');
+    this.path = join(home, shared ? 'shared-model-route.json' : 'model-route.json');
     this.credentials = credentials;
-    this.env = env;
+    this.env = shared ? {} : env;
     this.nativeClient = nativeClient;
   }
 
-  private stored(): Stored {
-    return readJson<Stored>(this.path, {});
+  private stored(validate = true): Stored {
+    const stored = readJson<Stored & {engine?: string; harness?: string}>(this.path, {});
+    if (validate && this.shared && (stored.native || stored.engine && stored.engine !== 'harness-pi' || stored.harness && stored.harness !== 'harness-pi')) throw new Error('Shared work requires Pi with host tools only.');
+    if (validate && this.shared && ['own', 'gateway'].filter(key => Object.hasOwn(stored, key)).length > 1 && !validLocal(stored.local)) throw new Error('Choose exactly one shared provider route. A local selection can take priority.');
+    return stored;
   }
 
   /** The route for the next turn, in policy order; null when none is set. */
@@ -191,18 +197,33 @@ export class ModelRoutes {
    * The old key is revoked only once the route no longer names it.
    */
   change(c: ModelSettingsChange): Promise<Omit<ModelSettings, 'harness'>> {
+    if (c.route === 'shared' || this.shared && !['own', 'gateway', 'local'].includes(c.route)) return Promise.reject(new Error('Shared work requires a Pi model route: local, own key or gateway.'));
     if (c.route === 'agent-refresh') return this.machineState ? this.machineState.refresh().then(() => this.settings()) : Promise.resolve(this.settings());
     if (c.route === 'agent-resolve') {
       const prepared = prepareAcpConfiguration(this.home, c.configuration, this.env);
       return verifyAcpExecutableAccess(prepared.acceptance).then(() => ({ ...this.settings(), acpPrepared: prepared }));
     }
     if (c.route === 'agent') return verifyAcpExecutableAccess(c.configuration.acceptance).then(() => withHomeLock(this.home, () => this.changeHeld(c)));
+    if (c.route === 'local' && !('clear' in c)) return this.changeLocal(c);
     return withHomeLock(this.home, () => this.changeHeld(c));
   }
 
+  /**
+   * A local choice is saved with its address normalised, then the server is asked (outside the lock, since it is a
+   * network read) whether it lists the model. A server that is off still saves; the note says it was not checked.
+   */
+  private async changeLocal(c: Extract<ModelSettingsChange, { route: 'local'; provider: LocalProvider }>): Promise<Omit<ModelSettings, 'harness'>> {
+    const { baseUrl, addedPath } = normaliseLocalEndpoint(c.provider, c.baseUrl);
+    const saved = await withHomeLock(this.home, () => this.changeHeld({ ...c, baseUrl }));
+    const model = String(c.model ?? '').trim();
+    return { ...saved, localNote: describeLocalSave(baseUrl, model, addedPath, await checkLocalModel(baseUrl, model)) };
+  }
+
   private async changeHeld(c: ModelSettingsChange): Promise<Omit<ModelSettings, 'harness'>> {
-    if (c.route === 'agent-resolve' || c.route === 'agent-refresh') throw new Error('Resolve an ACP executable before taking the home lock.');
+    if (c.route === 'shared') throw new Error('Nested shared routes are not supported.');
+    if (c.route === 'agent-resolve' || c.route === 'agent-refresh') throw new Error('Resolve an ACP executable before taking the data folder lock.');
     const policy = governedPolicy(this.home);
+    if (this.shared) engineDecision(policy, 'harness-pi');
     if (c.route === 'agent') {
       engineDecision(policy, 'harness-acp', c.configuration);
       routeDecision(policy, { kind: 'agent', provider: `acp:${c.configuration.agent}` });
@@ -212,29 +233,47 @@ export class ModelRoutes {
     if (!('clear' in c)) routeDecision(policy, { kind: c.route === 'local' ? 'endpoint' : c.route, provider: c.route === 'local' ? 'openai-compatible' : c.route === 'native' ? 'codex' : c.provider });
     if (this.agentProblem) throw new Error(this.agentProblem);
     if (this.agentRoute) throw new Error(`This ACP agent chooses its model and sign-in outside the host. ${this.agentRoute.label}`);
-    const s = this.stored();
+    const s = this.stored(!this.shared);
+    if (this.shared) {
+      delete (s as Stored & {engine?: string}).engine;
+      delete (s as Stored & {harness?: string}).harness;
+      delete s.native;
+    }
+    const retiredShared: string[] = [];
+    if (this.shared && c.route !== 'local' && !('clear' in c)) for (const name of ['own', 'gateway', 'local'] as const) {
+      if (name === c.route) continue;
+      const prior = s[name];
+      if (prior && 'credential' in prior) retiredShared.push(prior.credential);
+      delete s[name];
+    }
+    const save = () => {
+      assertHomeWriteAdmission(this.home);
+      writeJson(this.path, s);
+      for (const handle of retiredShared) this.credentials.revoke(handle);
+    };
     if (c.route === 'native') {
       if (!this.nativeClient) throw new Error('This engine uses an API route. Select the native Codex engine before configuring its model.');
       const model = c.model.trim();
       if (!model || model.length > 200 || /\s/.test(model)) throw new Error('Choose a valid model identifier.');
       s.native = { provider: 'codex', model };
-      assertHomeWriteAdmission(this.home);
-      writeJson(this.path, s);
+      save();
       return this.settings();
     }
     if (c.route === 'local') {
       // No credential: a local route is a loopback address and a model id, checked before anything is written.
-      if ('clear' in c) delete s.local;
+      if ('clear' in c) {
+        if (this.shared && s.own && s.gateway) throw new Error('Choose one shared provider before clearing the local selection. Both stored keys are kept.');
+        delete s.local;
+      }
       else {
         if (!Object.hasOwn(LOCAL_RUNTIMES, c.provider)) throw new Error('Choose a local runtime: Ollama, LM Studio, llama.cpp, vLLM or another local server.');
-        const baseUrl = String(c.baseUrl ?? '').trim().replace(/\/+$/, '');
+        const { baseUrl } = normaliseLocalEndpoint(c.provider, c.baseUrl);
         if (!LOOPBACK.test(baseUrl)) throw new Error('A local model must be on this computer: an http:// address on 127.0.0.1, localhost or [::1], with its port.');
         const model = String(c.model ?? '').trim();
         if (!MODEL_ID(model)) throw new Error('Choose the model this server runs.');
         s.local = { provider: c.provider, baseUrl, model };
       }
-      assertHomeWriteAdmission(this.home);
-      writeJson(this.path, s);
+      save();
       return this.settings();
     }
     const prior = s[c.route];
@@ -261,8 +300,7 @@ export class ModelRoutes {
       // Saving a key is an explicit route choice; an older local preference must not mask it.
       delete s.local;
     }
-    assertHomeWriteAdmission(this.home);
-    writeJson(this.path, s);
+    save();
     if (retired) this.credentials.revoke(retired);
     return this.settings();
   }

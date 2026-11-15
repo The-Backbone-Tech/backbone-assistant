@@ -4,7 +4,7 @@
 // complete it is; a change is held here for you, on its exact words, and sent only through a door you open.
 import type { ConnectorServer, ConnectorTool } from '@backbone-next/platform';
 import * as React from 'react';
-import { call, enableConnector, enableConnectorTools, endConnectorSignature, markConnectorToolRead, onEvent, openConnectorDoor, signConnectorTool } from '../../lib/api';
+import { call, enableConnector, enableConnectorTools, endConnectorSignature, markConnectorToolRead, openConnectorDoor, signConnectorTool } from '../../lib/api';
 import { connectorRefusal, type CONNECTOR_CANCEL } from '../../lib/connector-cancel';
 import { signatureFailureMessage } from '../../lib/signed-tools';
 import { HeldCalls } from './HeldCalls';
@@ -13,25 +13,20 @@ import { Button } from '../ui/button';
 import { Select } from '../ui/input';
 import { SettingsRow } from './SettingsRow';
 import { ConnectorCatalogue } from './ConnectorCatalogue';
+import { useSettingsRead } from '../../lib/use-settings-read';
+import { SettingsReadStatus } from './SettingsReadStatus';
 
-type View = Awaited<ReturnType<typeof call<'connectors.list'>>>;
+const readConnectors = () => call('connectors.list', {});
 
 export function ConnectorsSection() {
-  const [view, setView] = React.useState<View>();
-  const request = React.useRef(0);
-  const load = React.useCallback(() => {
-    const id = ++request.current;
-    void call('connectors.list', {}).then(next => { if (id === request.current) setView(next); });
-  }, []);
-  React.useEffect(() => {
-    load();
-    const off = onEvent((e) => e.topic === 'connectors' && load());
-    return () => { request.current++; off(); };
-  }, [load]);
-  if (!view) return <p className="py-4 text-sm text-muted">Loading…</p>;
+  const { value: view, pending, failed, reload: load } = useSettingsRead(readConnectors, 'connectors');
+  const status = <SettingsReadStatus label="Connected tools" pending={pending} failed={failed} hasValue={view !== undefined} retry={load} />;
+  if (!view) return status;
   const waiting = view.held.filter((h) => h.state === 'waiting');
   return (
     <div>
+      {status}
+      <fieldset aria-label="Connected tools">
       <ConnectorCatalogue servers={view.servers} onChange={load} />
       <p className="pt-3 text-xs text-muted">
         Tools start off. Turning on a server or tool is confirmed in the desktop app. Reads run for every engine. Held actions wait for your permission for one call or for the tool to act without asking. Allow sending before giving either permission. An unknown outcome pauses that tool’s permission until you resolve it.
@@ -41,6 +36,7 @@ export function ConnectorsSection() {
       {view.servers.map((s) => (
         <ServerRow key={s.id} server={s} onChange={load} pausedTools={[...new Set(view.held.filter(h => h.serverId === s.id && h.state === 'unknown').map(h => h.tool))]} />
       ))}
+      </fieldset>
       <HeldCalls held={view.held.filter(h => h.state === 'unknown')} onChange={load} unknown />
       <HeldCalls held={view.held.filter(h => h.state !== 'waiting' && h.state !== 'unknown').slice(0, 10)} onChange={load} past />
     </div>

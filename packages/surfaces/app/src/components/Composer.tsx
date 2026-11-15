@@ -6,6 +6,7 @@ import { ArrowUp, Check, Laptop, ListChecks, Paperclip, Plus, ShieldCheck, Squar
 import * as React from 'react';
 import { brand } from '../brand';
 import { call, clientKey, toBase64 } from '../lib/api';
+import { onComposerFocusRequest, takeComposerFocusRequest } from '../lib/composer-focus';
 import { acceptDraftRead, flushDraft, hasUnconfirmedDraft, hasUncertainDraft, retryUncertainDraft, keepReviewedDraft, persistDraft, persistDraftNow, readDraft, reviewSavedDraft, useReviewedDraft, trackDraftOperation } from '../lib/drafts';
 import { useApp, useLive } from '../lib/state';
 import { cn } from '../lib/utils';
@@ -206,7 +207,11 @@ function LocalComposer({ projectId, threadId, running, recoveryHeld, steering, s
   }, [draftKey, loadAttempt]);
 
   React.useEffect(() => {
-    if (draftReady && autoFocus && document.activeElement === document.body) area.current?.focus();
+    if (!draftReady || !autoFocus) return;
+    // Take the keyboard when nothing else has it, or when New chat asked for it (lib/composer-focus.ts).
+    const focus = () => { if (takeComposerFocusRequest() || document.activeElement === document.body) area.current?.focus(); };
+    focus();
+    return onComposerFocusRequest(focus);
   }, [draftReady, autoFocus]);
 
   const update = (value: string, ids = latest.current.ids, off = memoryOff) => {

@@ -350,7 +350,7 @@ test('nothing secret crosses: the route shows no address, and a thrown error\'s 
   const h = home();
   const SECRET = 'sk-test-canary';
   const { call } = stand({
-    'settings.model.get': { own: { provider: 'openai-compatible', model: 'm', keySet: true, baseUrl: `https://x.example/v1?key=${SECRET}` }, gateway: null, active: { kind: 'own', label: 'l' }, hint: null, harness: 'h' },
+    'settings.model.get': { own: { provider: 'openai-compatible', model: 'm', keySet: true, baseUrl: `https://x.example/v1?key=${SECRET}` }, gateway: null, active: { kind: 'own', label: 'l' }, hint: null, harness: 'h', shared: { own: { provider: 'openai-compatible', model: 'shared', keySet: true, baseUrl: `https://shared.example/v1?key=${SECRET}` }, gateway: null, active: null, hint: null, harness: 'Pi' } },
     'threads.list': new Error(`postgres://backbone:${SECRET}@127.0.0.1/db refused`),
   });
   await serve(h, call);

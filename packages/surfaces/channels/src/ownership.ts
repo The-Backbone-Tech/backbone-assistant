@@ -7,7 +7,7 @@ const active = new Set<string>();
 export async function ownService<T extends { close(): Promise<void> }>(home: string, start: () => Promise<T>): Promise<T> {
   secureChannelsHome(home);
   const key = resolve(home);
-  if (active.has(key)) throw new Error('The channel service already runs for this home.');
+  if (active.has(key)) throw new Error('The channel service already runs for this data folder.');
   active.add(key);
   let ready!: (service: T) => void, failed!: (e: unknown) => void, finish!: () => void;
   const result = new Promise<T>((r,j)=>{ready=r;failed=j;});

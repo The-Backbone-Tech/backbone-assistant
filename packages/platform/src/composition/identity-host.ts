@@ -2,14 +2,14 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { DEFAULT_PREFS, type Args, type Result, type Method, type Receipt, type Project, type ApiEvent, type ViewerPrefs, type ThreadSummary } from '../api.ts';
+import { DEFAULT_PREFS, normaliseViewerPrefs, type Args, type Result, type Method, type Receipt, type Project, type ApiEvent, type ViewerPrefs, type ThreadSummary, type Turn } from '../api.ts';
 import type { IdentityMethods, WorkspacePerson, ProjectAccess, AutomationIdentity } from '../api-identity.ts';
 import { readJson, writeJson } from '../stub/fsx.ts';
 import type { MaterialStore } from '../stub/material.ts';
 import {CoreRefusal,type CoreLink} from './core.ts';
 import type { StoredThread } from './thread-journal.ts';
 import { assertHomeWriteAdmission, withHomeLock } from './home-lock.ts';
-import { IdentityRefused, SharedEngineRequired, IdentityUnavailable, LegacyIdentityUnavailable, identityTokenHash } from './identity-core.ts';
+import { IdentityRefused, SharedEngineRequired, PersonalConversationRequired, AutomationSetupRefused, IdentityUnavailable, LegacyIdentityUnavailable, identityTokenHash } from './identity-core.ts';
 import {withIdentityLocal} from './identity-local.ts';
 import { withAdmissionTail } from './admission-tail.ts';
 import { identityResource } from './identity-resources.ts';
@@ -37,6 +37,10 @@ export interface IdentityHostDeps {
   material: MaterialStore;
   piece(): string | null;
   nativeEngine(): boolean;
+  sharedHint?(): string | null;
+  sharedActive?(): boolean;
+  checkSharedThread?(thread: StoredThread): void;
+  sharedWork?<T>(work: () => Promise<T>, required?: boolean): Promise<T>;
   emit(event: ApiEvent): void;
   abort(person?: string, automation?: string): void;
   on(listener: (event: ApiEvent) => void): () => void;
@@ -45,6 +49,7 @@ export interface IdentityHostDeps {
 }
 
 export function createIdentityHost(deps: IdentityHostDeps) {
+  const sharedWork = deps.sharedWork ?? (<T>(work: () => Promise<T>) => work());
   const deviceRequests = new AsyncLocalStorage<{device:boolean}>();
   let bootstrap: Promise<void> | undefined;
   const boot = () => bootstrap ??= (async () => {
@@ -77,11 +82,11 @@ export function createIdentityHost(deps: IdentityHostDeps) {
     return withHomeLock<ViewerPrefs>(deps.home,async()=>{
       if(method==='viewer.get'){
         const prior=person===device?readJson<ViewerPrefs>(join(deps.home,'viewer.json'),DEFAULT_PREFS):DEFAULT_PREFS;
-        return readJson<ViewerPrefs>(path,prior);
+        return normaliseViewerPrefs(readJson<ViewerPrefs>(path,prior));
       }
       if(deps.readOnly)throw new IdentityRefused();
       assertHomeWriteAdmission(deps.home,dirname(path));mkdirSync(dirname(path),{recursive:true});
-      assertHomeWriteAdmission(deps.home,dirname(path));writeJson(path,fields.prefs);return fields.prefs as ViewerPrefs;
+      const kept=normaliseViewerPrefs(fields.prefs as ViewerPrefs);assertHomeWriteAdmission(deps.home,dirname(path));writeJson(path,kept);return kept;
     });
   }
   const draftExists=(key:string)=>existsSync(join(deps.home,'drafts',identityTokenHash(key).slice(0,32)+'.json'));
@@ -102,13 +107,16 @@ export function createIdentityHost(deps: IdentityHostDeps) {
         grants:permission==='owner'?(await link.read<{person:string;access:'viewer'|'editor'}>(link.person(),'SELECT * FROM gov.identity_project_sharing($1)',[projectId])).rows:[] });
     },
     'identity.automations': async () => { const link = await deps.link(); return ok((await link.read<AutomationIdentity>(link.person(), 'SELECT * FROM gov.identity_automations()')).rows); },
-    'identity.automation.create': async ({ personId,projectId,name }) => { const link = await deps.link(); const id = await link.call<string>(link.person(), 'SELECT gov.identity_automation_create($1,$2,$3,$4)', [personId,projectId,name,deps.piece()]); changed(); return ok({ id }); },
+    'identity.automation.create': async ({ personId,projectId,name }) => {
+      try { return await sharedWork(async () => { const link = await deps.link(); const id = await link.call<string>(link.person(), 'SELECT gov.identity_automation_create($1,$2,$3,$4)', [personId,projectId,name,deps.piece()]); changed(); return ok({ id }); }); }
+      catch (error) { if (!(error instanceof SharedEngineRequired)) throw error; throw new AutomationSetupRefused(deviceRequests.getStore()?.device === true ? deps.sharedHint?.() : undefined); }
+    },
     'identity.automation.revoke': async ({ id }) => { const link = await deps.link(); await link.call(link.person(), 'SELECT gov.identity_automation_revoke($1)', [id]); deps.abort(undefined,id); changed(); return ok({ revoked: true }); },
     'identity.automation.run': async ({ id,text }) => {
       const link = await deps.link(), automation = (await link.read<AutomationIdentity>(link.person(), 'SELECT * FROM gov.identity_automations()')).rows.find(row=>row.id===id && !row.revoked);
       if (!automation || deps.nativeEngine()) throw new IdentityRefused();
       const invoker=link.id.person;
-      return link.identities.asAutomation(automation,async()=>{
+      return sharedWork(()=>link.identities.asAutomation(automation,async()=>{
         // One workspace identity lock covers both people. Switching the checked
         // actor needs no second lock behind a queued exclusive revoker.
         await link.identities.asPerson(invoker,async()=>{
@@ -118,7 +126,7 @@ export function createIdentityHost(deps: IdentityHostDeps) {
         const models = await deps.dispatch('models.list',{});
         return deps.dispatch('turns.send', { projectId: automation.project, text, attachments:[],clientKey:randomUUID(),
           settings:{permission:'ask',model:models[0]?.id ?? 'stub',effort:3,runsOn:'this-computer',mode:'chat'} });
-      });
+      }));
     },
   };
 
@@ -164,6 +172,7 @@ export function createIdentityHost(deps: IdentityHostDeps) {
       if (deps.readOnly) throw new IdentityRefused();
       const person = await link.identities.resolve(token);
       if (method !== 'identity.share' && !admin(person)) throw new IdentityRefused();
+      const request = deviceRequests.getStore(); if (request) request.device = token === undefined && person.id === link.identities.devicePerson && person.role === 'owner';
       return link.identities.asPerson(person.id, () => deps.dispatch(method,args));
     }
     return link.identities.admit(token, async person => {
@@ -186,7 +195,7 @@ export function createIdentityHost(deps: IdentityHostDeps) {
         return result;
       }
       if (method === 'host.status') return { owns: true } as Result<M>;
-      if (method === 'models.list') return deps.dispatch(method,args);
+      if (method === 'models.list') return device ? deps.dispatch(method,args) : sharedWork(()=>deps.dispatch(method,args));
       if (method === 'projects.create') {
         if (deps.readOnly || person.role === 'guest') throw new IdentityRefused();
         const created=await deps.dispatch('projects.create',{...args as Args<'projects.create'>,clientKey:`identity:${person.id}:${identityTokenHash(String(fields.clientKey ?? randomUUID()))}`});
@@ -226,13 +235,18 @@ export function createIdentityHost(deps: IdentityHostDeps) {
           const result=await deps.dispatch('work.now',{projectId:project});check();
           return {...result,needsYou:result.needsYou.filter(item=>item.kind!=='connector'&&item.kind!=='connector-read')} as Result<M>;
         }
-        const result=await(method==='turns.send'?link.identities.asPerson(person.id,()=>deps.dispatch(method,args),deps.piece()):deps.dispatch(method,args));
+        const result=await(method==='turns.send'&&!device?sharedWork(()=>{if(thread&&person.id===link.identities.devicePerson)deps.checkSharedThread?.(thread);return link.identities.asPerson(person.id,()=>deps.dispatch(method,args),deps.piece());}):deps.dispatch(method,args));
         // Reads must not return substituted content. A committed write keeps its
         // receipt; its resource was checked before dispatch and under its locks.
         if(READS.has(method))check();
         if(!device&&method==='threads.get'){
           const read=result as Result<'threads.get'>;
-          if(read.ok)return {...read,value:{...read.value,turns:read.value.turns.map((turn,index)=>({...turn,...(thread?.personId===person.id?{clientKey:thread.clientKeys[index]}:{})})),summary:{...read.value.summary,access:thread?.personId===person.id&&['owner','editor'].includes(await access(link,project)??'')?'editor':'viewer'}}} as Result<M>;
+          if(read.ok){
+            // Internal route hashes can reveal a keyless loopback address by enumeration.
+            const outward=(turn:Turn):Turn=>{const {carriers:_private,...work}=turn.work;return {...turn,work};};
+            const rewind=(record:NonNullable<typeof read.value.rewinds>[number])=>({...record,turns:record.turns.map(outward),...(record.sideTurns?{sideTurns:record.sideTurns.map(outward)}:{})});
+            return {...read,value:{...read.value,turns:read.value.turns.map((turn,index)=>({...outward(turn),...(thread?.personId===person.id?{clientKey:thread.clientKeys[index]}:{})})),sideTurns:(read.value.sideTurns??[]).map(outward),...(read.value.rewinds?{rewinds:read.value.rewinds.map(rewind)}:{}),...(read.value.rewindPending?{rewindPending:rewind(read.value.rewindPending)}:{}),summary:{...read.value.summary,access:thread?.personId===person.id&&['owner','editor'].includes(await access(link,project)??'')?'editor':'viewer'}}} as Result<M>;
+          }
         }
         return result;
       });
@@ -401,17 +415,20 @@ export function createIdentityHost(deps: IdentityHostDeps) {
     directory ??= createScimHandler({bearer:configuration.bearer,directory:storage});
     return directory(request);
   }
-  async function resumeAsActor(thread: StoredThread, work: () => Promise<void>) {
+  async function resumeAsActor(thread: StoredThread, work: () => Promise<void>, shared = false) {
     const link=await deps.link();
     const actor=thread.personId ?? link.identities.devicePerson;
+    if(!shared&&actor===link.identities.devicePerson&&!thread.automationId&&deps.sharedActive?.())throw new PersonalConversationRequired();
     if((thread.automationId||actor!==link.identities.devicePerson)&&deps.nativeEngine())throw new IdentityRefused();
-    if(!deps.configuration?.company&&!thread.automationId&&(!thread.personId||thread.personId===link.identities.devicePerson)
+    if(!shared&&!deps.configuration?.company&&!thread.automationId&&(!thread.personId||thread.personId===link.identities.devicePerson)
       &&await link.legacyDeviceOnly?.())return work();
     await boot();
     const permitted=async()=>{
       if (!['owner','editor'].includes(await access(link,thread.summary.projectId) ?? '')) throw new IdentityRefused();
       return work();
     };
+    const resume = async () => {
+    if(actor===link.identities.devicePerson&&!thread.automationId)deps.checkSharedThread?.(thread);
     if (thread.automationId) {
       const rows=await link.read<AutomationIdentity>({workspace:link.id.workspace,principal:link.identities.devicePerson},'SELECT * FROM gov.identity_automations()');
       const automation=rows.rows.find(row=>row.id===thread.automationId&&!row.revoked&&row.person===actor&&row.project===thread.summary.projectId);
@@ -419,6 +436,8 @@ export function createIdentityHost(deps: IdentityHostDeps) {
       return link.identities.asAutomation(automation,permitted);
     }
     return link.identities.admitPerson(actor,()=>link.identities.asPerson(actor,permitted,deps.piece()));
+    };
+    return shared || thread.automationId || actor !== link.identities.devicePerson ? sharedWork(resume, shared) : resume();
   }
   return { handlers, call, canCheckThread, admitDeviceThread, acceptInvitation, signOut, onAuthenticated, boot, resumeAsActor, beginCompanySignIn, completeCompanySignIn, directoryRequest };
 }

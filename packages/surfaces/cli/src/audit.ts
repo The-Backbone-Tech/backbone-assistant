@@ -20,7 +20,7 @@ export async function auditCommand(parsed:Parsed,io:Io):Promise<number>{
     }
     const options:AuditOptions=auditOptions({since:parsed.options.since!,until:parsed.options.until!,after:parsed.options.after,includeContent:parsed.options.includeContent,limit:parsed.options.limit});
     const home=canonicalHome(parsed.home),target=parsed.target&&parsed.target!=='-'?resolve(parsed.target):null;
-    if(target){const destination=canonicalHome(target);if(destination===home||destination.startsWith(home+sep))throw new Error('An audit file must be outside the data home.');}
+    if(target){const destination=canonicalHome(target);if(destination===home||destination.startsWith(home+sep))throw new Error('An audit file must be outside the data folder.');}
     const line=await attachApi(home);
     let session:string|null=null;
     let file:Awaited<ReturnType<typeof open>>|undefined;

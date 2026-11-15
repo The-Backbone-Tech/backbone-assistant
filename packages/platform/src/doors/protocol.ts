@@ -84,7 +84,7 @@ const refusal = (reason: GatewayRefusal['reason'], detail: string): GatewayRefus
 /** Nothing serves the home's doors: the call never left the door. */
 export const NOT_RUNNING = refusal(
   'NOT_AVAILABLE',
-  'The app that keeps this data home is not running, so nothing was sent. Open it, then call again; the door connects by itself.',
+  'The app that keeps this data folder is not running, so nothing was sent. Open it, then call again; the door connects by itself.',
 );
 /**
  * Windows has no door yet: a named pipe's name can be made first by another user, who would then

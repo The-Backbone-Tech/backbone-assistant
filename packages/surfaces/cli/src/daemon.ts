@@ -13,6 +13,7 @@
 // On macOS `daemon install` writes one per-user launchd agent for the home into the user's own
 // LaunchAgents folder and loads it with launchctl; `daemon uninstall` unloads and removes it. Nothing
 // else on the machine is touched.
+import { sharedEngineNote } from './shared-engine-note.ts';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,7 +21,7 @@ import { homedir, networkInterfaces } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { canonicalHome, createHost, HomeOwned, hostClosed } from '@backbone-next/platform/composition';
-import { ApiLineProjectBudget, serveApiLine } from '@backbone-next/platform/composition/api-line';
+import { ApiLineAttachmentBudget, ApiLineProjectBudget, serveApiLine } from '@backbone-next/platform/composition/api-line';
 import { startConfiguredTelemetry } from '@backbone-next/platform/composition/telemetry';
 import { chooseKeys } from '@backbone-next/platform/system-keys';
 import { lastKeyRefusal, type LastKeyRefusal } from './daemon-key-refusal.ts';
@@ -226,6 +227,7 @@ export async function runDaemon(home: string, say: (line: string) => void, share
   try { if (existsSync(join(home,'channels','journal.sqlite'))) { const {startConfiguredChannels}=await import('./daemon-channels.ts'); channels=await startConfiguredChannels(host,home,say,keys); } } catch { say('channels: could not start; schedules and goals remain active. Check channel configuration, credentials and listener port.'); }
   let shared:Awaited<ReturnType<typeof serveIdentityApi>>|undefined, line:Awaited<ReturnType<typeof serveApiLine>>|undefined;
   const projectCreationBudget = new ApiLineProjectBudget();
+  const attachmentBudget = new ApiLineAttachmentBudget();
   try {
     let sharedState:{origin:string;fingerprint:string}|undefined;
     if(binding){
@@ -241,13 +243,15 @@ export async function runDaemon(home: string, say: (line: string) => void, share
     }
     assertHomeWriteAdmission(home);
     writeFileSync(daemonFile(home),JSON.stringify({pid:process.pid,since:new Date().toISOString(),...(sharedState?{shared:sharedState}:{})}),{mode:0o600});
-    line=await serveApiLine({home,projectCreationBudget,call:(method,args)=>host.call(method,args),readOnly:true,projectCreation:true,teamManagement:!!shared}).catch(()=>undefined);
+    line=await serveApiLine({ holder: 'background-service',home,projectCreationBudget,attachment:true,attachmentBudget,call:(method,args)=>host.call(method,args),readOnly:true,projectCreation:true,teamManagement:!!shared}).catch(()=>undefined);
+    await host.sharedEngineReady(); // Startup, including the shared load, settles before its notice is read.
     void host.resumeInterrupted().catch(()=>{});
     await new Promise<void>(done=>{
       const end=()=>{process.off('SIGTERM',end);process.off('SIGINT',end);done();};
       process.once('SIGTERM',end);process.once('SIGINT',end);
       say(`daemon: serving ${resolve(home)} (pid ${process.pid})${line?', api line up (reads and local project creation)':''}`);
-      if(sharedState)say(`Shared workspace: ${sharedState.origin}\nCertificate SHA-256: ${sharedState.fingerprint}\nCreate a join link with backbone team invite.`);
+      const note=sharedEngineNote(home,()=>host.engineBringsOwnTools(),host.sharedEngineNotice());
+      if(sharedState)say(`Shared workspace: ${sharedState.origin}\nCertificate SHA-256: ${sharedState.fingerprint}\nCreate a join link with backbone team invite.${note?`\n${note}`:''}`);
     });
     say('daemon: stopping');
   } finally {

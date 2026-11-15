@@ -22,7 +22,7 @@ export const homeKernel = (home: string) => readJson<HomeKernel | null>(stampPat
 /** A quick refusal before the older host touches anything. `claimCoreHome` is the decision. */
 export function refuseStampedHome(home: string, own = 'core') {
   const stamp = homeKernel(home);
-  if (stamp && stamp.kernel !== own) throw new Error(`This data home belongs to the ${stamp.kernel} kernel; the older core will not open it.`);
+  if (stamp && stamp.kernel !== own) throw new Error(`This data folder belongs to the ${stamp.kernel} kernel; the older core will not open it.`);
 }
 
 /** The older core claims a home it opens: a free one, or one already its own, as every installed home is. */
@@ -44,10 +44,10 @@ export async function claimCoreHome(home: string): Promise<void> {
 export function claimHomeKernel(home: string, wanted: HomeKernel) {
   const stamp = homeKernel(home);
   if (stamp) {
-    if (stamp.kernel !== wanted.kernel) throw new Error(`This data home belongs to the ${stamp.kernel} kernel.`);
-    if (stamp.database !== wanted.database || stamp.workspace !== wanted.workspace) throw new Error('This data home belongs to another database or workspace.');
+    if (stamp.kernel !== wanted.kernel) throw new Error(`This data folder belongs to the ${stamp.kernel} kernel.`);
+    if (stamp.database !== wanted.database || stamp.workspace !== wanted.workspace) throw new Error('This data folder belongs to another database or workspace.');
     return;
   }
-  if (holdsWork(home)) throw new Error('This data home already holds work under another kernel.');
+  if (holdsWork(home)) throw new Error('This data folder already holds work under another kernel.');
   writeJson(stampPath(home), wanted);
 }

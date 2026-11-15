@@ -123,7 +123,7 @@ switch (positionals[0]) {
       fail('Another process already serves this data home\'s doors.');
     }
     // No confirm: nobody is here to ask, so the line carries reads and Stop, and no send.
-    const line = await serveApiLine({ home, call: (method, args) => host.call(method, args) });
+    const line = await serveApiLine({ holder: 'other', home, call: (method, args) => host.call(method, args) });
     process.stdout.write(`Serving the doors of ${home}; stop with Ctrl-C.\n`);
     setInterval(() => {}, 60_000); // The line does not keep a process alive; this host's own life does.
     const stop = async () => {

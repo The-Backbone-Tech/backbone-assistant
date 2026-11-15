@@ -22,10 +22,10 @@ async function readiness(home?: string): Promise<Readiness> {
   if (home && isAbsolute(home)) {
     try {
       const owner = realpathSync(home), parent = realpathSync(LINUX_PROBE_PARENT);
-      if (owner === '/' || owner === parent || parent.startsWith(owner + '/')) return { available: false, detail: 'This data home overlaps the workspace temporary probe parent; execution is refused without creating state.' };
+      if (owner === '/' || owner === parent || parent.startsWith(owner + '/')) return { available: false, detail: 'This data folder overlaps the workspace temporary probe parent; execution is refused without creating state.' };
       const controls = '/sys/fs/cgroup';
-      if (owner === controls || owner.startsWith(controls + '/') || controls.startsWith(owner + '/')) return { available: false, detail: 'This data home overlaps the workspace cgroup hierarchy; execution is refused without creating state.' };
-    } catch { return { available: false, detail: 'The workspace data-home boundary could not be confirmed; execution is refused.' }; }
+      if (owner === controls || owner.startsWith(controls + '/') || controls.startsWith(owner + '/')) return { available: false, detail: 'This data folder overlaps the workspace cgroup hierarchy; execution is refused without creating state.' };
+    } catch { return { available: false, detail: 'The workspace data folder boundary could not be confirmed; execution is refused.' }; }
   }
   if (!existsSync('/usr/bin/bwrap') || !existsSync('/usr/bin/python3') || !existsSync('/usr/bin/unshare') || !SECCOMP_LIBRARIES.some(path => existsSync(path))) return { available: false, detail: MISSING };
   if (cached?.uid === uid && Date.now() - cached.at < 30_000) return cached;

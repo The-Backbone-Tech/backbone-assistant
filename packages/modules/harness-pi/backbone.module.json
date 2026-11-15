@@ -93,5 +93,5 @@
     "rule": "allowed when no turn on this harness is running; held UNKNOWNs stay with the core's gateway"
   },
   "swap": "goose (radar plat-durable-execution, harness contract switch triggers); tests default to harness-stub",
-  "digest": "sha256:6a4ee8c5aa5eb4f7f9eb1d05139ab87546076457548006e2bd40f7987bac7bef"
+  "digest": "sha256:8a9e070362942c930616569d42a911f6873fe5886492769c13520ef9c66d40df"
 }

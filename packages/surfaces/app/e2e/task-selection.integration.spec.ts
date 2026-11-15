@@ -72,6 +72,8 @@ for (const attached of [false, true]) test(`selected route, written versions, fo
     expect(await host.call('settings.model.get', {})).toEqual(modelBefore);
     expect(observed.filter((method) => method === 'settings.model.put')).toEqual([]);
     // Discovery is setup-only. The person's explicit Settings choice authorizes this destination.
+    // The model forms open on demand since Settings shows the engine, your model and shared work as one page.
+    await connections.getByText('Change your model', { exact: true }).click();
     const selectedLocal = connections.getByRole('region', { name: 'Local models', exact: true }).getByRole('button', { name: chosen.model, exact: true });
     await selectedLocal.click();
     await expect(selectedLocal).toHaveAttribute('aria-pressed', 'true');
@@ -201,5 +203,45 @@ for (const attached of [false, true]) test(`selected route, written versions, fo
     if (old.endpoint === undefined) delete process.env.BACKBONE_MODEL_ENDPOINT; else process.env.BACKBONE_MODEL_ENDPOINT = old.endpoint;
     if (old.model === undefined) delete process.env.BACKBONE_MODEL_ID; else process.env.BACKBONE_MODEL_ID = old.model;
     if (old.harness === undefined) delete process.env.BACKBONE_HARNESS; else process.env.BACKBONE_HARNESS = old.harness;
+  }
+});
+
+test('shared model settings save a separate route through the existing local controls', async ({ page }) => {
+  const home = freshDataHome('app-shared-model');
+  const shared = await startScriptedModel('shared-settings-model');
+  const personal = await startScriptedModel('personal-settings-model');
+  const prior = { endpoint: process.env.BACKBONE_MODEL_ENDPOINT, model: process.env.BACKBONE_MODEL_ID, engine: process.env.BACKBONE_HARNESS };
+  process.env.BACKBONE_MODEL_ENDPOINT = personal.url; process.env.BACKBONE_MODEL_ID = personal.model; process.env.BACKBONE_HARNESS = 'harness-pi';
+  const host = createHost({ home, harness: 'harness-pi', localModels: { ports: { ollama: Number(new URL(shared.url).port), lmstudio: 0, llamacpp: 0, vllm: 0 } } });
+  const changes: unknown[] = [];
+  try {
+    await host.call('projects.create', { name: 'Shared model settings', kind: 'folder' });
+    await page.exposeFunction('sharedSettingsCall', async (method: Method, args: unknown) => {
+      if (method === 'settings.model.put') changes.push(args);
+      return host.call(method, args as never);
+    });
+    await page.addInitScript(() => {
+      const surface = window as any;
+      surface.backbone = { platform: 'linux', setTheme() {}, call: (method: string, args: unknown) => surface.sharedSettingsCall(method, args), onEvent() { return () => {}; } };
+    });
+    await page.goto(url);
+    await expect(page.locator('[data-ready=true]')).toBeVisible();
+    await page.getByRole('button', { name: /^Model and effort:/ }).click();
+    await page.getByRole('menuitem', { name: 'Model connections…' }).click();
+    const section = page.getByTestId('shared-model-route');
+    await expect(section).toContainText('Not configured');
+    await section.getByText('Configure shared work', { exact: true }).click();
+    const select = section.getByRole('button', { name: shared.model, exact: true });
+    await select.click();
+    await expect(select).toHaveAttribute('aria-pressed', 'true');
+    await expect(section).toContainText(`Pi · Ollama · ${shared.model}`);
+    await expect(page.getByTestId('model-active')).toContainText(personal.model);
+    const settings = await host.call('settings.model.get', {});
+    expect(settings.active?.model).toBe(personal.model);
+    expect(settings.shared?.local).toEqual({ provider: 'ollama', baseUrl: shared.url, model: shared.model });
+    expect(changes).toEqual([{ change: { route: 'shared', change: { route: 'local', provider: 'ollama', baseUrl: shared.url, model: shared.model } } }]);
+  } finally {
+    host.close(); await hostClosed(home); await removeDataHome(home); await shared.close(); await personal.close();
+    for (const [key, old] of [['BACKBONE_MODEL_ENDPOINT', prior.endpoint], ['BACKBONE_MODEL_ID', prior.model], ['BACKBONE_HARNESS', prior.engine]] as const) { if (old === undefined) delete process.env[key]; else process.env[key] = old; }
   }
 });

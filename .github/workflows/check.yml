@@ -1,9 +1,11 @@
 name: check
 
-# Public source publication does not automatically run hosted jobs.
-# Dispatch explicitly when a maintainer chooses to qualify a public revision.
 on:
-  workflow_dispatch:
+  push:
+    # The default branch is claude/integration until it is renamed main; before this line the
+    # workflow ran on no push at all, because the remote has no main.
+    branches: [main, claude/integration]
+  pull_request:
 
 permissions:
   contents: read

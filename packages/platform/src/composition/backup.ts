@@ -48,6 +48,10 @@ const RESTORED_PROJECT = 'Restored history';
 /** An import cannot complete; `reason` is the api's. */
 export class BackupRefused extends Error {
   readonly reason: RefusalReason;
+  /** True once an import had begun writing: the new data folder may hold part of the export. False for every refusal that came before the first write. */
+  partial = false;
+  /** True when a write's outcome could not be established, so the new data folder may hold it or not. */
+  unknown = false;
   constructor(reason: RefusalReason, message: string) {
     super(message);
     this.reason = reason;
@@ -57,10 +61,10 @@ export class BackupRefused extends Error {
 /** Never in an export, in the words the export carries. */
 export const EXCLUDED: HomeExport['excluded'] = [
   { what: 'Credentials and keys', why: 'The vault, sealed model and connector keys, the database and its passwords. Every value the credential store holds is also cut out of every exported string, name and file.' },
-  { what: 'Authority', why: 'No grant, door, mandate, session, queue, claim or receipt lineage. Grant again, in the new home, what should run.' },
+  { what: 'Authority', why: 'No grant, door, mandate, session, queue, claim or receipt lineage. Grant again, in the new data folder, what should run.' },
   { what: 'The database', why: 'No row of it. The receipts are in history/ as a report to read.' },
   { what: 'Connected servers\' settings', why: 'Only each server\'s name and command: no environment value, header, argument or address. Set them up again.' },
-  { what: 'This computer\'s state', why: 'Who holds the home, AI tool connections, schedules, triggers, goal runs, queued messages, logs and app storage.' },
+  { what: 'This computer\'s state', why: 'Who holds the data folder, AI tool connections, schedules, triggers, goal runs, queued messages, logs and app storage.' },
 ];
 
 /** A file of the home, read once, refused if it has a second name on disk or is not a plain file. */
@@ -272,7 +276,7 @@ function readme(m: Manifest): string {
     'and after it is written. Another program running as you, racing to swap that folder meanwhile, is',
     'outside what this check can stop.',
     '',
-    'Bring it into a new, empty home with `backbone restore <this folder> --home <new home> --dry-run`, then',
+    'Bring it into a new, empty data folder with `backbone restore <this folder> --home <new data folder> --dry-run`, then',
     'again without `--dry-run`. Your projects, documents, memory and skills come in as you would add them;',
     'chats and receipts come in as documents to read. Nothing in it grants anything or runs by itself.',
     '',
@@ -290,7 +294,7 @@ export async function exportHome(source: ExportSource, options: { to: string; pi
   const target = resolve(options.to);
   const picked = options.picked;
   if (picked && dirname(target) !== resolve(picked.path)) throw new BackupRefused('INVALID', 'An export from the app goes into a new folder inside the one you picked.');
-  if (within(canonicalHome(target), canonicalHome(home)) && !(options.identityUpgrade && canonicalHome(dirname(target)) === join(canonicalHome(home), 'backups') && !lstatSync(dirname(target)).isSymbolicLink())) throw new BackupRefused('INVALID', `${canonicalHome(target)} is inside the data home; an export goes outside it.`);
+  if (within(canonicalHome(target), canonicalHome(home)) && !(options.identityUpgrade && canonicalHome(dirname(target)) === join(canonicalHome(home), 'backups') && !lstatSync(dirname(target)).isSymbolicLink())) throw new BackupRefused('INVALID', `${canonicalHome(target)} is inside the data folder; an export goes outside it.`);
   if (existsSync(target) && (!statSync(target).isDirectory() || readdirSync(target).length)) throw new BackupRefused('INVALID', `${target} is not empty, and an export never writes over anything. Name a new folder.`);
   const known = await source.secrets();
   const scrub = new Scrubber(known);
@@ -374,7 +378,7 @@ export async function exportHome(source: ExportSource, options: { to: string; pi
     if (!root) throw new BackupRefused('INVALID', 'The role definitions folder could not be read safely. Nothing was exported.');
     const names = readdirSync(root.path).filter(name => /^[a-z][a-z0-9-]{0,63}\.md$/.test(name)).sort();
     for (const [i, name] of names.entries()) {
-      const review = `Inspect role definition ${i + 1} in the data home's .agent-roles folder (filename order) directly; invalid definitions can be hidden in Settings.`;
+      const review = `Inspect role definition ${i + 1} in the data folder's .agent-roles folder (filename order) directly; invalid definitions can be hidden in Settings.`;
       const text = readInside(root, join(root.path, name), 32_000, true);
       if (text === null) throw new BackupRefused('INVALID', `A role definition could not be read safely. ${review} Nothing was exported.`);
       const redacted = scrub.text(text);
@@ -434,7 +438,7 @@ export async function exportHome(source: ExportSource, options: { to: string; pi
 const folded = (rel: string) => rel.normalize('NFC').toLowerCase();
 
 /** An export checked and read: every file's bytes, held in memory, are all an import uses. */
-export interface ReadExport { folder: string; manifest: Manifest; summary: HomeExport; files: Map<string, Buffer> }
+export interface ReadExport { folder: string; manifest: Manifest; /** The SHA-256 of the manifest file's own bytes. */ manifestDigest: string; summary: HomeExport; files: Map<string, Buffer> }
 
 /**
  * Read an export and check it, once: a plain tree (no link, device or second name anywhere), only the
@@ -445,7 +449,7 @@ export interface ReadExport { folder: string; manifest: Manifest; summary: HomeE
 export function inspectExport(from: string, cap = IMPORT_CAP): ReadExport {
   const folder = resolve(from);
   const path = join(folder, MANIFEST);
-  if (!existsSync(path)) throw new BackupRefused('NOT_FOUND', `${folder} holds no ${MANIFEST}, so it is not a home export.`);
+  if (!existsSync(path)) throw new BackupRefused('NOT_FOUND', `${folder} holds no ${MANIFEST}, so it is not a data folder export.`);
   const read = new Map<string, Buffer>();
   const seen = new Map<string, string>();
   let total = 0;
@@ -474,10 +478,10 @@ export function inspectExport(from: string, cap = IMPORT_CAP): ReadExport {
   };
   go('');
   const raw = read.get(MANIFEST);
-  if (!raw) throw new BackupRefused('NOT_FOUND', `${folder} holds no ${MANIFEST}, so it is not a home export.`);
+  if (!raw) throw new BackupRefused('NOT_FOUND', `${folder} holds no ${MANIFEST}, so it is not a data folder export.`);
   let manifest: Manifest;
   try { manifest = JSON.parse(raw.toString('utf8')) as Manifest; } catch { throw new BackupRefused('INVALID', `${path} cannot be read as JSON.`); }
-  if (manifest.format !== EXPORT_FORMAT) throw new BackupRefused('INVALID', `${path} is not a home export.`);
+  if (manifest.format !== EXPORT_FORMAT) throw new BackupRefused('INVALID', `${path} is not a data folder export.`);
   if (manifest.version !== EXPORT_VERSION && manifest.version !== LEGACY_EXPORT_VERSION) throw new BackupRefused('INVALID', `This export is version ${manifest.version}; this version reads versions ${LEGACY_EXPORT_VERSION} and ${EXPORT_VERSION}.`);
   if (!manifest.files || typeof manifest.files !== 'object') throw new BackupRefused('INVALID', `${path} is not a whole manifest.`);
   read.delete(MANIFEST);
@@ -488,8 +492,11 @@ export function inspectExport(from: string, cap = IMPORT_CAP): ReadExport {
   }
   const extra = [...read.keys()].find((rel) => !(rel in manifest.files));
   if (extra) throw new BackupRefused('INVALID', `${extra} is in the folder but not in the export's manifest, so it is not imported.`);
-  return { folder, manifest, summary: summary(folder, manifest), files: read };
+  return { folder, manifest, manifestDigest: sha(raw), summary: summary(folder, manifest), files: read };
 }
+
+/** What names one export's content: the digest of the manifest's own bytes (version, date and counts included) and of every file the check just compared. Same bytes, same fingerprint. */
+export const exportFingerprint = (read: ReadExport): string => sha(Buffer.from(JSON.stringify([read.manifestDigest, Object.entries(read.manifest.files).sort(([a], [b]) => a.localeCompare(b))])));
 
 /**
  * What an import goes through: the new home's own methods, as the person calls them, and the two the
@@ -528,7 +535,7 @@ export function newHome(home: string): string | null {
   const extra = readdirSync(home).filter((n) => !NEW_HOME.has(n) || (n === 'threads' && readdirSync(join(home, n)).length));
   return extra.length ? notNewHome(home, extra.slice(0, 3).join(', ')) : null;
 }
-const notNewHome = (home: string, what: string) => `${resolve(home)} is not a new, empty home (it holds ${what}). Import into a new home; this one is left as it is.`;
+const notNewHome = (home: string, what: string) => `${resolve(home)} is not a new, empty data folder (it holds ${what}). Import into a new data folder; this one is left as it is.`;
 
 /** The new home's api says it holds no work: no project, chat, memory line, instructions or skill. */
 async function holdsWork(api: ImportApi, home: string): Promise<string | null> {
@@ -547,7 +554,12 @@ const isText = (mediaType: string, name: string) => /^(text\/|application\/(json
 
 const unwrap = <T>(r: ApiReceipt<T>, what: string): T => {
   if (!r.ok) {
-    if (r.outcome === 'UNKNOWN' || r.reason === 'PROJECT_CREATE_FAILED') throw new BackupRefused('NOT_AVAILABLE', `${what}: ${r.detail} The home holds part of the export: import again into another new home.`);
+    if (r.outcome === 'UNKNOWN' || r.reason === 'PROJECT_CREATE_FAILED') {
+      const unknown = r.outcome === 'UNKNOWN';
+      const refused = new BackupRefused('NOT_AVAILABLE', `${what}: ${r.detail} The data folder ${unknown ? 'may hold' : 'holds'} part of the export: import again into another new data folder.`);
+      refused.unknown = unknown;
+      throw refused;
+    }
     throw new BackupRefused('INVALID', `${what}: ${r.detail}`);
   }
   return r.value;
@@ -562,8 +574,9 @@ const unwrap = <T>(r: ApiReceipt<T>, what: string): T => {
  * would add them; chats and the receipts report come in as read-only documents. A withdrawn or hidden
  * document stays out, and says so.
  */
-export async function importHome(options: { from: string; home: string; api?: ImportApi; dryRun?: boolean; signal?: AbortSignal }): Promise<ImportPlan> {
+export async function importHome(options: { from: string; home: string; api?: ImportApi; dryRun?: boolean; signal?: AbortSignal; /** The fingerprint of the export the person was shown: an export that no longer has it is refused before any write. */ expect?: string }): Promise<ImportPlan> {
   const read = inspectExport(options.from);
+  if (options.expect !== undefined && exportFingerprint(read) !== options.expect) throw new BackupRefused('INVALID', 'The backup changed since you were shown it, so nothing was imported. Look at it again first.');
   const { files } = read;
   const text = (rel: string) => files.get(rel)?.toString('utf8') ?? '';
   const refuse = (why: string): never => { throw new BackupRefused('INVALID', `${why}, so nothing was imported.`); };
@@ -617,70 +630,82 @@ export async function importHome(options: { from: string; home: string; api?: Im
     adds: { projects: projects.length + 1, documents: kept.length + roles.length, versions: kept.reduce((n, d) => n + d.versions.length, 0), chats: chats.length, memoryFiles: memory.length + (files.has('memory/instructions.md') ? 1 : 0), skills: skills.length },
     skipped: documents.filter((d) => d.meta.withdrawn || d.meta.hidden).map((d) => `${d.meta.name}: ${d.meta.withdrawn ? 'withdrawn' : 'a hidden intermediate'} when exported, so it stays out.`),
   };
-  if (within(canonicalHome(read.folder), canonicalHome(options.home))) plan.conflicts.push('The export is inside the home it would be imported into.');
+  if (within(canonicalHome(read.folder), canonicalHome(options.home))) plan.conflicts.push('The export is inside the data folder it would be imported into.');
   const api = options.api;
   const work = api ? await holdsWork(api, options.home) : null;
   const notNew = api ? (work ? notNewHome(options.home, work) : null) : newHome(options.home);
   if (notNew) plan.conflicts.push(notNew);
   if (options.dryRun) return plan;
   if (plan.conflicts.length) throw new BackupRefused('INVALID', plan.conflicts.join(' '));
-  if (!api) throw new Error('An import needs the new home\'s api.');
+  if (!api) throw new Error('An import needs the new data folder\'s api.');
   // Each write waits on the hold of the home: one lost, and nothing more is written.
-  const held = () => { if (options.signal?.aborted) throw new BackupRefused('NOT_AVAILABLE', 'The import lost its hold on the home, so it stopped writing. The home holds part of the export: import again into another new home.'); };
+  let attempted = false;
+  const held = () => {
+    if (options.signal?.aborted) throw new BackupRefused('NOT_AVAILABLE', attempted
+      ? 'The import lost its hold on the data folder, so it stopped writing. The data folder holds part of the export: import again into another new data folder.'
+      : 'The import lost its hold on the data folder before it wrote anything, so nothing was imported.');
+    attempted = true; // every write is preceded by this check: from here a write may have begun
+  };
 
-  // Projects, then each document as the person would add it, every version in order.
-  const projectIds = new Map<string, string>();
-  for (const p of projects) {
-    held();
-    const made = unwrap(await api.call('projects.create', { name: String(p.meta.name ?? '').slice(0, 200) || 'Project', kind: p.meta.kind === 'git' ? 'git' : 'folder' }), 'A project');
-    projectIds.set(p.dir, made.id);
-  }
-  for (const d of [...kept].sort((a, b) => (b.layout?.source ? 2 : b.layout ? 1 : 0) - (a.layout?.source ? 2 : a.layout ? 1 : 0))) {
-    const projectId = projectIds.get(d.project)!;
-    const name = d.meta.name;
-    const mediaType = typeof d.meta.mediaType === 'string' ? d.meta.mediaType : 'application/octet-stream';
-    if (d.layout) {
+  // From here on a refusal means the new data folder may hold part of the export, and says so.
+  try {
+    // Projects, then each document as the person would add it, every version in order.
+    const projectIds = new Map<string, string>();
+    for (const p of projects) {
       held();
-      unwrap(await api.addDocument(projectId, name, mediaType, d.versions, d.layout), 'A managed document');
-    } else if (d.meta.class === 'original' || d.versions.length === 1 || !isText(mediaType, name)) {
-      // One version, an original, or bytes that are not text: each version as a document of its own.
-      for (const [i, bytes] of d.versions.entries()) { held(); unwrap(await api.call('material.attach', { projectId, name: d.versions.length > 1 ? name.replace(/(\.[^.]*)?$/, ` (v${i + 1})$1`) : name, base64: bytes.toString('base64'), mediaType }), 'A document'); }
-    } else {
-      held();
-      unwrap(await api.addDocument(projectId, name, mediaType, d.versions.map((v) => v.toString('utf8'))), 'A document');
+      const made = unwrap(await api.call('projects.create', { name: String(p.meta.name ?? '').slice(0, 200) || 'Project', kind: p.meta.kind === 'git' ? 'git' : 'folder' }), 'A project');
+      projectIds.set(p.dir, made.id);
     }
-  }
-  // History: each chat and the receipts report, as documents to read.
-  held();
-  const restored = unwrap(await api.call('projects.create', { name: RESTORED_PROJECT, kind: 'folder' }), RESTORED_PROJECT);
-  for (const chat of chats) {
+    for (const d of [...kept].sort((a, b) => (b.layout?.source ? 2 : b.layout ? 1 : 0) - (a.layout?.source ? 2 : a.layout ? 1 : 0))) {
+      const projectId = projectIds.get(d.project)!;
+      const name = d.meta.name;
+      const mediaType = typeof d.meta.mediaType === 'string' ? d.meta.mediaType : 'application/octet-stream';
+      if (d.layout) {
+        held();
+        unwrap(await api.addDocument(projectId, name, mediaType, d.versions, d.layout), 'A managed document');
+      } else if (d.meta.class === 'original' || d.versions.length === 1 || !isText(mediaType, name)) {
+        // One version, an original, or bytes that are not text: each version as a document of its own.
+        for (const [i, bytes] of d.versions.entries()) { held(); unwrap(await api.call('material.attach', { projectId, name: d.versions.length > 1 ? name.replace(/(\.[^.]*)?$/, ` (v${i + 1})$1`) : name, base64: bytes.toString('base64'), mediaType }), 'A document'); }
+      } else {
+        held();
+        unwrap(await api.addDocument(projectId, name, mediaType, d.versions.map((v) => v.toString('utf8'))), 'A document');
+      }
+    }
+    // History: each chat and the receipts report, as documents to read.
     held();
-    unwrap(await api.call('material.attach', { projectId: (chat.folder && projectIds.get(chat.folder)) || restored.id, name: `Chat history - ${chat.rel.split('/')[1].replace(/\.json$/, '')}.md`, base64: chat.md.toString('base64'), mediaType: 'text/markdown' }), 'A chat');
-  }
-  for (const [rel, name] of [['history/receipts.md', 'Receipts when exported.md'], ['connectors/servers.json', 'Connected servers when exported.json']] as const) {
-    const data = files.get(rel);
-    if (!data) continue;
-    held();
-    unwrap(await api.call('material.attach', { projectId: restored.id, name, base64: data.toString('base64'), mediaType: rel.endsWith('.md') ? 'text/markdown' : 'application/json' }), name);
-  }
-  for (const rel of roles) {
-    held();
-    unwrap(await api.call('material.attach', { projectId: restored.id, name: `Agent role - ${rel.split('/')[1]}`, base64: files.get(rel)!.toString('base64'), mediaType: 'text/markdown' }), 'A role definition');
-  }
-  // Memory: instructions as the person's; remembered lines through the memory import, with its filtering, limits and source.
-  if (files.has('memory/instructions.md')) { held(); unwrap(await api.call('memory.instructions.put', { scope: 'person', text: text('memory/instructions.md') }), 'Your instructions'); }
-  for (const m of projectMemory) { held(); unwrap(await api.call('memory.instructions.put', { scope: 'project', projectId: projectIds.get(m.folder)!, text: text(m.rel) }), 'Project instructions'); }
-  for (const f of memory) {
-    held();
-    const r = await api.importMemory(text(f), `export ${read.manifest.id}: ${f}`);
-    if (!r.ok) plan.skipped.push(`${f}: ${r.detail}`);
-    else for (const skipped of r.value.skipped ?? []) plan.skipped.push(`${skipped.source}, line ${skipped.line} (${skipped.reason})`);
-  }
-  // Skills wait for the person to accept them.
-  for (const skill of skills) {
-    held();
-    const r = await api.proposeSkill(skill.name, text(skill.rel));
-    if (!r.ok) plan.skipped.push(`A skill: ${r.detail}`);
+    const restored = unwrap(await api.call('projects.create', { name: RESTORED_PROJECT, kind: 'folder' }), RESTORED_PROJECT);
+    for (const chat of chats) {
+      held();
+      unwrap(await api.call('material.attach', { projectId: (chat.folder && projectIds.get(chat.folder)) || restored.id, name: `Chat history - ${chat.rel.split('/')[1].replace(/\.json$/, '')}.md`, base64: chat.md.toString('base64'), mediaType: 'text/markdown' }), 'A chat');
+    }
+    for (const [rel, name] of [['history/receipts.md', 'Receipts when exported.md'], ['connectors/servers.json', 'Connected servers when exported.json']] as const) {
+      const data = files.get(rel);
+      if (!data) continue;
+      held();
+      unwrap(await api.call('material.attach', { projectId: restored.id, name, base64: data.toString('base64'), mediaType: rel.endsWith('.md') ? 'text/markdown' : 'application/json' }), name);
+    }
+    for (const rel of roles) {
+      held();
+      unwrap(await api.call('material.attach', { projectId: restored.id, name: `Agent role - ${rel.split('/')[1]}`, base64: files.get(rel)!.toString('base64'), mediaType: 'text/markdown' }), 'A role definition');
+    }
+    // Memory: instructions as the person's; remembered lines through the memory import, with its filtering, limits and source.
+    if (files.has('memory/instructions.md')) { held(); unwrap(await api.call('memory.instructions.put', { scope: 'person', text: text('memory/instructions.md') }), 'Your instructions'); }
+    for (const m of projectMemory) { held(); unwrap(await api.call('memory.instructions.put', { scope: 'project', projectId: projectIds.get(m.folder)!, text: text(m.rel) }), 'Project instructions'); }
+    for (const f of memory) {
+      held();
+      const r = await api.importMemory(text(f), `export ${read.manifest.id}: ${f}`);
+      if (!r.ok) plan.skipped.push(`${f}: ${r.detail}`);
+      else for (const skipped of r.value.skipped ?? []) plan.skipped.push(`${skipped.source}, line ${skipped.line} (${skipped.reason})`);
+    }
+    // Skills wait for the person to accept them.
+    for (const skill of skills) {
+      held();
+      const r = await api.proposeSkill(skill.name, text(skill.rel));
+      if (!r.ok) plan.skipped.push(`A skill: ${r.detail}`);
+    }
+  } catch (error) {
+    if (error instanceof BackupRefused && attempted) error.partial = true;
+    throw error;
   }
   plan.done = true;
   return plan;

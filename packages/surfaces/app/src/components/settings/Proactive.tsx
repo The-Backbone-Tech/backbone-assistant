@@ -126,8 +126,8 @@ function WakeGateSettings({ schedules }: { schedules: import('@backbone-next/pla
       </SettingsRow>
       <SettingsRow title="Deadline" about="Milliseconds, including waiting for a process slot. Failed checks pause the schedule for inspection.">
         <Input aria-label="Wake-gate deadline" type="number" min={100} max={30000} value={timeout} onChange={e => setTimeoutMs(e.target.value)} disabled={busy} />
+        {schedule.wakeGate && <Button size="sm" variant="outline" className="border-danger text-danger" disabled={busy || !window.backbone?.configureWakeGate} onClick={() => void save(true)}>Remove script check</Button>}
         <Button size="sm" disabled={busy || !window.backbone?.configureWakeGate} onClick={() => void save()}>Review script check</Button>
-        {schedule.wakeGate && <Button size="sm" variant="outline" disabled={busy || !window.backbone?.configureWakeGate} onClick={() => void save(true)}>Remove script check</Button>}
       </SettingsRow>
     </>}
     {message && <p role="status" className="py-2 text-xs text-muted">{message}</p>}

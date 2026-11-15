@@ -103,7 +103,14 @@ test('the daemon owns its home, serves the command line, refuses a second owner,
   assert.ok(line, daemon.output.diagnostic('did not serve the api line').message);
   assert.ok(Array.isArray(await line!.call('projects.list', {})));
   assert.ok((await line.call('projects.create', {name:'Local project',kind:'folder',clientKey:'daemon-local-project'})).ok);
-  // No model work or Stop crosses: local project creation is the separate, explicit exception.
+  const [project] = await line.call('projects.list', {});
+  assert.ok(project);
+  const attached = await line.call('material.attach', {projectId:project.id, name:'launch-plan.md', base64:Buffer.from('# Launch plan\n').toString('base64'), mediaType:'text/markdown'});
+  assert.ok(attached.ok);
+  assert.equal(attached.value.class, 'original');
+  const original = await line.call('material.read', {id:attached.value.id});
+  assert.ok(original.ok); assert.equal(original.value.text, '# Launch plan\n');
+  // No model work or Stop crosses: project creation and attachment are explicit local exceptions.
   // None of these calls crosses, however well formed.
   const settings = { permission: 'ask', model: 'stub', effort: 3, runsOn: 'this-computer', mode: 'chat' } as const;
   const writes = {

@@ -22,7 +22,7 @@ export function createMaterialWithdrawalDelivery(options:Options){
  async function pass():Promise<'idle'|'more'|'failed'>{
   if(!allowed())return 'idle';
   const events=await withHomeLock(home,async lost=>{
-   if(lost.aborted)throw new Error('The home lock was lost.');
+   if(lost.aborted)throw new Error('The data folder lock was lost.');
    return allowed()?pending():[];
   },undefined,admission.signal);
   let failed=false;
@@ -34,7 +34,7 @@ export function createMaterialWithdrawalDelivery(options:Options){
     if(reply.workspace!==workspace||reply.event!==event.id||typeof reply.receipt!=='string'||!MATERIAL_ID.test(reply.receipt))
      {failed=true;continue;}
     const merged=await withHomeLock(home,async lost=>{
-     if(lost.aborted)throw new Error('The home lock was lost.');
+     if(lost.aborted)throw new Error('The data folder lock was lost.');
      if(!allowed())return 'closed';
      // The store reloads here, after every await: Save, restore and later events all survive.
      if(material.acknowledgeWithdrawal(event.materialId,event.id,workspace,reply.receipt))return 'acknowledged';
@@ -48,14 +48,14 @@ export function createMaterialWithdrawalDelivery(options:Options){
     if(!(error instanceof CoreRefusal)||error.reason!=='conflict'||!/^conflict: /.test(error.message)){failed=true;continue;}
     let retained=false;
     try{retained=await withHomeLock(home,async lost=>{
-     if(lost.aborted)throw new Error('The home lock was lost.');
+     if(lost.aborted)throw new Error('The data folder lock was lost.');
      return allowed()&&material.recordWithdrawalConflict(event.materialId,event.id,workspace);
     },undefined,admission.signal);}catch{if(!allowed())return 'idle';failed=true;continue;}
     if(retained&&allowed())options.changed(event.projectId);
    }
   }
   return withHomeLock(home,async lost=>{
-   if(lost.aborted)throw new Error('The home lock was lost.');
+   if(lost.aborted)throw new Error('The data folder lock was lost.');
    return !allowed()?'idle':failed?'failed':pending().length?'more':'idle';
   },undefined,admission.signal);
  }

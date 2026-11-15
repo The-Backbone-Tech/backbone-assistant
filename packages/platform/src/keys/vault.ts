@@ -80,7 +80,7 @@ export interface SafeStorage {
  */
 export function keychainKeys(store: SafeStorage): HomeKeys {
   const usable = async () => {
-    if (!(await store.isAsyncEncryptionAvailable())) throw new KeysRefused('no-keychain', 'The system keychain is not available, so this data home\'s keys cannot be kept; the app does not keep them in plain text.');
+    if (!(await store.isAsyncEncryptionAvailable())) throw new KeysRefused('no-keychain', 'The system keychain is not available, so this data folder\'s keys cannot be kept; the app does not keep them in plain text.');
     if (process.platform === 'linux' && store.getSelectedStorageBackend?.() === 'basic_text') {
       throw new KeysRefused('no-keychain', 'No keyring is running, so safeStorage would keep the key in plain text; start one (GNOME Keyring or KWallet) and open the app again.');
     }
@@ -104,7 +104,7 @@ export function keychainKeys(store: SafeStorage): HomeKeys {
 export function keysFromEnvironment(env: NodeJS.ProcessEnv = process.env): HomeKeys | undefined {
   const named = env.BACKBONE_KEYS;
   if (!named) return undefined;
-  if (named !== 'plaintext') throw new Error('BACKBONE_KEYS takes only `plaintext` (a test home); the app keeps a real home\'s keys in the Keychain.');
+  if (named !== 'plaintext') throw new Error('BACKBONE_KEYS takes only `plaintext` (a test data folder); the app keeps a real data folder\'s keys in the Keychain.');
   return plaintextKeys();
 }
 
@@ -185,16 +185,16 @@ export class Vault {
     const at = resolve(home);
     let file = readVault(home);
     if (readOnly && (!file || existsSync(join(home, ...LEGACY_MASTER)))) {
-      throw new KeysRefused('no-keys', 'This home needs a writable open to complete its vault or migrate legacy keys; nothing was changed.');
+      throw new KeysRefused('no-keys', 'This data folder needs a writable open to complete its vault or migrate legacy keys; nothing was changed.');
     }
     if (file?.holder ?? keys?.holder) keyDecision(governedPolicy(home), (file?.holder ?? keys!.holder));
     else governedPolicy(home);
     if (keys?.holder === 'keychain' && file?.holder !== 'plaintext' && existsSync(join(home, 'pg', EXTERNAL_DATABASE_FILE))) {
-      throw new KeysRefused('test-database', 'This data home borrows a test database whose passwords are in plain text; the app opens only a home with a database of its own.');
+      throw new KeysRefused('test-database', 'This data folder borrows a test database whose passwords are in plain text; the app opens only a data folder with a database of its own.');
     }
     if (!file) {
       if (!keys) {
-        throw new KeysRefused('no-keys', 'This data home has no keys yet, and none were chosen: the app keeps them in the Keychain. For a test home whose keys are in plain text, set BACKBONE_KEYS=plaintext.');
+        throw new KeysRefused('no-keys', 'This data folder has no keys yet, and none were chosen: the app keeps them in the Keychain. For a test data folder whose keys are in plain text, set BACKBONE_KEYS=plaintext.');
       }
       file = await vaultLock(home, async () => {
         const now = readVault(home);
@@ -225,7 +225,7 @@ export class Vault {
     keyDecision(governedPolicy(this.home), this.holder);
     return vaultLock(this.home, async () => {
       const file = readVault(this.home);
-      if (!file) throw new Error('The vault was removed while this data home was open.');
+      if (!file) throw new Error('The vault was removed while this data folder was open.');
       file.entries[name] = seal(this.key, name, value);
       writeVault(this.home, file);
     });
@@ -278,14 +278,14 @@ async function dataKey(home: string, file: VaultFile, keys: HomeKeys | undefined
   keyDecision(governedPolicy(home), file.holder);
   if (file.holder === 'plaintext') {
     if (keys && keys.holder !== 'plaintext') {
-      throw new KeysRefused('plaintext-home', 'This data home keeps its keys in plain text (a test home, or a headless trial); the app opens only a home whose keys the Keychain holds.');
+      throw new KeysRefused('plaintext-home', 'This data folder keeps its keys in plain text (a test data folder, or a headless trial); the app opens only a data folder whose keys the Keychain holds.');
     }
     return Buffer.from(file.key, 'base64');
   }
   if (!keys || keys.holder !== 'keychain') {
-    throw new KeysRefused('held-by-app', 'This data home\'s keys are held in the Keychain by the app: open the app, which serves the doors and grants and revokes them.');
+    throw new KeysRefused('held-by-app', 'This data folder\'s keys are held in the Keychain by the app: open the app, which serves the doors and grants and revokes them.');
   }
-  if (keys.wrap !== file.wrap) throw new KeysRefused('not-unwrapped', `This data home's key is wrapped by ${file.wrap}, not ${keys.wrap}.`);
+  if (keys.wrap !== file.wrap) throw new KeysRefused('not-unwrapped', `This data folder's key is wrapped by ${file.wrap}, not ${keys.wrap}.`);
   const at = resolve(home);
   const known = unwrapped(keys).get(at);
   if (known?.wrapped === file.key) return known.key;
@@ -294,9 +294,9 @@ async function dataKey(home: string, file: VaultFile, keys: HomeKeys | undefined
     opened = await keys.unwrapKey(Buffer.from(file.key, 'base64'), {readOnly});
   } catch (error) {
     if (error instanceof KeysRefused) throw error;
-    throw new KeysRefused('not-unwrapped', 'The Keychain did not give this data home\'s key back, so nothing in it can be opened.');
+    throw new KeysRefused('not-unwrapped', 'The Keychain did not give this data folder\'s key back, so nothing in it can be opened.');
   }
-  if (opened.key.length !== 32) throw new KeysRefused('not-unwrapped', 'The Keychain gave back something that is not this data home\'s key.');
+  if (opened.key.length !== 32) throw new KeysRefused('not-unwrapped', 'The Keychain gave back something that is not this data folder\'s key.');
   let wrapped = file.key;
   if (opened.rewrap && !readOnly) {
     // The holder's own key rotated: the same data key is wrapped again, and nothing else changes.

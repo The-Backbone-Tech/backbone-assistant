@@ -14,7 +14,23 @@ export class IdentityRefused extends Error {
   constructor(reason:'NOT_FOUND'|'NOT_AVAILABLE'='NOT_AVAILABLE') { super('This identity or project permission is no longer available. Sign in again or contact an administrator.'); this.name = 'IdentityRefused';this.reason=reason; }
 }
 export class SharedEngineRequired extends IdentityRefused {
-  constructor(){super();this.message='The workspace owner must select a shareable engine. On the owner computer, stop the daemon, run backbone engine pi, configure its model, and start the shared daemon again.';this.name='SharedEngineRequired';}
+  constructor(){super();this.message="Your message was not sent. The workspace owner must configure a shared model for Pi. In the app, choose Settings › AI and models › Shared work. With the background service, stop the background service, run backbone model shared local --endpoint <loopback-url> --model <model>, then start it again. Their own engine stays unchanged.";this.name='SharedEngineRequired';}
+}
+/** The owner, on their own computer, sent into an automation's conversation while their engine brings its own tools. */
+export class OwnerAutomationThreadRefused extends SharedEngineRequired {
+  constructor(){super();this.name='OwnerAutomationThreadRefused';this.message="Your message was not sent. This conversation belongs to an automation, which runs on the shared-work model, and none is set up. Continue it by choosing a model in Settings › AI and models › Shared work, or start a new conversation. Your own engine stays unchanged.";}
+}
+export class PersonalConversationRequired extends IdentityRefused {
+  constructor(){super();this.name='PersonalConversationRequired';this.message="This conversation was started on the owner's computer with its own model. Continue it there, or start a new conversation here.";}
+}
+/** The note a refused recovery leaves on the turn: the plain reason for the refusal. */
+export function recoveryRefusal(error: IdentityRefused): string {
+  const reason = error instanceof SharedEngineRequired ? 'Restore Shared work in Settings › AI and models.'
+    : error instanceof PersonalConversationRequired ? error.message : 'Check the recorded identity and project access.';
+  return `Recovery did not start. ${reason} Earlier work and its receipts are kept; inspect them before continuing.`;
+}
+export class AutomationSetupRefused extends SharedEngineRequired {
+  constructor(hint?:string|null){super();this.name='AutomationSetupRefused';this.message=`Automation was not created. Configure Settings › AI and models › Shared work. ${hint ?? ''}`.trim();}
 }
 export class IdentityUnavailable extends Error {
   readonly reason='paused';

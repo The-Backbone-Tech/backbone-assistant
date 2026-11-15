@@ -1,8 +1,8 @@
 # Backbone
 
-Backbone is an open-source AI assistant for a person, a team or a company. It uses existing tools and subscriptions, works inside permission signed once, verifies results, preserves human edits and resumes after interruption.
+Backbone's goal is a complete, open-source and composable working environment for people and capable AI. Use one useful part, combine selected parts with existing tools, or run the whole product. It brings strong current capabilities together for personal, team and company work, preserving editable material, knowledge and useful methods as engines and tools change. The implementation is pre-release.
 
-**Status:** source pre-release 0.2.0. Personal assistant work and the Team configuration are implemented. The qualified source was gated and installed on one macOS arm64 machine; an agent exercised real work and two local app instances exercised sharing. Real use across two physical computers, human acceptance and the complete Company configuration remain unqualified. An unsigned Apple-silicon Mac download is available from the exact public source, with focused installed checks and published provenance. See the [source release record](docs/source-release.md) and [roadmap](docs/execution.md).
+**Status:** pre-release 0.1.0. The desktop app, CLI and MCP surface are implemented, with qualification varying by engine, connector and platform. See the [roadmap](docs/execution.md) for what works and what remains open. This source tree does not establish a public binary download or human acceptance of every supported path.
 
 [GOAL](GOAL.md) owns the outcome and completion bar. [Backbone explained](docs/backbone-explained.md) introduces the idea, [shape](docs/shape.md) describes the design, and [method](docs/method.md) explains how choices are made.
 
@@ -10,13 +10,7 @@ Backbone is an open-source AI assistant for a person, a team or a company. It us
 
 Conversations, document versions, engine and model selection, connectors, signed tools, memory, skills, schedules, export and managed policy have implementation and focused test coverage. Read the [source map](docs/map.md), [scorecard](docs/scorecard.md) and each [guide](docs/how-to/) for evidence and limits. Local tests with fake providers do not qualify every real account or company deployment.
 
-Start with personal work on macOS arm64 and a local APFS data folder. Linux writes are experimental and require explicit opt-in; Windows writable data folders are unsupported. Team provides people, roles and shared projects; actual network deployment, identity-provider and fleet configurations need their own qualification. Backbone can also recommend retaining an existing arrangement when it already meets the need.
-
-## Download for Mac
-
-[Download Backbone 0.2.0 for Apple silicon (unsigned)](https://github.com/The-Backbone-Tech/backbone-assistant/releases/download/v0.2.0-macos-arm64.1/Backbone-0.2.0-b1bcaa86-macos-arm64-unsigned.dmg). The [release notes, checksums and build provenance](https://github.com/The-Backbone-Tech/backbone-assistant/releases/tag/v0.2.0-macos-arm64.1) identify the exact public source and checks. This build declares macOS 13.0 as its minimum; the focused installed tests ran on macOS 15.8.2.
-
-Open the disk image and copy Backbone.app into Applications. This pre-release has no Developer ID signing or Apple notarisation. If macOS blocks it and you choose to open it, follow [Apple’s per-app opening instructions](https://support.apple.com/en-us/102445). Configure your engine and model in the app before real work.
+Start with personal work on macOS arm64 and a local APFS data folder. Linux writes are experimental and require explicit opt-in; Windows writable data folders are unsupported. Shared servers, identity and fleet need their own qualification. Backbone can also recommend retaining an existing arrangement when it already meets the need.
 
 ## Try the CLI and build the app
 
