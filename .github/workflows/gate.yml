@@ -1,168 +1,103 @@
-# Manually dispatched; each result qualifies only the source and runner it records.
-name: Qualification gate
+# One-off public binary build. Product source is checked out at the fixed source release,
+# independently of this workflow-only branch. No release is published automatically.
+name: Public pre-release 8 macOS build
 on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Git ref to qualify
+        description: Exact published source commit
         required: true
-        default: main
+        default: 8fee4557c37b7f78e09875cd1003f9a06e6b1c28
 permissions:
   contents: read
 jobs:
-  linux:
-    strategy:
-      fail-fast: false
-      matrix:
-        check: [gate, install]
-    runs-on: ubuntu-latest
-    env:
-      # The home lock's Linux backend is still experimental and off by default; CI opts in for the
-      # whole job so every suite that opens a home runs on Linux. Remove when the backend is released.
-      BACKBONE_EXPERIMENTAL_LINUX_HOME_LOCK: '1'
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.ref }}
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        # Reads the exact pnpm version from packageManager.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 22.23.3
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      # The pinned sandbox needs bubblewrap/user namespaces; its owned syscall audit uses system Python.
-      - name: Install Linux runtime libraries
-        if: matrix.check == 'gate'
-        run: sudo apt-get update && sudo apt-get install -y libatomic1 libicu-dev zlib1g xvfb bubblewrap python3
-      - if: matrix.check == 'gate'
-        run: pnpm --filter @backbone-next/app electron:install
-      - if: matrix.check == 'gate'
-        run: pnpm --filter @backbone-next/app exec playwright install --with-deps chromium
-      # Ubuntu runners restrict unprivileged user namespaces through AppArmor, which stops the
-      # Chromium sandbox the Electron end-to-end suite starts and the native Codex bubblewrap sandbox.
-      # Relaxed on this throwaway runner only;
-      # never a setting for a person's computer.
-      - if: matrix.check == 'gate'
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      # The probe uses a synthetic HOME, with no account or model call.
-      - name: Qualify the pinned native Codex Linux sandbox
-        if: matrix.check == 'gate'
-        run: |
-          # Linux :minimal reads system runtime roots, not the runner's /home or /opt tool caches.
-          # Install the maintained binaries under /usr; do not widen the permission map for CI.
-          # This owned prefix is only for the disposable CI VM, not a personal-machine install.
-          # It is absent from later steps' PATH so discovery tests cannot select a real account.
-          sandbox_prefix=/usr/local/lib/codex-qualification
-          sudo mkdir -p "$sandbox_prefix/bin"
-          sudo install -m 0755 "$(command -v node)" "$sandbox_prefix/bin/node"
-          # npm ci verifies checked-in integrity hashes for the client and platform binaries.
-          sudo cp scripts/codex-qualification/package.json scripts/codex-qualification/package-lock.json "$sandbox_prefix/"
-          sudo "$(command -v npm)" ci --prefix "$sandbox_prefix" --ignore-scripts --no-audit --no-fund
-          export PATH="$sandbox_prefix/bin:$sandbox_prefix/node_modules/.bin:$PATH"
-          # Keep failures actionable: all native state below is synthetic, never a person's login.
-          command -v node
-          node --version
-          command -v codex
-          codex --version
-          command -v bwrap
-          bwrap --version
-          find "$sandbox_prefix/node_modules/@openai" -maxdepth 12 -type f \( -name codex -o -name '*sandbox*' -o -name bwrap \) -print
-          uname -a
-          sysctl kernel.unprivileged_userns_clone user.max_user_namespaces kernel.apparmor_restrict_unprivileged_userns || true
-          grep Seccomp /proc/self/status
-          cat /sys/kernel/security/lsm || true
-          grep -E 'CONFIG_(SECCOMP|SECURITY_LANDLOCK|USER_NS)=' "/boot/config-$(uname -r)" || true
-          # Owned audit sockets under /run are visible to full and hidden by contained.
-          sudo install -m 0755 packages/modules/harness-codex/test/linux-security-probe.py "$sandbox_prefix/bin/linux-security-probe.py"
-          sudo install -d -m 0700 -o "$(id -u)" /run/backbone-codex-qualification
-          export BACKBONE_CODEX_SECURITY_PROBE="$sandbox_prefix/bin/linux-security-probe.py"
-          export BACKBONE_CODEX_AUDIT_RUN_ROOT=/run/backbone-codex-qualification
-          probe_status=0
-          node packages/modules/harness-codex/test/sandbox-probe.mjs || probe_status=1
-          # Prove read-only Host immutability and fresh-namespace isolation under both temp parents.
-          TMPDIR=/var/tmp node packages/modules/harness-codex/test/sandbox-probe.mjs || probe_status=1
-          node packages/modules/harness-codex/test/readonly-probes.mjs || probe_status=1
-          node packages/modules/harness-codex/test/linux-security-probe.mjs || probe_status=1
-          exit "$probe_status"
-      - if: matrix.check == 'gate'
-        run: xvfb-run -a pnpm gate --out .gate/ci
-      - if: matrix.check == 'install'
-        run: bash scripts/linux-install-smoke.sh
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always() && matrix.check == 'gate'
-        with:
-          name: gate-evidence
-          path: |
-            .gate/ci/gate-summary.txt
-            .gate/ci/gate.json
-            .gate/ci/*.log
-          if-no-files-found: warn
-  # The gate has run on one Mac since the project began, so every unit waited for that machine.
-  # This job runs the same `pnpm gate` on a hosted Apple-silicon runner, so a unit branch can be
-  # qualified without the shared machine. Not yet qualified: until it has matched the local gate on
-  # two consecutive heads, the local run stays the acceptance record for the Mac.
-  macos:
+  macos-public-binary:
     runs-on: macos-15
-    timeout-minutes: 120
+    timeout-minutes: 60
+    env:
+      SOURCE_COMMIT: 8fee4557c37b7f78e09875cd1003f9a06e6b1c28
+      PUBLIC_SOURCE: /private/tmp/backbone-public-source
+      BACKBONE_PUBLIC_DISTRIBUTION: '1'
+      BACKBONE_DISTRIBUTION: /private/tmp/backbone-public-source/distributions/backbone/distribution.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref }}
-      - name: Initialize gate evidence before setup
-        run: |
-          mkdir -p .gate/ci
-          echo '{"overall":"not-started","suites":[]}' > .gate/ci/gate.json
-          echo 'Gate not started; preparing hosted runner' > .gate/ci/gate-summary.txt
+          persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        # Reads the exact pnpm version from packageManager.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.23.3
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @backbone-next/app electron:install
-      - run: pnpm --filter @backbone-next/app exec playwright install chromium
-      # Reserve time for later suites and artifact upload when a suite stalls. This remains a
-      # failure, including the macOS 15 snapshot defect; it does not relax product assertions.
-      - run: pnpm gate --out .gate/ci --suite-timeout 10
+      - name: Isolate the exact public source under a neutral build path
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          test -z "$(git status --porcelain)"
+          test ! -e "$PUBLIC_SOURCE"
+          git clone --no-hardlinks "$GITHUB_WORKSPACE" "$PUBLIC_SOURCE"
+          git -C "$PUBLIC_SOURCE" remote set-url origin https://github.com/The-Backbone-Tech/backbone-assistant.git
+          test "$(git -C "$PUBLIC_SOURCE" rev-parse HEAD)" = "$SOURCE_COMMIT"
+          node -e "if(process.platform!=='darwin'||process.arch!=='arm64')process.exit(1)"
+          command -v gpg || brew install gnupg
+      - name: Install exact dependencies with install scripts disabled
+        working-directory: /private/tmp/backbone-public-source
+        run: pnpm install --frozen-lockfile
+      - name: Verify the source export and public metadata
+        working-directory: /private/tmp/backbone-public-source
+        run: |
+          node --test scripts/public-tree.test.mjs
+          BACKBONE_GUIDE_STEP=1 node scripts/check.mjs
+          node --test packages/platform/test/harness-messages.test.ts
+      - name: Build the unmodified pinned GNU shared libraries
+        working-directory: /private/tmp/backbone-public-source
+        run: node scripts/native-lgpl/build.mjs
+      - name: Package and run the focused installed app journeys
+        working-directory: /private/tmp/backbone-public-source
+        run: pnpm --filter @backbone-next/app e2e:installed
+      - name: Check the libraries extracted from the actual disk image
+        working-directory: /private/tmp/backbone-public-source/packages/surfaces/app
+        shell: bash
+        run: |
+          node scripts/install-dmg.mjs "$RUNNER_TEMP/public-native-check"
+          node ../../../scripts/native-lgpl/smoke.mjs "$RUNNER_TEMP/public-native-check/Backbone.app/Contents/Resources/postgres/native"
+      - name: Verify source and stage source-linked artifacts
+        working-directory: /private/tmp/backbone-public-source
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          test -z "$(git status --porcelain)"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,mkdirSync,copyFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          import {createHash} from 'node:crypto';
+          import {execFileSync} from 'node:child_process';
+          const info=JSON.parse(readFileSync('packages/surfaces/app/dist/package/build.json'));
+          if(info.compiled.revision!==process.env.SOURCE_COMMIT||info.compiled.dirty!==false||info.sourceChangedAfterBuild!==false||info.arch!=='arm64'||info.signed!==false)throw Error('Public build provenance mismatch');
+          const out=join(process.env.RUNNER_TEMP,'public-macos-artifacts');mkdirSync(out,{recursive:true});
+          const asset=join('packages/surfaces/app',info.dmg),data=readFileSync(asset);
+          if(createHash('sha256').update(data).digest('hex')!==info.sha256)throw Error('DMG digest mismatch');
+          copyFileSync(asset,join(out,'backbone-0.2.0-arm64.dmg'));
+          copyFileSync('packages/surfaces/app/dist/package/build.json',join(out,'app-build.json'));
+          copyFileSync('packages/surfaces/app/dist/notices/index.json',join(out,'bundled-notice-index.json'));
+          copyFileSync('dist/native-lgpl/output/build.json',join(out,'native-lgpl-build.json'));
+          for(const file of ['libiconv-1.18.tar.gz','libiconv-1.18.tar.gz.sig','gettext-0.26.tar.gz','gettext-0.26.tar.gz.sig'])copyFileSync(join('dist/native-lgpl/downloads',file),join(out,file));
+          const hash=file=>createHash('sha256').update(readFileSync(file)).digest('hex');
+          writeFileSync(join(out,'hosted-provenance.json'),JSON.stringify({sourceCommit:process.env.SOURCE_COMMIT,sourceTree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),workflowCommit:process.env.GITHUB_SHA,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,runUrl:`https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,runnerImage:process.env.ImageOS,runnerImageVersion:process.env.ImageVersion,macOS:execFileSync('sw_vers',['-productVersion'],{encoding:'utf8'}).trim(),node:process.version,arch:process.arch,pnpm:execFileSync('pnpm',['--version'],{encoding:'utf8'}).trim(),lockSha256:hash('pnpm-lock.yaml'),distributionSha256:hash('distributions/backbone/distribution.json'),dmgSha256:info.sha256,buildId:info.compiled.id,checks:['fixed clean published source','public-distribution GNU source/signature/recipe checks','full default installed-app journey selection on this public disk image','actual extracted PostgreSQL/libintl smoke'],signed:false,notarised:false,publicPrivacyReview:'required separately before release publication'},null,2)+'\n');
+          JS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
         with:
-          name: gate-evidence-macos
-          path: |
-            .gate/ci/gate-summary.txt
-            .gate/ci/gate.json
-            .gate/ci/*.log
-          include-hidden-files: true
+          name: public-macos-arm64-build
+          path: ${{ runner.temp }}/public-macos-artifacts/
           if-no-files-found: error
-  windows-experimental:
-    runs-on: windows-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          compression-level: 0
+          retention-days: 3
+      - name: Retain focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          ref: ${{ inputs.ref }}
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        # Reads the exact pnpm version from packageManager.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 22.23.3
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Package and check fresh-home diagnosis
-        shell: pwsh
-        run: |
-          $dir = Join-Path $env:RUNNER_TEMP 'backbone-package'
-          New-Item -ItemType Directory -Force $dir | Out-Null
-          $tarball = node scripts/pack-cli.mjs $dir
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npm install -g --prefix "$dir/prefix" --no-audit --no-fund $tarball
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:BACKBONE_HOME = Join-Path $dir 'fresh-home'
-          & "$dir/prefix/backbone.cmd" --version
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $doctor = & "$dir/prefix/backbone.cmd" doctor
-          $status = $LASTEXITCODE
-          $doctor | Out-Host
-          if ($status -ne 1 -or ($doctor -join "`n") -notmatch 'BACKBONE_KEYS=plaintext backbone projects create') { exit 1 }
+          name: public-macos-build-diagnostics
+          path: |
+            /private/tmp/backbone-public-source/evidence/J-01/
+            /private/tmp/backbone-public-source/packages/surfaces/app/test-results/
+          if-no-files-found: ignore
+          retention-days: 3
