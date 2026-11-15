@@ -1,128 +1,154 @@
-# One-off public binary build. Product source is checked out at the fixed source release,
-# independently of this workflow-only branch. No release is published automatically.
-name: Public pre-release 8 macOS build
+name: Qualify the retained public Mac image
 on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Exact published source commit
+        description: Exact source of the retained image
         required: true
         default: 46876913fb10fe2d652083b03cfa2971513db1f3
-      test_scope:
-        description: Full installed qualification or focused boundary diagnosis
-        type: choice
-        options: [full, pi-sandbox]
-        default: full
 permissions:
   contents: read
+  actions: read
 jobs:
-  macos-public-binary:
+  qualify-retained-image:
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
     env:
       SOURCE_COMMIT: 46876913fb10fe2d652083b03cfa2971513db1f3
+      DMG_SHA256: 80e2157547e6132419e144a5644c9360cbdc6083efccbd5052dbcdf7ee65e74a
+      BUILD_ID: 5b1b676a-1246-4af5-9a54-e3a32ee24077
       PUBLIC_SOURCE: /private/tmp/backbone-public-source
-      TEST_SCOPE: ${{ inputs.test_scope }}
-      BACKBONE_PUBLIC_DISTRIBUTION: '1'
       BACKBONE_DISTRIBUTION: /private/tmp/backbone-public-source/distributions/backbone/distribution.json
+      BACKBONE_PUBLIC_DISTRIBUTION: '1'
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref }}
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.23.3
-      - name: Isolate the exact public source under a neutral build path
-        shell: bash
+      - name: Isolate the fixed clean source
         run: |
           test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
           test -z "$(git status --porcelain)"
-          test ! -e "$PUBLIC_SOURCE"
           git clone --no-hardlinks "$GITHUB_WORKSPACE" "$PUBLIC_SOURCE"
           git -C "$PUBLIC_SOURCE" remote set-url origin https://github.com/The-Backbone-Tech/backbone-assistant.git
-          test "$(git -C "$PUBLIC_SOURCE" rev-parse HEAD)" = "$SOURCE_COMMIT"
           node -e "if(process.platform!=='darwin'||process.arch!=='arm64')process.exit(1)"
-          command -v gpg || brew install gnupg
-      - name: Install exact dependencies with install scripts disabled
-        working-directory: /private/tmp/backbone-public-source
-        run: pnpm install --frozen-lockfile
-      - name: Verify the source export and public metadata
+          mkdir -p "$RUNNER_TEMP/image-qualification"
+      - name: Install pinned test dependencies
         working-directory: /private/tmp/backbone-public-source
         run: |
-          node --test scripts/public-tree.test.mjs
-          BACKBONE_GUIDE_STEP=1 node scripts/check.mjs
-          node --test packages/platform/test/harness-messages.test.ts
-      - name: Install Chromium required by the full installed selection
+          pnpm install --frozen-lockfile
+          pnpm --filter @backbone-next/app electron:install
+          pnpm --filter @backbone-next/app exec playwright install chromium
+      - name: Download and verify the exact retained image
+        env:
+          GH_TOKEN: ${{ github.token }}
         working-directory: /private/tmp/backbone-public-source
-        run: pnpm --filter @backbone-next/app exec playwright install chromium
-      - name: Build the unmodified pinned GNU shared libraries
-        working-directory: /private/tmp/backbone-public-source
-        run: node scripts/native-lgpl/build.mjs
-      - name: Package and run the selected installed app checks
+        run: |
+          gh api repos/The-Backbone-Tech/backbone-assistant/actions/artifacts/14162857025/zip > "$RUNNER_TEMP/retained-image.zip"
+          python3 - <<'PY'
+          import os,zipfile,hashlib,json,shutil,stat
+          from pathlib import Path
+          root=Path(os.environ['PUBLIC_SOURCE']);out=Path(os.environ['RUNNER_TEMP'])/'image-qualification';p=Path(os.environ['RUNNER_TEMP'])/'retained-image.zip'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='b50271fc5ed46a416fdecbc28b8b5b2173443453a4448818bc136a5ff1dbacaa'
+          expected={'app-build.json','backbone-0.2.0-arm64.dmg','bundled-notice-index.json','gettext-0.26.tar.gz','gettext-0.26.tar.gz.sig','hosted-provenance.json','libiconv-1.18.tar.gz','libiconv-1.18.tar.gz.sig','native-lgpl-build.json'}
+          with zipfile.ZipFile(p) as z:
+            assert set(z.namelist())==expected and len(z.namelist())==len(expected)
+            assert all(not stat.S_ISLNK(x.external_attr>>16) for x in z.infolist())
+            z.extractall(out/'original-build')
+          files=out/'original-build';info=json.loads((files/'app-build.json').read_text())
+          assert info['compiled']['revision']==os.environ['SOURCE_COMMIT'] and info['compiled']['id']==os.environ['BUILD_ID']
+          assert info['compiled']['dirty'] is False and info['sourceChangedAfterBuild'] is False
+          assert info['dmg']=='dist/package/backbone-0.2.0-arm64.dmg'
+          assert hashlib.sha256((files/'backbone-0.2.0-arm64.dmg').read_bytes()).hexdigest()==info['sha256']==os.environ['DMG_SHA256']
+          app=root/'packages/surfaces/app';(app/'dist/package').mkdir(parents=True,exist_ok=True)
+          shutil.copy2(files/'backbone-0.2.0-arm64.dmg',app/info['dmg']);shutil.copy2(files/'app-build.json',app/'dist/package/build.json')
+          (app/'dist/build.json').write_text(json.dumps(info['compiled'],indent=2)+'\n')
+          print('Exact retained image verified; no rebuild performed')
+          PY
+      - name: Install the retained image into an owned probe folder
+        working-directory: /private/tmp/backbone-public-source/packages/surfaces/app
+        run: node scripts/install-dmg.mjs "$RUNNER_TEMP/image-qualification/probe-app"
+      - name: Bound the supplier and packaged Chromium readiness probes
+        id: preflight
+        timeout-minutes: 4
+        working-directory: /private/tmp/backbone-public-source/packages/surfaces/app
+        env:
+          DEBUG: pw:browser
+        run: |
+          node --input-type=module <<'JS' 2>&1 | tee "$RUNNER_TEMP/image-qualification/preflight.log"
+          import {createRequire} from 'node:module';
+          import {mkdtempSync,mkdirSync,writeFileSync,readFileSync} from 'node:fs';
+          import {join,dirname} from 'node:path';
+          import {spawnSync} from 'node:child_process';
+          const require=createRequire(process.cwd()+'/package.json'),{_electron:electron}=require('@playwright/test');
+          const out=join(process.env.RUNNER_TEMP,'image-qualification'),root=mkdtempSync(join(process.env.RUNNER_TEMP,'bootstrap-'));
+          const flag=k=>process.env[k]===undefined?'unset':['','0','1'].includes(process.env[k])?process.env[k]:'other';
+          const report={sourceCommit:process.env.SOURCE_COMMIT,dmgSha256:process.env.DMG_SHA256,buildId:process.env.BUILD_ID,ambientElectronMode:{runAsNode:flag('ELECTRON_RUN_AS_NODE'),noAsar:flag('ELECTRON_NO_ASAR')},probes:[]};
+          const base={...process.env};delete base.ELECTRON_RUN_AS_NODE;delete base.ELECTRON_NO_ASAR;delete base.GH_TOKEN;
+          const control=join(root,'control.cjs');writeFileSync(control,"const {app,BrowserWindow}=require('electron');app.whenReady().then(()=>{const w=new BrowserWindow({show:false});w.loadURL('data:text/html,<title>Supplier control</title>');});\n");
+          const testRequire=createRequire(require.resolve('@playwright/test/package.json')),playwrightRequire=createRequire(testRequire.resolve('playwright/package.json'));
+          const loader=join(dirname(playwrightRequire.resolve('playwright-core/package.json')),'lib/server/electron/loader.js');
+          for(const kind of ['supplier','retained']){
+            let app;const begun=Date.now(),home=join(root,kind+'-home'),person=join(root,kind+'-person');mkdirSync(home);mkdirSync(person);
+            const executable=kind==='supplier'?require('electron'):join(out,'probe-app/Backbone.app/Contents/MacOS/Backbone');
+            const args=kind==='supplier'?['-r',loader,control,'--user-data-dir='+join(root,'control-profile')]:[];
+            const timer=setTimeout(()=>spawnSync('screencapture',['-x',join(out,kind+'-waiting.png')],{timeout:10000}),8000);
+            try{
+              app=await electron.launch({executablePath:executable,args,timeout:25000,env:{...base,BACKBONE_HOME:home,BACKBONE_USER_HOME:person,BACKBONE_HARNESS:'harness-pi',BACKBONE_MODEL_ENDPOINT:'http://127.0.0.1:1/v1',BACKBONE_MODEL_ID:'bootstrap'}});
+              const page=await app.firstWindow({timeout:20000});
+              if(kind==='supplier')await page.waitForLoadState('domcontentloaded',{timeout:15000});
+              else await page.locator('[data-ready=true]').waitFor({state:'visible',timeout:45000});
+              report.probes.push({kind,executable,ready:true,durationMs:Date.now()-begun});
+            }catch(error){report.probes.push({kind,executable,ready:false,durationMs:Date.now()-begun,error:String(error)});}
+            finally{clearTimeout(timer);if(app){try{await Promise.race([app.close(),new Promise((_,reject)=>setTimeout(()=>reject(Error('Owned probe did not close')),15000))]);}catch(error){app.process().kill('SIGKILL');report.probes.push({kind,closeFailed:String(error)});}}}
+          }
+          writeFileSync(join(out,'preflight.json'),JSON.stringify(report,null,2)+'\n');
+          if(report.probes.length!==2||report.probes.some(p=>!p.ready))process.exitCode=1;
+          JS
+      - name: Run the complete unchanged installed selection on the same image
         id: installed
         timeout-minutes: 25
-        working-directory: /private/tmp/backbone-public-source
-        shell: bash
-        run: |
-          case "$TEST_SCOPE" in
-            full) pnpm --filter @backbone-next/app e2e:installed ;;
-            pi-sandbox) pnpm --filter @backbone-next/app e2e:installed --grep '^Pi shell is confined on macOS' ;;
-            *) echo 'Unknown verification scope' >&2; exit 1 ;;
-          esac
-      - name: Check the libraries extracted from the actual disk image
-        if: always()
-        id: native_smoke
         working-directory: /private/tmp/backbone-public-source/packages/surfaces/app
-        shell: bash
         run: |
-          node scripts/install-dmg.mjs "$RUNNER_TEMP/public-native-check"
-          node ../../../scripts/native-lgpl/smoke.mjs "$RUNNER_TEMP/public-native-check/Backbone.app/Contents/Resources/postgres/native"
-      - name: Verify source and retain the exact artifact even after a test failure
-        if: always()
-        id: stage
-        env:
-          INSTALLED_TEST_OUTCOME: ${{ steps.installed.outcome }}
-          NATIVE_SMOKE_OUTCOME: ${{ steps.native_smoke.outcome }}
-        working-directory: /private/tmp/backbone-public-source
-        shell: bash
-        run: |
-          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
-          test -z "$(git status --porcelain)"
-          node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync,mkdirSync,copyFileSync} from 'node:fs';
-          import {join} from 'node:path';
-          import {createHash} from 'node:crypto';
-          import {execFileSync} from 'node:child_process';
-          const info=JSON.parse(readFileSync('packages/surfaces/app/dist/package/build.json'));
-          if(info.compiled.revision!==process.env.SOURCE_COMMIT||info.compiled.dirty!==false||info.sourceChangedAfterBuild!==false||info.arch!=='arm64'||info.signed!==false)throw Error('Public build provenance mismatch');
-          const out=join(process.env.RUNNER_TEMP,'public-macos-artifacts');mkdirSync(out,{recursive:true});
-          const asset=join('packages/surfaces/app',info.dmg),data=readFileSync(asset);
-          if(createHash('sha256').update(data).digest('hex')!==info.sha256)throw Error('DMG digest mismatch');
-          copyFileSync(asset,join(out,'backbone-0.2.0-arm64.dmg'));
-          copyFileSync('packages/surfaces/app/dist/package/build.json',join(out,'app-build.json'));
-          copyFileSync('packages/surfaces/app/dist/notices/index.json',join(out,'bundled-notice-index.json'));
-          copyFileSync('dist/native-lgpl/output/build.json',join(out,'native-lgpl-build.json'));
-          for(const file of ['libiconv-1.18.tar.gz','libiconv-1.18.tar.gz.sig','gettext-0.26.tar.gz','gettext-0.26.tar.gz.sig'])copyFileSync(join('dist/native-lgpl/downloads',file),join(out,file));
-          const hash=file=>createHash('sha256').update(readFileSync(file)).digest('hex');
-          writeFileSync(join(out,'hosted-provenance.json'),JSON.stringify({sourceCommit:process.env.SOURCE_COMMIT,sourceTree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),workflowCommit:process.env.GITHUB_SHA,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,runUrl:`https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,runnerImage:process.env.ImageOS,runnerImageVersion:process.env.ImageVersion,macOS:execFileSync('sw_vers',['-productVersion'],{encoding:'utf8'}).trim(),node:process.version,arch:process.arch,pnpm:execFileSync('pnpm',['--version'],{encoding:'utf8'}).trim(),lockSha256:hash('pnpm-lock.yaml'),distributionSha256:hash('distributions/backbone/distribution.json'),dmgSha256:info.sha256,buildId:info.compiled.id,verificationScope:process.env.TEST_SCOPE,installedTestOutcome:process.env.INSTALLED_TEST_OUTCOME,nativeSmokeOutcome:process.env.NATIVE_SMOKE_OUTCOME,checks:['fixed clean published source','public-distribution GNU source/signature/recipe checks','installed selection outcome recorded separately','actual extracted PostgreSQL/libintl smoke outcome recorded separately'],signed:false,notarised:false,publicPrivacyReview:'required separately before release publication'},null,2)+'\n');
+          cat > "$RUNNER_TEMP/qualify-retained.mjs" <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {execFileSync,spawnSync} from 'node:child_process';
+          import {INSTALLED_TEST_ARGS,runInstalledJourney} from '/private/tmp/backbone-public-source/packages/surfaces/app/scripts/installed-journey.ts';
+          const run=(args)=>execFileSync(process.execPath,args,{encoding:'utf8'});
+          const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;delete env.ELECTRON_NO_ASAR;delete env.GH_TOKEN;
+          const result=await runInstalledJourney({prepare(){const info=JSON.parse(readFileSync('dist/package/build.json'));if(info.compiled.revision!==process.env.SOURCE_COMMIT||info.compiled.id!==process.env.BUILD_ID||info.sha256!==process.env.DMG_SHA256)throw Error('Wrong retained image');},buildInfo:()=>JSON.parse(readFileSync('dist/package/build.json')),install:target=>run(['scripts/install-dmg.mjs',target]),test:(exe,fixtureEnv)=>spawnSync('npx',[...INSTALLED_TEST_ARGS],{stdio:'inherit',env:fixtureEnv}),env});
+          if(result.error)console.error(result.error.message);if(result.cleanupError)console.error(result.cleanupError.message);process.exitCode=result.exitCode;
           JS
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always() && steps.stage.outcome == 'success'
-        with:
-          name: public-macos-arm64-build
-          path: ${{ runner.temp }}/public-macos-artifacts/
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 3
-      - name: Retain focused test diagnostics
+          node ../../../scripts/no-leftovers.mjs node "$RUNNER_TEMP/qualify-retained.mjs"
+      - name: Record exact image and qualification outcomes
         if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        env:
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          INSTALLED_OUTCOME: ${{ steps.installed.outcome }}
+        working-directory: /private/tmp/backbone-public-source
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';import {join} from 'node:path';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+          const out=join(process.env.RUNNER_TEMP,'image-qualification'),dmg=join(out,'original-build/backbone-0.2.0-arm64.dmg');const sha=createHash('sha256').update(readFileSync(dmg)).digest('hex');if(sha!==process.env.DMG_SHA256)throw Error('Retained image changed');
+          const clean=execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim()==='';if(!clean)throw Error('Tracked source changed during qualification');
+          writeFileSync(join(out,'qualification.json'),JSON.stringify({sourceCommit:process.env.SOURCE_COMMIT,dmgSha256:sha,compiledBuildId:process.env.BUILD_ID,buildRunId:43711121221,qualificationRunId:process.env.GITHUB_RUN_ID,qualificationRunUrl:`https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,qualificationWorkflow:process.env.GITHUB_SHA,fullSelection:true,expectedTests:51,preflightOutcome:process.env.PREFLIGHT_OUTCOME,installedOutcome:process.env.INSTALLED_OUTCOME,sourceStillClean:clean,macOS:execFileSync('sw_vers',['-productVersion'],{encoding:'utf8'}).trim(),runnerImageVersion:process.env.ImageVersion,node:process.version},null,2)+'\n');
+          JS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
         with:
-          name: public-macos-build-diagnostics
+          name: retained-image-qualification
           path: |
+            ${{ runner.temp }}/image-qualification/preflight.json
+            ${{ runner.temp }}/image-qualification/preflight.log
+            ${{ runner.temp }}/image-qualification/*-waiting.png
+            ${{ runner.temp }}/image-qualification/qualification.json
             /private/tmp/backbone-public-source/evidence/J-01/
-            /private/tmp/backbone-public-source/packages/surfaces/app/test-results/
-          if-no-files-found: ignore
+          if-no-files-found: warn
           retention-days: 3
