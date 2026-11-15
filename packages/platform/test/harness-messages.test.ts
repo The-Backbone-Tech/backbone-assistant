@@ -170,3 +170,32 @@ test('native command and output details are redacted before every Host projectio
   assert.match(saved, /Authorization: Bearer \[credential\]/); assert.match(saved, /X_TOKEN=\[credential\]/);
   assert.equal(turn.status, 'done');
 });
+
+
+test('only inspection-relevant native steps and unknown outcomes retain an ISO observation time', async t => {
+  const home = mkdtempSync(join(tmpdir(), 'harness-step-times-'));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  const material = new MaterialStore(home, {}, () => {});
+  const turn: Turn = { id: 'turn', side: false, user: { text: 'Work', attachments: [], at: '' }, work: { startedAt: '', harness: 'fixture', steps: [] }, effects: [], status: 'running' };
+  const events: HarnessEvent[] = [
+    { type: 'tool', id: 'read', tool: 'native_connector', readOnly: true, phase: 'done', label: 'Read the account' },
+    { type: 'tool', id: 'write', tool: 'native_connector', readOnly: false, phase: 'proposed', label: 'Change the account' },
+    { type: 'tool', id: 'write', tool: 'native_connector', readOnly: false, phase: 'done', label: 'Changed the account' },
+    { type: 'tool', id: 'uncertain', tool: 'other', phase: 'unknown', label: 'Uncertain action' },
+  ];
+  const observed: string[] = [];
+  const harness: HarnessV1 = { specificationVersion: 'v1', id: 'fixture', label: 'fixture', start() {
+    return { events: (async function* () { yield* events; })(), stop() {}, steer() {}, outcome: Promise.resolve({ status: 'done', answer: 'Finished.', usage: { input: 0, output: 0 } }) };
+  } };
+  await runHarnessTurn({ material, projectId: 'project', gateway: { read: unexpectedMaterialRead, async write() { throw Error('No write'); } },
+    writeDelayMs: 0, signal: new AbortController().signal, threadId: 'thread', harness,
+    route: { kind: 'native', provider: 'codex', baseUrl: '', model: 'fixture', label: 'fixture', credential: null },
+    credential: async () => { throw Error('No credential'); }, history: [], resumed: false,
+    progress() { const at = turn.work.steps.find(s => s.label.includes('account') && s.at)?.at; if (at) observed.push(at); },
+  }, turn, []);
+  assert.equal(turn.work.steps.length, 3);
+  assert.deepEqual(turn.work.steps[0], { kind: 'note', label: 'Read the account' });
+  for (const step of turn.work.steps.slice(1)) assert.equal(new Date(step.at!).toISOString(), step.at);
+  assert.ok(observed.length >= 2);
+  assert.equal(new Set(observed).size, 1, 'later phases preserve the first observation time');
+});
