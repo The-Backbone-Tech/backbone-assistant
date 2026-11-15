@@ -233,6 +233,20 @@ support. Annotation appearances are painted onto the canvas. Office
 workers additionally refuse network primitives. The renderer CSP is unchanged.
 A failed or timed-out read keeps Download and offers explicit Retry; a size
 refusal explains its ceiling without automatic retry. This is a read-only
-preview contract. CSV retains its existing text editor: drafts and Save appear
-only with that editor; the grid and Download use the displayed saved version.
+preview contract. CSV retains its existing text editor and offers Table alongside
+Text while editing an eligible working file. Both edit the same complete text and
+use the existing draft, expected-version Save and recovery path. The preview grid
+and Download use the displayed saved version, never an unsaved table edit.
+Table editing preserves text values, multiline cells and blank records using the
+maintained Papa Parse field reader/writer. Untouched records keep their exact
+source bytes and individual line endings, including mixed endings; changed
+records are re-encoded. It runs no formulas. The detected separator is visible
+and can be selected; ambiguous data needs that choice before editing. Text keeps
+the existing editor's own line-ending behaviour. Table supports adding rows and columns and pages the editor so
+every admitted cell remains reachable. A malformed or oversized file stays usable
+in Text; an incomplete preview is never saved as a complete table. Original,
+historical, recovery and viewer-only files retain their existing read-only paths.
+The model and browser journeys in `test/csv-table.test.ts` and
+`e2e/csv-table.browser.spec.ts` own parsing and real version/draft/agent-read proof;
+the latter uses a controlled local model, not evidence of live-model quality.
 This is separate from the Documents port's future editing codecs.

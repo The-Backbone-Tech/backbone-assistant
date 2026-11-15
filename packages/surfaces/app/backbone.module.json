@@ -229,5 +229,5 @@
     "rule": "quit it and delete it; its data home stays until the person deletes it, and held UNKNOWNs stay with the core's gateway"
   },
   "swap": "any surface over the same api: another shell (Tauri, a browser tab over the HTTP bridge) or the MCP door for agents",
-  "digest": "sha256:62597a459a9f2c84073a16d493457fcdb04f83d3aa2dba5eed337aeb2e52d6bf"
+  "digest": "sha256:98386fddf8e63504d586ea5a705b0348455ef41e0917919c3ab7503884276de4"
 }
