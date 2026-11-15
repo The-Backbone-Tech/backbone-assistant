@@ -7,9 +7,13 @@
 import { createConnection, type Socket } from 'node:net';
 import { basename, dirname, join } from 'node:path';
 import type { Args, Method, Receipt, Result, ConnectorEffectAnswer, ConnectorEffectResolution } from '../api.ts';
+import {MAX_ATTACHMENT_BYTES} from '../material-attachment.ts';
+export {MAX_ATTACHMENT_BYTES} from '../material-attachment.ts';
 import { doorSocket, MAX_LINE, ownFolder, unsupported } from './protocol.ts';
 
 export const API_LINE_PROTOCOL = 1;
+/** Only an attachment request may exceed the ordinary line bound: base64 plus bounded metadata. */
+export const MAX_ATTACHMENT_LINE = 4 * Math.ceil(MAX_ATTACHMENT_BYTES / 3) + 64 * 1024;
 /** The longest answer a client takes: a thread's whole text can be far longer than a request. */
 export const MAX_ANSWER = 64 << 20;
 const HELLO_WAIT_MS = 10_000;
@@ -33,8 +37,10 @@ export const API_LINE_ASKED = ['solutions.run', 'turns.send', 'queue.add', 'goal
 export const API_LINE_PERSON_ASKED = ['connectors.resolveEffect', 'threads.checked'] as const;
 /** Explicitly enabled only by the shared daemon, on its same-user local socket. */
 export const API_LINE_TEAM = ['identity.get','identity.invite','identity.share','identity.remove'] as const satisfies readonly Method[];
-/** Local project creation, explicitly enabled by the device owner's app or daemon. Never a network capability. */
-export const API_LINE_PROJECTS = ['projects.create'] as const satisfies readonly Method[];
+/** Local project creation and property changes, explicitly enabled by the device owner's app or daemon. Never a network capability. */
+export const API_LINE_PROJECTS = ['projects.create', 'projects.update'] as const satisfies readonly Method[];
+/** Local originals, explicitly enabled by the device owner's app or daemon. */
+export const API_LINE_ATTACHMENTS = ['material.attach'] as const satisfies readonly Method[];
 /** General API methods on the line. The separate person-only asked list above adds no Host.call method. */
 export const API_LINE_METHODS = [...API_LINE_READS, ...API_LINE_ASKED, 'turns.stop'] as const satisfies readonly Method[];
 
@@ -133,7 +139,7 @@ export function attachApi(home: string): Promise<ApiLine | null> {
       const id = next++;
       const text = JSON.stringify({ id, method, args });
       // Refused here, where it is known that nothing left: an ended line reads as unknown.
-      if (text.length >= MAX_LINE) return Promise.resolve(refusal('INVALID', 'That is too long for the line to the app, and nothing was sent.') as T);
+      if (text.length >= (method === 'material.attach' ? MAX_ATTACHMENT_LINE : MAX_LINE)) return Promise.resolve(refusal('INVALID', 'That is too long for the line to the app, and nothing was sent.') as T);
       if (ended) return Promise.reject(new Error(LOST));
       return new Promise<T>((done, fail) => {
         pending.set(id, { resolve: (v) => done(v as T), reject: fail });

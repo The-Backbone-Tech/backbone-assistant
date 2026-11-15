@@ -80,8 +80,12 @@ export class RemoteClient {
       const value=JSON.parse(Buffer.concat(chunks).toString('utf8'));
       if(response.statusCode!==200){
         const status=response.statusCode;
-        const ended=status===401||value.accessEnded===true;
-        throw new RemoteError(ended?ACCESS_ENDED:typeof value.error==='string'?value.error:'The workspace refused this request.',value.outcome==='UNKNOWN'?'UNKNOWN':'REFUSED',status,ended);
+        const ended=status===401||value?.accessEnded===true;
+        if(ended)throw new RemoteError(ACCESS_ENDED,'REFUSED',status,true);
+        // A refusal needs the workspace's explicit word for it. A reply without one (a proxy's 500 or 502,
+        // another server's 404, a failure after the change committed) proves nothing was left undone.
+        if(value?.outcome==='REFUSED')throw new RemoteError(typeof value.error==='string'?value.error:'The workspace refused this request.','REFUSED',status);
+        throw new RemoteError(value?.outcome==='UNKNOWN'&&typeof value.error==='string'?value.error:'The workspace gave no clear answer. The request outcome is unknown. Read the work before sending it again.','UNKNOWN',status);
       }
       return value;
     } catch(error){if(error instanceof RemoteError)throw error;throw new RemoteError('The reply was lost or invalid. The request outcome is unknown. Read the work before sending it again.','UNKNOWN');}
@@ -93,10 +97,12 @@ export class RemoteClient {
       if(response.statusCode!==200){
         const status=response.statusCode;let text='';
         for await(const chunk of response){text+=chunk.toString();if(text.length>65_536)break;}
-        let value:{accessEnded?:boolean;error?:string}={};try{value=JSON.parse(text);}catch{}
+        let value:{accessEnded?:boolean;error?:string;outcome?:string}={};try{value=JSON.parse(text)??{};}catch{}
         if(status===401||value.accessEnded===true)throw new RemoteError(ACCESS_ENDED,'REFUSED',status,true);
         if(status===429||(status??0)>=500)throw new RemoteError('Temporary workspace connection problem. Try opening the event stream again shortly.','UNKNOWN',status);
-        throw new RemoteError(value.error??'The workspace event stream is not permitted.','REFUSED',status);
+        // The same rule as a request: without the workspace's explicit word, nothing says who answered.
+        if(value.outcome==='REFUSED')throw new RemoteError(typeof value.error==='string'?value.error:'The workspace event stream is not permitted.','REFUSED',status);
+        throw new RemoteError('The workspace gave no clear answer about the event stream. Try opening it again shortly.','UNKNOWN',status);
       }
       let pending='', ended=false; const decoder=new TextDecoder();
       for await(const chunk of response){

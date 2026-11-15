@@ -113,7 +113,7 @@ test('Now: unfinished work first, Keep, Retire and Bring back, disclosure, a per
   }
   await page.reload();
   await expect(page.locator('[data-ready=true]')).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
   await openMoreView(page, 'Now');
   await page.getByRole('button', { name: 'More', exact: true }).click();
   await expect(page.getByRole('menuitem', { name: 'Now', exact: true })).toHaveAttribute('aria-current', 'page');
@@ -220,8 +220,8 @@ test('Now: unfinished work first, Keep, Retire and Bring back, disclosure, a per
 
   // Another project's page never shows the last one's refusal or its documents.
   await value(api(page, 'projects.create', { name: 'Other', kind: 'folder' }));
-  await expect(page.getByRole('navigation').getByRole('button', { name: 'Other' })).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Other' }).click();
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'Other', exact: true })).toBeVisible();
+  await page.getByRole('navigation').getByRole('button', { name: 'Other', exact: true }).click();
   await expect(page.getByTestId('now'), 'choosing a project leaves the page').toHaveCount(0);
   await openMoreView(page, 'Now');
   await expect(reopened.getByTestId('now-temporary')).toHaveCount(0);
@@ -245,7 +245,7 @@ test('a turn caught by a withdrawal leaves its work held, and the person decides
   await settled(threadId, remaining());
   await expect.poll(async () => (await api<{ needsYou: {kind:string;title:string}[] }>(page, 'work.now', {projectId:p.id})).needsYou.some(item => item.kind === 'held' && item.title.includes('second')), {timeout:remaining()}).toBe(true);
 
-  await page.getByRole('navigation').getByRole('button', { name: 'Held' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Held', exact: true }).click();
   await openMoreView(page, 'Now');
   const view = page.getByTestId('work-now');
   await expect(view.getByTestId('now-withdrawn').filter({ hasText: 'hiring.md' })).toBeVisible();
@@ -280,8 +280,8 @@ test('Codex model: the choice in Settings or the composer is what the next turn 
   };
   await launch(env);
   const p = await value(api<Receipt<{ id: string }>>(page, 'projects.create', { name: 'Native', kind: 'folder' }));
-  await expect(page.getByRole('navigation').getByRole('button', { name: 'Native' })).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Native' }).click();
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'Native', exact: true })).toBeVisible();
+  await page.getByRole('navigation').getByRole('button', { name: 'Native', exact: true }).click();
   const composer = () => page.getByRole('button', { name: /^Model and effort:/ });
   const dialog = page.getByRole('dialog', { name: 'Settings' });
   const choose = async (label: string) => {
@@ -355,7 +355,7 @@ test('Codex model: the choice in Settings or the composer is what the next turn 
   // It lasts: after a quit and a cold start the same model does the next turn.
   await quit();
   await launch(env);
-  await page.getByRole('navigation').getByRole('button', { name: 'Native' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Native', exact: true }).click();
   await expect(composer()).toHaveAccessibleName(/Deep model/);
   expect(await say('Fourth')).toMatchObject({ status: 'done', work: { harness: expect.stringContaining('Codex · deep-model') } });
   expect(asked().at(-1)?.model).toBe('deep-model');

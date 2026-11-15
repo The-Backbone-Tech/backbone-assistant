@@ -55,6 +55,7 @@ test('an admin invites a second person, shares one project as viewer and removes
     expect(await viewer.evaluate(async(id)=>{try{await window.backbone!.call('files.list',{projectId:id});return false;}catch{return true;}},privateProject.value.id)).toBe(true);
     await settings.getByRole('button',{name:'People and roles',exact:true}).click();
     await settings.getByRole('button',{name:'Remove Project viewer',exact:true}).click();
+    await owner.getByRole('dialog',{name:'Remove Project viewer?'}).getByRole('button',{name:'Remove Project viewer',exact:true}).click();
     await expect(viewer.getByRole('heading',{name:'Workspace sign-in',exact:true})).toBeVisible();
     expect(await viewer.evaluate(async()=>{try{await window.backbone!.call('projects.list',{});return false;}catch{return true;}})).toBe(true);
   } finally {

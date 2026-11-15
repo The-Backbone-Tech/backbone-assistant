@@ -1,3 +1,4 @@
+import {validProjectName} from '../project-name.ts';
 import { unknownCheckConfirmation } from '../api.ts';
 import { memoryIsOff } from '../api-memory.ts';
 import { selectionTask } from './selection-line.ts';
@@ -13,11 +14,12 @@ import { chmodSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { createConnection, createServer, type Server, type Socket } from 'node:net';
 import { dirname } from 'node:path';
 import type { Args, Effort, Id, Method, ModelSettings, Permission, Receipt, Result, ShownSelection, Thread, TurnSettings, ConnectorEffectQuestion, ConnectorEffectResolution, TaskNeeds } from '../api.ts';
-import { API_LINE_ASKED, API_LINE_TEAM, API_LINE_PROJECTS, API_LINE_PERSON_ASKED, API_LINE_METHODS, API_LINE_PROTOCOL, apiSocket, type HelloAnswer, MAX_ASKED, refusal, type SendState, type ConnectorEffectInput } from '../doors/api-line.ts';
+import { API_LINE_ASKED, API_LINE_TEAM, API_LINE_PROJECTS, API_LINE_ATTACHMENTS, MAX_ATTACHMENT_LINE, API_LINE_PERSON_ASKED, API_LINE_METHODS, API_LINE_PROTOCOL, apiSocket, type HelloAnswer, MAX_ASKED, refusal, type SendState, type ConnectorEffectInput } from '../doors/api-line.ts';
 import { MAX_LINE, ownFolder } from '../doors/protocol.ts';
 import { continuedSelection, shownOf, withNamedModel } from '../selection/pin.ts';
 import { GOAL_DEFAULT_SETTINGS, MAX_BUDGET } from './goal-runs.ts';
 import { auditOptions, AUDIT_UUID, AUDIT_CONTENT_DIRECT_ONLY } from '../audit.ts';
+import {attachmentName, attachmentBytesFit, MAX_ATTACHMENT_BYTES} from '../material-attachment.ts';
 import { MATERIAL_ID } from '../stub/material.ts';
 import {assertHomeWriteAdmission} from './home-lock.ts';
 
@@ -92,6 +94,8 @@ export function askWords(ask: LineAsk, app: string): { message: string; detail: 
 }
 
 export interface ApiLineOptions {
+  /** Trusted composition identifies the process holding this data folder. */
+  holder?: 'background-service' | 'app' | 'other';
   home: string;
   call<M extends Method>(method: M, args: Args<M>): Promise<Result<M>>;
   /**
@@ -107,7 +111,7 @@ export interface ApiLineOptions {
     question(effect: string, argsHash: string): Promise<Receipt<ConnectorEffectQuestion>>;
     resolve(input: ConnectorEffectInput): Promise<Receipt<ConnectorEffectResolution>>;
   };
-  /** No asked write or stop crosses; explicit local project and team controls are separate. */
+  /** No asked write or stop crosses; explicit local project, attachment and team controls are separate. */
   readOnly?: boolean;
   /** Same-user invitation and sharing controls; never enabled by a network listener. */
   teamManagement?: boolean;
@@ -115,6 +119,12 @@ export interface ApiLineOptions {
   projectCreation?: boolean | 'signed-in-app';
   /** Required when creation is enabled. Owned by the app or daemon; reuse for all of that owner's lines, including replacements. */
   projectCreationBudget?: ApiLineProjectBudget;
+  /** Trusted local composition only; company sign-in directs attachment to the signed-in app. */
+  attachment?: boolean | 'signed-in-app';
+  /** Reuse this owner's budget for every connection and replacement line. Required when enabled. */
+  attachmentBudget?: ApiLineAttachmentBudget;
+  /** How long one connection may keep the single large-frame slot without sending, and in all. Tests shorten it. */
+  attachmentFrameWaitMs?: { idle: number; total: number };
 }
 
 export interface ApiLineServer {
@@ -137,6 +147,9 @@ export class ApiLineProjectBudget {
   }
 }
 
+/** Separate attachment allowance, owned by the serving app or daemon. Same bounded request policy. */
+export class ApiLineAttachmentBudget extends ApiLineProjectBudget {}
+
 const CONFIRM_WAIT_MS = 120_000;
 const CLOSED = 'The person has not allowed this command line to start work in this app, so nothing was sent. After a Don\'t allow, it takes reopening the app.';
 const NO_ANSWER = 'Nobody answered the app\'s question in time, so nothing was sent.';
@@ -150,6 +163,7 @@ const CHANGES = new Set<string>([...API_LINE_ASKED, ...API_LINE_PERSON_ASKED, 't
 const ASKED = new Set<string>([...API_LINE_ASKED, ...API_LINE_PERSON_ASKED]);
 const BAD_SEND = `A send needs a project, its text, no attachments, this computer, a clear permission, effort and mode, and a client key. Its text is what the person is asked about, so it is at most ${MAX_ASKED} characters with nothing hidden in it, and the model and ids are one plain line. Use the app for a longer one.`;
 const BAD_WRITE: Record<string, string> = {
+  'projects.update': 'A project change needs a project id and a name of 1 to 1,000 readable characters, an archive boolean, or both. No other project properties may change.',
   'queue.add': `A queued message needs its thread, its text, no attachments, this computer, a clear permission, effort and mode, and a client key. Its text is at most ${MAX_ASKED} characters with nothing hidden in it, and the model and ids are one plain line.`,
   'goals.set': `A goal needs its thread, its words and the goal version you saw. The words are at most ${MAX_ASKED} characters with nothing hidden in them; clear a goal in the app.`,
   'goals.run': `A goal run needs its thread and a budget of 1 to ${MAX_BUDGET} turns.`,
@@ -161,6 +175,7 @@ const text = (v: unknown): v is string => typeof v === 'string';
 /** Control and format characters, and Unicode's line separators, could show the person something other than what is sent. */
 const HIDDEN = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 /** A model or an id: one plain line, so a field in the question cannot pass for another. */
+const lineProjectName=(v:unknown):v is string=>validProjectName(v)&&!HIDDEN.test(v.replace(/\u200d/g,''));
 const plain = (v: unknown): v is string => text(v) && v.length > 0 && v.length <= MAX_ASKED && !HIDDEN.test(v);
 /** A send's words. Only these may run over lines, because the question shows them quoted, with lines and tabs escaped. */
 const readable = (v: unknown): v is string => text(v) && v.length <= MAX_ASKED && !HIDDEN.test(v.replace(/[\n\t]/g, ''));
@@ -175,7 +190,7 @@ function runsAs(settings: unknown): TurnSettings | null {
 const version = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
 
 /** Each call's checked arguments, holding only its named fields; null when they are not its own. */
-const CHECK: Record<(typeof API_LINE_METHODS)[number] | (typeof API_LINE_TEAM)[number] | (typeof API_LINE_PROJECTS)[number] | (typeof API_LINE_PERSON_ASKED)[number], (a: Fields) => object | null> = {
+const CHECK: Record<(typeof API_LINE_METHODS)[number] | (typeof API_LINE_TEAM)[number] | (typeof API_LINE_PROJECTS)[number] | (typeof API_LINE_ATTACHMENTS)[number] | (typeof API_LINE_PERSON_ASKED)[number], (a: Fields) => object | null> = {
   'audit.export': ({ since, until, after, includeContent, limit, session, cancel }) => {
     if ((session !== undefined && (typeof session !== 'string' || !AUDIT_UUID.test(session))) ||
         (cancel !== undefined && typeof cancel !== 'boolean') || (cancel && !session)) return null;
@@ -199,7 +214,15 @@ const CHECK: Record<(typeof API_LINE_METHODS)[number] | (typeof API_LINE_TEAM)[n
   'identity.invite': ({role}) => ['admin','member','guest'].includes(role as string)?{role}:null,
   'identity.share': ({projectId,personId,access}) => plain(projectId)&&plain(personId)&&['viewer','editor',null].includes(access as never)?{projectId,personId,access}:null,
   'identity.remove': ({personId}) => plain(personId)?{personId}:null,
-  'projects.create': ({ name, kind, clientKey }) => plain(name) && name.trim().length > 0 && ['folder', 'git'].includes(kind as string) && plain(clientKey) && clientKey.length <= 256 ? { name: name.trim(), kind, clientKey } : null,
+  'projects.create': ({ name, kind, clientKey }) => lineProjectName(name) && ['folder', 'git'].includes(kind as string) && plain(clientKey) && clientKey.length <= 256 ? { name: name.trim(), kind, clientKey } : null,
+  'material.attach': ({projectId,name,base64,mediaType}) => plain(projectId) && text(name) && attachmentName(name) && plain(mediaType) && attachmentBytesFit(base64)
+    ? {projectId,name:attachmentName(name),base64,mediaType} : null,
+  'projects.update': ({id,patch}) => {
+    if(!plain(id)||!patch||typeof patch!=='object'||Array.isArray(patch))return null;
+    const p=patch as Record<string,unknown>;
+    return Object.keys(p).length>0 && Object.keys(p).every(key=>['name','archived'].includes(key)) &&
+      (!('name' in p)||(lineProjectName(p.name))) && (!('archived' in p)||typeof p.archived==='boolean') ? {id,patch:p} : null;
+  },
   'projects.list': () => ({}),
   'threads.list': () => ({}),
   'models.list': () => ({}),
@@ -251,9 +274,12 @@ function shown(method: Method, result: unknown): unknown {
   if (method === 'schedules.get') return redactWakeGates(result as import('../api.ts').Proactivity);
   if (method !== 'settings.model.get') return result;
   const settings = result as ModelSettings;
-  if (!settings.own) return settings;
-  const { baseUrl: _kept, ...own } = settings.own;
-  return { ...settings, own };
+  const scrub = (value: Omit<ModelSettings, 'shared'>) => {
+    if (!value.own) return value;
+    const { baseUrl: _kept, ...own } = value.own;
+    return { ...value, own };
+  };
+  return { ...scrub(settings), ...(settings.shared ? { shared: scrub(settings.shared) } : {}) };
 }
 
 function answers(path: string): Promise<boolean> {
@@ -267,6 +293,7 @@ function answers(path: string): Promise<boolean> {
 /** Serve the home's api line. Only the process holding the home calls this (`createHost` refuses a second). */
 export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServer> {
   if (options.projectCreation === true && !options.projectCreationBudget) throw new Error('Project creation requires an owner budget.');
+  if (options.attachment === true && !options.attachmentBudget) throw new Error('Attachment requires an owner budget.');
   const projectBudget = options.projectCreationBudget;
   let auditScratchUnavailable=false;
   try{await sweepAuditTemporary();}catch{
@@ -284,7 +311,7 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
   }
   if (!ownFolder(path)) throw new Error(`${dirname(path)} is not this user's alone, so the api line is not served there.`);
   if (existsSync(path)) {
-    if (await answers(path)) throw new Error('Another process already serves this data home\'s api line.');
+    if (await answers(path)) throw new Error('Another process already serves this data folder\'s api line.');
     rmSync(path, { force: true });
   }
 
@@ -491,10 +518,22 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
     if (method === 'audit.export' && args.includeContent === true) return refusal('NOT_AVAILABLE', AUDIT_CONTENT_DIRECT_ONLY);
     if(method==='audit.export'&&auditScratchUnavailable)return refusal('NOT_AVAILABLE','Audit export requires a real owned scratch parent with mode 0700 and a socket path within 100 bytes; repair it and restart the API line.');
     const checked = CHECK[method](args);
-    if (!checked) return refusal('INVALID', method === 'turns.send' ? BAD_SEND : BAD_WRITE[method] ?? BAD_ARGS);
-    if (method === 'projects.create') {
-      if (options.projectCreation === 'signed-in-app') return refusal('NOT_AVAILABLE', 'Create the project in the signed-in app. Project creation through this line is unavailable with company sign-in.');
-      if (!projectBudget!.take()) return refusal('NOT_AVAILABLE', 'The project creation limit for this running process was reached (10 requests per minute, 100 until restart). Nothing was queued. Create the project in the app or try later.');
+    if (!checked) {
+      if (method === 'material.attach') {
+        if (!text(args.name) || !attachmentName(args.name)) return refusal('INVALID', 'That file name cannot be attached.');
+        const maxEncoded = 4 * Math.ceil(MAX_ATTACHMENT_BYTES / 3);
+        if (text(args.base64) && (args.base64.length > maxEncoded || (args.base64.length === maxEncoded && Buffer.from(args.base64, 'base64').length > MAX_ATTACHMENT_BYTES))) return refusal('INVALID', 'An attachment must be at most 25 MiB. Nothing was attached.');
+        return refusal('INVALID', 'An attachment needs a project, a file name, canonical base64 bytes and a media type. Nothing was attached.');
+      }
+      return refusal('INVALID', method === 'turns.send' ? BAD_SEND : BAD_WRITE[method] ?? BAD_ARGS);
+    }
+    if ((API_LINE_PROJECTS as readonly string[]).includes(method)) {
+      if (options.projectCreation === 'signed-in-app') return refusal('NOT_AVAILABLE', method==='projects.update' ? 'Change the project in the signed-in app. Project changes through this line are unavailable with company sign-in.' : 'Create the project in the signed-in app. Project creation through this line is unavailable with company sign-in.');
+      if (!projectBudget!.take()) return refusal('NOT_AVAILABLE', method==='projects.update' ? 'The project change limit for this running process was reached (10 requests per minute, 100 until restart). Nothing was queued. Change the project in the app or try later.' : 'The project creation limit for this running process was reached (10 requests per minute, 100 until restart). Nothing was queued. Create the project in the app or try later.');
+    }
+    if (method === 'material.attach') {
+      if (options.attachment === 'signed-in-app') return refusal('NOT_AVAILABLE', 'Attach the file in the signed-in app. Attachment through this line is unavailable with company sign-in.');
+      if (!options.attachmentBudget!.take()) return refusal('NOT_AVAILABLE', 'The attachment limit for this running process was reached (10 requests per minute, 100 until restart). Nothing was queued. Nothing was attached. Try later, or stop the app or background service holding this data folder and attach through a standalone data folder.');
     }
     if (!ASKED.has(method) && method !== 'connectors.resolveEffect' && method !== 'threads.checked') return shown(method, await options.call(method, checked as never));
     // Closed: nothing is read for a question nobody will be shown.
@@ -516,6 +555,8 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
   }
 
   const open = new Set<Socket>();
+  // One partial original at a time; all other connections retain the ordinary byte bound.
+  let largeFrame: Socket | undefined;
   const server: Server = createServer((socket) => {
     open.add(socket);
     // A continuation belongs to the connection that received it. Even another same-user
@@ -523,14 +564,25 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
     const audits=new Map<string,Fields>();
     const cancelAudit=(session:string,args:Fields)=>options.call('audit.export',{...args,session,cancel:true} as never).catch(()=>{});
     socket.once('close',()=>{for(const [session,args]of audits)void cancelAudit(session,args);audits.clear();});
-    let buffered = '';
+    let parts: string[] = [];
+    let frameBytes = 0;
+    let prefix = '';
     let greeted = false;
+    // A sender that stalls or drips must not keep the one slot from the person's real attachment.
+    const frameWait = options.attachmentFrameWaitMs ?? { idle: 15_000, total: 120_000 };
+    let frameIdle: NodeJS.Timeout | undefined, frameTotal: NodeJS.Timeout | undefined;
+    const releaseFrame = () => {
+      parts = [];frameBytes = 0;prefix = '';
+      clearTimeout(frameIdle);clearTimeout(frameTotal);frameIdle = frameTotal = undefined;
+      if (largeFrame === socket) largeFrame = undefined;
+    };
     const gone = () => socket.destroyed;
     const answer = (line: object) => {
       if (!socket.destroyed) socket.write(`${JSON.stringify(line)}\n`);
     };
-    const take = (message: Fields) => {
+    const take = (message: Fields, frameLength: number) => {
       if (!greeted) {
+        if (frameLength >= MAX_LINE) return socket.destroy();
         if (message.api !== API_LINE_PROTOCOL) return socket.destroy();
         greeted = true;
         const hello: HelloAnswer = { ready: true, send: sends, serverPid: process.pid };
@@ -538,10 +590,20 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
       }
       const { id, method, args } = message;
       if (typeof id !== 'number') return socket.destroy();
-      if (!carried(method)) return answer({ id, result: refusal('NOT_AVAILABLE', OFF_LINE) as Receipt<never> });
+      if (!carried(method)) {
+        const sharedModel = method === 'settings.model.put' && (args as Args<'settings.model.put'>)?.change?.route === 'shared';
+        const detail = !sharedModel ? OFF_LINE : options.holder === 'background-service'
+          ? 'The background service holds this data folder, so the shared model was not changed. Stop the background service, run backbone model shared local --endpoint <loopback-url> --model <model>, then start it again.'
+          : options.holder === 'other'
+          ? 'Another process holds this data folder, so the shared model was not changed. Stop it, run the command, then start it again.'
+          : 'The app holds this data folder, so the shared model was not changed. Choose Settings › AI and models › Shared work, or close the app, run the command, then open it again.';
+        return answer({ id, result: refusal('NOT_AVAILABLE', detail) as Receipt<never> });
+      }
       if ((API_LINE_PROJECTS as readonly string[]).includes(method) && !options.projectCreation) return answer({id,result:refusal('NOT_AVAILABLE',OFF_LINE)});
+      if ((API_LINE_ATTACHMENTS as readonly string[]).includes(method) && !options.attachment) return answer({id,result:refusal('NOT_AVAILABLE',OFF_LINE)});
       if ((API_LINE_TEAM as readonly string[]).includes(method)&&!options.teamManagement) return answer({id,result:refusal('NOT_AVAILABLE',OFF_LINE)});
       if (options.readOnly && CHANGES.has(method)) return answer({ id, result: refusal('NOT_AVAILABLE', READS_ONLY) as Receipt<never> });
+      if (method !== 'material.attach' && frameLength >= MAX_LINE) return answer({id,result:refusal('INVALID',BAD_ARGS)});
       const fields = args && typeof args === 'object' && !Array.isArray(args) ? (args as Fields) : {};
       // A throw's words are the core's and may name a connection; only that it failed crosses.
       if(method==='audit.export'&&typeof fields.session==='string'&&!audits.has(fields.session))return answer({id,result:refusal('INVALID','This audit session belongs to another connection or has ended.')});
@@ -559,14 +621,29 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
     };
     socket.setEncoding('utf8');
     socket.on('error', () => socket.destroy());
-    socket.on('close', () => open.delete(socket));
+    socket.on('close', () => {open.delete(socket);releaseFrame();});
     socket.on('data', (chunk: string) => {
-      buffered += chunk;
-      if (buffered.length > MAX_LINE) return socket.destroy();
-      let at: number;
-      while ((at = buffered.indexOf('\n')) >= 0) {
-        const line = buffered.slice(0, at);
-        buffered = buffered.slice(at + 1);
+      // Split only the new chunk, never flatten/rescan the growing base64 body per chunk.
+      let from = 0;
+      while (from < chunk.length) {
+        const at = chunk.indexOf('\n', from);
+        const fragment = chunk.slice(from, at < 0 ? undefined : at);
+        frameBytes += Buffer.byteLength(fragment, 'utf8');
+        if (prefix.length < 128) prefix += fragment.slice(0, 128 - prefix.length);
+        if (frameBytes >= MAX_LINE) {
+          // The existing client announces the method before args. Only that bounded header
+          // can lift the ceiling; no large JSON parse is needed to discover the method.
+          const announced = /^\{"id":\d{1,16},"method":"material\.attach","args":/.test(prefix);
+          if (!greeted || options.attachment !== true || !announced || frameBytes >= MAX_ATTACHMENT_LINE || (largeFrame && largeFrame !== socket)) return socket.destroy();
+          largeFrame = socket;
+          clearTimeout(frameIdle);frameIdle = setTimeout(() => socket.destroy(), frameWait.idle);
+          frameTotal ??= setTimeout(() => socket.destroy(), frameWait.total);
+        }
+        parts.push(fragment);
+        if (at < 0) return;
+        const line = parts.join('');
+        const length = frameBytes;
+        releaseFrame();
         let message: unknown;
         try {
           message = JSON.parse(line);
@@ -574,7 +651,9 @@ export async function serveApiLine(options: ApiLineOptions): Promise<ApiLineServ
           return socket.destroy();
         }
         if (!message || typeof message !== 'object' || Array.isArray(message)) return socket.destroy();
-        take(message as Fields);
+        take(message as Fields, length);
+        if (socket.destroyed) return;
+        from = at + 1;
       }
     });
   });

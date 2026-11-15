@@ -567,11 +567,15 @@
 !packages/platform/src/composition/project-create-prepare.ts
 !packages/platform/src/composition/project-create.ts
 !packages/platform/src/composition/project-files.ts
+!packages/platform/src/composition/project-list.ts
+!packages/platform/src/composition/project-update.ts
 !packages/platform/src/composition/recovered-writes.ts
 !packages/platform/src/composition/rewind-admission.ts
 !packages/platform/src/composition/selection-line.ts
 !packages/platform/src/composition/shared-certificate.ts
 !packages/platform/src/composition/shared-codex.ts
+!packages/platform/src/composition/shared-engine.ts
+!packages/platform/src/composition/shared-history.ts
 !packages/platform/src/composition/sidechat-core.ts
 !packages/platform/src/composition/sidechat-wiring.ts
 !packages/platform/src/composition/sidechat.ts
@@ -580,6 +584,9 @@
 !packages/platform/src/composition/task-board.ts
 !packages/platform/src/composition/telemetry-observations.ts
 !packages/platform/src/composition/telemetry.ts
+!packages/platform/src/composition/terminal-output.ts
+!packages/platform/src/composition/terminal-process.ts
+!packages/platform/src/composition/terminal-stream.ts
 !packages/platform/src/composition/thread-control.ts
 !packages/platform/src/composition/thread-custody.ts
 !packages/platform/src/composition/thread-journal.ts
@@ -624,6 +631,7 @@
 !packages/platform/src/gateway.ts
 !packages/platform/src/keys/vault.ts
 !packages/platform/src/machine-client.ts
+!packages/platform/src/material-attachment.ts
 !packages/platform/src/memory/agent-roles.ts
 !packages/platform/src/memory/embeddings.ts
 !packages/platform/src/memory/imports.ts
@@ -655,6 +663,7 @@
 !packages/platform/src/ports/mail.ts
 !packages/platform/src/ports/redaction.ts
 !packages/platform/src/ports/telemetry.ts
+!packages/platform/src/project-name.ts
 !packages/platform/src/remote/client.ts
 !packages/platform/src/remote/workspace.ts
 !packages/platform/src/schedules/rules.ts
@@ -772,6 +781,7 @@
 !packages/surfaces/cli/src/remote.ts
 !packages/surfaces/cli/src/screen.ts
 !packages/surfaces/cli/src/session.ts
+!packages/surfaces/cli/src/shared-engine-note.ts
 !packages/surfaces/cli/src/telemetry.ts
 !packages/surfaces/cli/src/version.ts
 !packages/surfaces/cli/tsconfig.json

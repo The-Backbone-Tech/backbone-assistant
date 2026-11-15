@@ -6,25 +6,27 @@
 import type { PluginPart } from '@backbone-next/platform';
 import * as React from 'react';
 import { brand } from '../../brand';
-import { call, onEvent } from '../../lib/api';
+import { call } from '../../lib/api';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { SettingsRow } from './SettingsRow';
+import { useSettingsRead } from '../../lib/use-settings-read';
+import { SettingsReadStatus } from './SettingsReadStatus';
+
+const readPlugins = () => call('plugins.parts', {});
 
 const KIND: Record<PluginPart['kind'], string> = { command: 'Command', agent: 'Agent', hook: 'Hook' };
 const ORIGIN: Record<PluginPart['origin'], string> = { claude: 'Claude Code', codex: 'Codex' };
 
 export function PluginsSection() {
-  const [parts, setParts] = React.useState<PluginPart[]>();
-  const load = React.useCallback(() => void call('plugins.parts', {}).then((ps) => setParts(ps ?? []), () => setParts([])), []);
-  React.useEffect(() => {
-    load();
-    return onEvent((e) => e.topic === 'memory' && load());
-  }, [load]);
-  if (!parts) return <p className="py-4 text-sm text-muted">Loading…</p>;
+  const { value: parts, pending, failed, reload: load } = useSettingsRead(readPlugins, 'memory');
+  const status = <SettingsReadStatus label="Plugins" pending={pending} failed={failed} hasValue={parts !== undefined} retry={load} />;
+  if (!parts) return status;
   const plugins = [...new Set(parts.map((p) => p.plugin))];
   return (
     <div>
+      {status}
+      <fieldset aria-label="Plugins">
       <p className="pt-3 text-xs text-muted">
         Commands, agents and hooks of the Claude Code and Codex plugins you enabled. Each is off until you enable it, and a change to its file turns it off until you look again. A command you enable is typed in the composer as /name. An agent you enable is a role an engine may give a child; its tools give no permission. Hooks are never run.
       </p>
@@ -35,6 +37,7 @@ export function PluginsSection() {
           {parts.filter((p) => p.plugin === plugin).map((p) => <PartRow key={p.id} part={p} onChange={load} />)}
         </section>
       ))}
+      </fieldset>
     </div>
   );
 }

@@ -93,7 +93,7 @@ export function NewProjectDialog({ open, onOpenChange }: { open: boolean; onOpen
   }
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent title="New project" description="A project holds threads and their files.">
+    <DialogContent title="New project" description="A project holds chats and their files.">
       <form onSubmit={e=>void create(e)} className="space-y-4">
         {intent && <p className="text-sm">A previous project creation is unconfirmed. Check the same attempt before starting another.</p>}
         <label className="block text-sm"><span className="mb-1 block font-medium">Name</span><Input autoFocus disabled={creating || revision===undefined || !!intent} value={name} onChange={e=>setName(e.target.value)} /></label>

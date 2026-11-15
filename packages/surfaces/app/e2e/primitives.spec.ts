@@ -12,7 +12,7 @@ async function open(page: Page, label: string) {
   await expect(page.locator('[data-ready=true]')).toBeVisible();
   const p = await api<{ value: { id: string } }>(page, 'projects.create', { name: 'Launch', kind: 'git' });
   await api(page, 'material.attach', { projectId: p.value.id, name: 'note.md', base64: Buffer.from('# Note\n').toString('base64'), mediaType: 'text/markdown' });
-  await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
   return { end: async () => { await stopBridge(bridge.proc); await removeDataHome(home); } };
 }
 const send = (page: Page, text: string) => { const m = page.getByRole('textbox', { name: 'Message' }); return m.fill(text).then(() => m.press('Enter')); };
@@ -42,10 +42,12 @@ test('a select is one control everywhere', async ({ page }) => {
   const { end } = await open(page, 'prim-select');
   try {
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
-    const language = page.getByRole('combobox', { name: 'Language' });
-    await expect(language).toBeVisible();
-    expect((await language.boundingBox())!.height).toBe(32);
-    expect(await language.evaluate((e) => getComputedStyle(e).borderTopLeftRadius)).toBe('6px');
+    // Language is shown as text since it has one value; the permission choice is a select every data folder has.
+    await page.getByRole('dialog', { name: 'Settings' }).getByRole('button', { name: 'Tool permissions', exact: true }).click();
+    const select = page.getByRole('combobox', { name: 'How much runs without asking' });
+    await expect(select).toBeVisible();
+    expect((await select.boundingBox())!.height).toBe(32);
+    expect(await select.evaluate((e) => getComputedStyle(e).borderTopLeftRadius)).toBe('6px');
   } finally { await end(); }
 });
 
@@ -66,13 +68,72 @@ test('both kinds of tab show close on the active one', async ({ page }) => {
     await send(page, 'First');
     await expect(page.getByTestId('turn')).toHaveCount(1);
     await page.getByRole('button', { name: 'New chat' }).click();
+    // The new-chat view must be up before typing, or "Second" lands in the first conversation.
+    await expect(page.getByRole('heading', { name: /What should we work on in Launch/ })).toBeVisible();
     await send(page, 'Second');
     await expect(page.getByRole('tablist', { name: 'Open conversations' })).toBeVisible();
+    const tabs = page.getByRole('tablist', { name: 'Open conversations' }).getByRole('tab');
+    const seen = async () => JSON.stringify({ tabs: await tabs.evaluateAll((all) => all.map((t) => [t.textContent, t.getAttribute('aria-selected')])), composer: await page.getByRole('textbox', { name: 'Message' }).inputValue().catch(() => 'no composer'), turns: await page.getByTestId('turn').allTextContents(), alerts: await page.getByRole('alert').allTextContents() });
+    // The second conversation is open and selected before its close control is measured; if not, say what was there.
+    const reached = async (check: () => Promise<void>) => { try { await check(); } catch (error) { throw new Error(`${(error as Error).message}\nSeen: ${await seen()}`); } };
+    await reached(() => expect(page.getByRole('tab', { name: /Second/ })).toHaveAttribute('aria-selected', 'true'));
+    await reached(() => expect(page.getByTestId('turn').first()).toContainText('Second'));
     const close = page.getByRole('button', { name: /^Close conversation view Second/ });
     await page.mouse.move(0, 0);
-    await expect.poll(() => close.evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
+    await reached(() => expect.poll(() => close.evaluate((e) => getComputedStyle(e).opacity)).toBe('1'));
     const tab = page.getByRole('tab', { name: /Second/ });
     expect(await tab.evaluate((e) => getComputedStyle(e).fontSize), 'the interface size token wins').toBe('13px');
+  } finally { await end(); }
+});
+
+test('typing straight after New chat lands in the message box', async ({ page }) => {
+  const { end } = await open(page, 'prim-new-chat');
+  try {
+    await send(page, 'First');
+    await expect(page.getByTestId('turn')).toHaveCount(1);
+    // A click leaves the keyboard on the button that was clicked. New chat is a request to write, so the message box takes it.
+    await page.getByRole('button', { name: 'New chat' }).click();
+    await expect(page.getByRole('heading', { name: /What should we work on in Launch/ })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Message' })).toBeFocused();
+    await page.keyboard.type('Second');
+    await expect(page.getByRole('textbox', { name: 'Message' })).toHaveValue('Second');
+    // The same from the new-chat view itself, where nothing is mounted again.
+    await page.getByRole('button', { name: 'Search chats' }).focus();
+    await page.getByRole('button', { name: 'New chat' }).click();
+    await expect(page.getByRole('textbox', { name: 'Message' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('turn').first()).toContainText('Second');
+  } finally { await end(); }
+});
+
+test('help stays out of the way when the app puts the keyboard in a text field', async ({ page }) => {
+  const { end } = await open(page, 'prim-field-help');
+  try {
+    // Opening Browser focuses its address. A browser treats any focused text field as keyboard focus, so the
+    // field's help used to open by itself, over the tab row above it.
+    await page.keyboard.press('ControlOrMeta+Shift+b');
+    const address = page.getByRole('textbox', { name: 'Page address' });
+    await expect(address).toBeFocused();
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    await address.hover();
+    await expect(page.getByRole('tooltip')).toContainText('Page address');
+  } finally { await end(); }
+});
+
+test('the new-chat question keeps its question mark beside the project name', async ({ page }) => {
+  const { end } = await open(page, 'prim-question');
+  try {
+    await page.keyboard.press('ControlOrMeta+p'); // The pane narrows the middle region.
+    const heading = page.getByRole('heading', { name: /What should we work on in Launch/ });
+    await expect(heading).toBeVisible();
+    const tops = await heading.evaluate((h) => {
+      const mark = [...h.childNodes].reverse().find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.includes('?')) ?? [...h.querySelectorAll('*')].flatMap((e) => [...e.childNodes]).reverse().find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.includes('?'))!;
+      const range = document.createRange(); range.selectNodeContents(mark);
+      const name = h.querySelector('button')!.getBoundingClientRect();
+      const q = range.getBoundingClientRect();
+      return { name: name.top + name.height / 2, mark: q.top + q.height / 2 };
+    });
+    expect(Math.abs(tops.name - tops.mark), 'the question mark is on the project name\'s line').toBeLessThan(12);
   } finally { await end(); }
 });
 

@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { IdentityConfiguration } from '../../lib/api';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { changeFailure } from '../../lib/refusal';
 
 export function IdentityEntry() {
   const [name,setName]=React.useState(''),[invitation,setInvitation]=React.useState(''),[busy,setBusy]=React.useState(false),[error,setError]=React.useState<string>();
@@ -13,7 +14,8 @@ export function IdentityEntry() {
     try {
       const bridge=window.backbone;
       const result=remote?await bridge?.joinRemoteWorkspace?.(invitation.trim(),name.trim()):company?await bridge?.companySignIn?.(invitation.trim()||undefined):await bridge?.acceptInvitation?.(invitation.trim(),name.trim());
-      if(!result?.ok)setError('Sign-in was not confirmed. Inspect membership before trying again.');
+      // A refused receipt says why; any other answer is not known.
+      if(!result?.ok){const failure=changeFailure(result);setError(failure.kind==='refused'?`${remote?'Joining':'Sign-in'} was refused. ${failure.detail}`:'Sign-in was not confirmed. Inspect membership before trying again.');}
     }catch(error){setError(remote?`Joining was not confirmed. ${String(error)}`:'Sign-in was not confirmed. Your current edits are kept. Inspect membership before trying again.');}
     finally{setBusy(false);}
   }

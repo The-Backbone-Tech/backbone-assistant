@@ -64,7 +64,7 @@ async function roleJourney({}: {}, info: TestInfo) {
     await openSidebar(page);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     let settings = page.getByRole('dialog', { name: 'Settings' });
-    await settings.getByRole('button', { name: 'Agent roles', exact: true }).click();
+    await settings.getByRole('button', { name: 'Helper roles', exact: true }).click();
     await settings.getByRole('textbox', { name: 'Agent role definition' }).fill(definition);
     await settings.getByRole('button', { name: 'Save role', exact: true }).click();
     await expect(settings.getByRole('status')).toBeVisible();
@@ -80,7 +80,7 @@ async function roleJourney({}: {}, info: TestInfo) {
     await openSidebar(page);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     settings = page.getByRole('dialog', { name: 'Settings' });
-    await settings.getByRole('button', { name: 'Agent roles', exact: true }).click();
+    await settings.getByRole('button', { name: 'Helper roles', exact: true }).click();
     await settings.getByRole('button', { name: 'researcher', exact: true }).click();
     await expect(settings.getByRole('textbox', { name: 'Agent role definition' })).toHaveValue(/cite evidence and dates/);
     await settings.getByRole('button', { name: 'Done', exact: true }).click();
@@ -119,7 +119,7 @@ async function roleJourney({}: {}, info: TestInfo) {
     await openSidebar(page);
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     settings = page.getByRole('dialog', { name: 'Settings' });
-    await settings.getByRole('button', { name: 'Agent roles', exact: true }).click();
+    await settings.getByRole('button', { name: 'Helper roles', exact: true }).click();
     await settings.getByRole('button', { name: 'researcher', exact: true }).click();
     await settings.getByRole('button', { name: 'Delete role', exact: true }).click();
     await expect(settings.getByRole('status')).toBeVisible();

@@ -97,7 +97,7 @@ export class ConnectorObservations {
  }
  get problem():string|undefined{return this.failed?HISTORY:undefined;}
  private ready(){if(this.failed)throw new Error(HISTORY);}
- private writer(){this.ready();if(!inActiveHomeLockScope(this.home))throw new Error('Connector observation changes require the home lock.');}
+ private writer(){this.ready();if(!inActiveHomeLockScope(this.home))throw new Error('Connector observation changes require the data folder lock.');}
  private require(id:string){this.ready();const value=this.observations.get(id);if(!value)throw new Error('No such connector observation.');return value;}
  private mutable(id:string){const value=this.require(id);if(value.phase==='discarded')throw new Error('This connector observation was discarded from agent use; its history cannot be revived.');return value;}
  private append(event:ConnectorObservationEvent){

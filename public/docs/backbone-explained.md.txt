@@ -1,12 +1,12 @@
 # Backbone explained
 
-Backbone is an open-source AI assistant for people, teams and companies. The [goal](../GOAL.md) sets the outcome; this page explains the idea. The [roadmap](execution.md) separates current implementation from work still open.
+Backbone's goal is a complete, open-source and composable working environment for people and capable AI: use one useful part, combine selected parts with existing tools, or run the whole product. The [goal](../GOAL.md) sets the outcome; this page explains the idea. The [roadmap](execution.md) separates current implementation from work still open.
 
 ## The idea
 
 Give the assistant a job, relevant sources and permission. It chooses a feasible route through existing tools, subscriptions and models, does and verifies the work, preserves corrections and shows its result. The conversation, files, document versions and record of outside actions remain inspectable.
 
-The intended value is continuity across engines and tools: one record of work and permission, data authoritative where it lives, visible uncertainty, recovery after interruption and export without dependence on a proprietary Backbone service.
+The intended value combines strong current capabilities, coherent working surfaces, useful freedom for AI and an environment that gets clearer with use. People and agents can work on the same documents, tables, data and tasks, understand decisions, correct knowledge and reuse effective methods. Continuity, source authority, visible uncertainty, recovery and export support that outcome. PostgreSQL is the current relational and durable operating substrate. Earlier repositories supply vision and lessons rather than an implementation to reconstruct.
 
 ## The design
 
@@ -24,4 +24,4 @@ Arena can supply dated comparison evidence but is optional. A separate simulatio
 
 The [source map](map.md), [scorecard](scorecard.md), [contracts](contracts/) and [guides](how-to/) locate implemented capabilities and their qualification limits. A scripted test establishes its bounded behaviour; an installed check establishes that consumer; human use and complete-job comparisons establish different claims.
 
-Start with personal conversation, files, mail, calendar, memory and background work. Team and company configurations need their own identity, collaboration and fleet qualification. [Acceptance jobs](../acceptance/README.md) define complete results. Contribute through the [development guide](development-map.md).
+Start with personal conversation, files, mail, calendar, memory and background work. Team sharing has controlled tests between processes and app instances on one Mac; two-person, two-computer use remains unqualified. Complete Company identity, collaboration and fleet configurations remain open. [Acceptance jobs](../acceptance/README.md) define complete results. Contribute through the [development guide](development-map.md).

@@ -24,7 +24,11 @@ for(const provider of ['slack','telegram'] as const)test(`${provider} channel tu
   await Promise.all([fake.emit(message(2,'second')),fake.emit(message(3,'third'))]);
   await until(async()=>{const t=(await host.call('threads.list',{}))[0];if(!t)return false;const view=await host.call('threads.get',{id:t.id});return view.ok&&view.value.turns.length===3&&!view.value.summary.running;});
   const threads=await host.call('threads.list',{});assert.equal(threads.length,1);
-  const view=await host.call('threads.get',{id:threads[0].id});assert.ok(view.ok);assert.deepEqual(view.value.turns.map(t=>t.user.text),['first','second','third']);
+  // 'second' and 'third' are sent at the same moment, so which arrives first is not fixed. The contract's order is the
+  // order in which the journal recorded them ("by arrival within a conversation"), with 'first' first because it arrived alone.
+  const arrival=active.ledger.arrivals();
+  assert.equal(arrival[0],'first');assert.deepEqual([...arrival].sort(),['first','second','third']);
+  const view=await host.call('threads.get',{id:threads[0].id});assert.ok(view.ok);assert.deepEqual(view.value.turns.map(t=>t.user.text),arrival);
   const secondSurface={call:host.call.bind(host)};
   assert.ok((await secondSurface.call('turns.send',{projectId:p.value.id,threadId:threads[0].id,text:'from CLI',attachments:[],settings,clientKey:'second-surface'})).ok);
   await until(async()=>{const t=await host.call('threads.get',{id:threads[0].id});return t.ok&&!t.value.summary.running;});

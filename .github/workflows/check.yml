@@ -1,7 +1,7 @@
 name: check
 
-# Public source publication does not automatically run hosted jobs.
-# Dispatch explicitly when a maintainer chooses to qualify a public revision.
+# Publishing source does not start hosted jobs automatically.
+# Maintainers dispatch qualification for the exact public cut they choose.
 on:
   workflow_dispatch:
 

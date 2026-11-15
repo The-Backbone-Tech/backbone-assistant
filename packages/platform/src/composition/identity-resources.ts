@@ -12,6 +12,7 @@ export function identityResource(method:Method,fields:Record<string,unknown>,thr
     if(project!==undefined&&project!==actual)throw new IdentityRefused();
     project=actual;
   };
+  if(method==='projects.update')confirm(typeof fields.id==='string'?fields.id:undefined);
   if(method.startsWith('threads.')&&['threads.get','threads.update','threads.delete','threads.fork'].includes(method)){
     thread=typeof fields.id==='string'?threads.get(fields.id):undefined;confirm(thread?.summary.projectId);
   }

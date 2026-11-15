@@ -100,7 +100,7 @@ test('a home that holds work, a folder that is not empty and a folder that is no
   assert.equal((await run(other, ['projects', 'create', 'Theirs'])).code, EXIT.OK);
   const refused = await run(other, ['restore', to]);
   assert.equal(refused.code, EXIT.REFUSED, refused.out + refused.err);
-  assert.match(refused.err, /not a new, empty home/);
+  assert.match(refused.err, /not a new, empty data folder/);
   assert.deepEqual((JSON.parse((await run(other, ['projects', 'list', '--json'])).out) as { name: string }[]).map((p) => p.name), ['Theirs'], 'left as it is');
   assert.equal((await run(other, ['restore', to, '--replace'])).code, EXIT.USAGE, 'no replacing');
 
@@ -108,7 +108,7 @@ test('a home that holds work, a folder that is not empty and a folder that is no
   mkdirSync(join(notOne, 'stuff'));
   const wrong = await run(home(), ['restore', notOne]);
   assert.equal(wrong.code, EXIT.REFUSED);
-  assert.match(wrong.err, /not a home export/);
+  assert.match(wrong.err, /not a data folder export/);
   assert.equal((await run(h, ['export'])).code, EXIT.USAGE);
   assert.equal((await run(h, ['export', to, '--dry-run'])).code, EXIT.USAGE);
 });

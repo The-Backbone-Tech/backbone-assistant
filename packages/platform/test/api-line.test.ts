@@ -350,7 +350,7 @@ test('nothing secret crosses: the route shows no address, and a thrown error\'s 
   const h = home();
   const SECRET = 'sk-test-canary';
   const { call } = stand({
-    'settings.model.get': { own: { provider: 'openai-compatible', model: 'm', keySet: true, baseUrl: `https://x.example/v1?key=${SECRET}` }, gateway: null, active: { kind: 'own', label: 'l' }, hint: null, harness: 'h' },
+    'settings.model.get': { own: { provider: 'openai-compatible', model: 'm', keySet: true, baseUrl: `https://x.example/v1?key=${SECRET}` }, gateway: null, active: { kind: 'own', label: 'l' }, hint: null, harness: 'h', shared: { own: { provider: 'openai-compatible', model: 'shared', keySet: true, baseUrl: `https://shared.example/v1?key=${SECRET}` }, gateway: null, active: null, hint: null, harness: 'Pi' } },
     'threads.list': new Error(`postgres://backbone:${SECRET}@127.0.0.1/db refused`),
   });
   await serve(h, call);
@@ -720,10 +720,11 @@ test('what only the person may do in the app is refused on the line, even with s
     'connector-release', 'connector-open', 'connector-read', 'triage-sign', 'tools-connect', 'choose-export-folder', 'document-export',
     'connectTool', 'signCapability', 'releaseConnectorCall', 'openEgress',
     'connectors.decide', 'connectors.set', 'connectors.refresh', 'triage.connect', 'triage.decide', 'triage.undo', 'triage.run',
-    'tools.disconnect', 'backup.export', 'settings.model.put', 'terminal.run', 'memory.proposal.decide', 'skills.decide', 'goals.decide',
+    'tools.disconnect', 'backup.export', 'settings.model.put', 'terminal.run', 'terminal.start', 'terminal.list', 'terminal.stop', 'terminal.clear', 'memory.proposal.decide', 'skills.decide', 'goals.decide',
     'goals.clear', 'goals.resume', 'queue.send', 'queue.edit', 'turns.steer', 'schedules.run', 'schedules.update', 'schedules.delete',
     'heartbeat.put', 'triggers.create', 'children.start', 'projects.create', 'threads.update', 'threads.delete', 'material.attach', 'memory.put',
   ];
+  for (const method of ['terminal.run', 'terminal.start', 'terminal.list', 'terminal.stop', 'terminal.clear'] as const) assert.ok(METHODS.includes(method), `${method} is a registered method, not a misspelling`);
   for (const m of personOnly) assert.ok(!(API_LINE_METHODS as readonly string[]).includes(m), m);
   const { lines } = await raw(h, ['{"api":1}', ...personOnly.map((method, i) => JSON.stringify({ id: i + 1, method, args: { threadId: 't', effect: 'e', tool: 'codex', to: '/tmp/x', change: {} } }))]);
   assert.equal(lines.length, personOnly.length + 1);

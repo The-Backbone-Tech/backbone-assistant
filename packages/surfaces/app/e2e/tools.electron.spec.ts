@@ -1,5 +1,5 @@
 import { hangDetector } from '../../../../scripts/lib/test-hang.ts';
-// Connect your AI tools, on the built Electron app: open Settings, connect a fake Claude Code, approve
+// Settings › Assistants using this app, on the built Electron app: open Settings, connect a fake Claude Code, approve
 // the grant in the main process's own window with one click, see "Connected", use the door the app
 // ships (the command inside the app that every entry starts), see its receipt counted, disconnect. The renderer cannot grant:
 // connecting is not an api method, and only main's confirmation connects. Native dialogs are
@@ -50,7 +50,7 @@ const asked = (electronApp: ElectronApplication) => electronApp.evaluate(() => (
 async function openSection(page: Page) {
   await page.getByRole('button', { name: 'Settings' }).click();
   const settings = page.getByRole('dialog', { name: 'Settings' });
-  await settings.getByRole('navigation', { name: 'Settings sections' }).getByRole('button', { name: 'Connect your AI tools' }).click();
+  await settings.getByRole('navigation', { name: 'Settings sections' }).getByRole('button', { name: 'Assistants using this app' }).click();
   return settings;
 }
 

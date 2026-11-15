@@ -519,8 +519,8 @@ has enabled sharing. Invitation issuance on this line allows member or guest onl
 admin invitations stay in the app. Ordinary app and daemon lines retain their existing method
 list and refuse these controls. The network listener cannot enable this option.
 Members remain bound to live project access and may send only through a known
-host-tools-only engine. Native-account refusal tells the owner to select Pi and
-configure its model, without weakening engine admission.
+host-tools-only engine. Native-account refusal tells the owner to configure a model for shared work,
+without weakening engine admission or changing the personal engine.
 
 Authenticated streams capture accessible projects and revalidate session and
 project access on identity changes and once every five seconds while idle. Opening
@@ -591,7 +591,10 @@ setup failure stays visible on the Sharing page and does not prevent quitting.
 
 RendererIdentitySessions binds each window either to the device Host, a local
 accepted session, an empty session, or a captured remote client. RemoteClient
-performs pin checking and all network requests in Main. remoteWorkspace holds
+performs pin checking and all network requests in Main. An error reply is a
+refusal only on explicit evidence: its body says outcome REFUSED, or access
+ended (401 or accessEnded). Any other error reply, including one with no outcome
+or a body that does not parse, is an unknown outcome. remoteWorkspace holds
 the saved session in the app’s existing vault using its HomeKeys. The renderer
 sees only the origin and connection state. Joining drains drafts through the
 existing close protocol before changing accounts. Empty or ended sessions never
@@ -640,3 +643,97 @@ local project. Focused session and vault tests cover routing, uncertain sign-out
 temporary notices and durable unknown-send custody; shared-listener tests cover
 the saved preference and unavailable-address startup. This is local-run evidence;
 an installed build or real second-computer use must be recorded separately.
+
+
+## Separate engine for shared work (14 November 2026)
+
+The device owner's turns keep their selected engine and model route. An explicit
+shared model choice runs colleagues and named automations on a separately loaded
+Pi instance, even while the owner uses a signed-in native client. Pi's checked
+manifest must declare that it uses only Host tools; an unrecognised engine, a
+native-client model choice or a changed declaration refuses shared work. The
+colleague keeps their own permission, project audience and conversation ownership.
+Shared work receives no device memory, connector tools or coordination tools.
+The model adapter can resolve only the credential of its selected shared route.
+The Host may inspect other sealed credentials solely to redact secrets from work.
+
+The existing model settings validator and sealed credential store also own this
+choice, in shared-model-route.json. One provider route is selected. A local
+selection takes priority without deleting its stored shared provider key;
+clearing that local selection explicitly restores the stored shared provider
+route. A local endpoint must be loopback. Shared resolution ignores ambient
+model variables and the machine Keychain route. A turn recorded on a shared route
+never falls through to a personal route. A missing or invalid shared choice, or a
+lost key, refuses rather than choosing another provider. Fresh turns without a
+shared choice retain the workspace-Pi compatibility rule below.
+An explicit valid replacement can repair invalid shared settings. The command
+`backbone model shared local --endpoint <loopback-url> --model <id>` and Settings
+› AI and models use the same setting. Keys are never returned by either surface.
+
+Without a shared choice, a workspace already using an engine with only Host tools
+continues its existing route. A workspace using a native-account engine refuses
+colleague sends and named automation runs with configuration guidance. A failed
+shared engine cannot disable or replace the owner's personal carrier.
+
+The durable turn reservation records when shared Pi is required. Journal replay
+restores that choice before recovery; even an authenticated session belonging to
+the device owner cannot resume that turn on the personal native client. Recovery
+rechecks identity, project access and the selected engine declaration, and refuses
+when the shared route is absent. It reclaims the original run; it creates no
+replacement send. Older automations bound to another engine remain refused by
+the original piece-bound permission; changing routes does not widen that permission.
+Viewer changes, removal and source withdrawal retain their existing stopping and
+withholding rules. The work record keeps the ordered carriers and route identities used by a turn,
+including the route it began on when recovery uses another. It exposes neither
+endpoints nor credential handles in that history.
+
+Every session from another computer uses the shared carrier when configured,
+including the owner's own signed-in session. That session has the same narrower
+authority as other shared work. Before dispatch and again at the carrier, the Host
+refuses to send any personal-route context in an owner's thread to a different
+shared route. It compares the recorded route identities and models, including
+personal routes used before today's setting changed. Older personal turns without
+a verifiable route identity also refuse. The check includes linked parent, child,
+review, fork and handover context. The message is: "This conversation was
+started on the owner's computer with its own model. Continue it there, or start a
+new conversation here." A new conversation works on the shared carrier. This
+restriction does not apply to a colleague's own conversations. With Pi as the
+workspace engine and no shared route, the existing route and behavior remain.
+This rule protects conversation history. It does not cover project files: when the
+owner, signed in from another computer, starts a new conversation and attaches or
+asks about a file in one of their projects, that file's content goes to the shared
+model, because the owner asked for it there with a model they chose.
+
+Shared dispatch refuses an unconfigured shared route when the personal engine
+brings its own tools. Independently, the carrier refuses every restricted identity
+on such an engine before any producer can run. Core may reclaim and reconcile
+only the original custody; this does not run that engine. Losing the shared route
+or its key between caller admission and carrying cannot fall through to that
+engine. A refused recovery is journalled separately as a recovery attempt and a work
+note. Earlier answers, completed status, effects and uncertain outcomes are kept;
+a running projection becomes stopped. The refused attempt is recorded once and
+is not tried again by itself at a later start; the turn resumes only when someone
+sends in that thread. The note gives the plain reason for the cause, and for a
+personal conversation it gives that rule's reason.
+When the owner on their own computer, with an engine that brings its own tools,
+sends into an automation's conversation, the refusal says the conversation belongs
+to an automation that runs on the shared-work model and names the setting. The note makes no claim that earlier work
+was never sent. An owner's personal checkpoint is not adopted by a remote shared
+scope, even when its model route matches. Internal carrier fingerprints stay off
+non-device thread projections, including earlier rewind branches.
+
+The shared carrier retains its last load error for the owner's settings
+and notices, redacting credentials. Automation creation reports an owner-facing
+setup error. Closing waits for an admitted load and prevents new loads.
+
+Proof: shared-engine-routing.test.ts covers owner/colleague separation, native
+choice refusal, named automation, viewer/removal refusal, running revocation and
+withdrawal. shared-model-route.test.ts covers independent routes, sealed keys,
+no fallback and invalid-setting repair. shared-engine-recovery.test.ts covers
+actor re-admission, durable carrier provenance, related-thread context and
+missing-route recovery refusal. shared-carrier-guard.test.ts exercises the carrying
+boundary; shared-engine-state.test.ts covers loading, diagnostics and closing.
+The CLI shared-model-journey.test.ts exercises invite, join, share, send and read
+through the pinned TLS service with a local model. App shared-model-settings.test.ts
+and task-selection.integration.spec.ts cover the row and saving its separate route.
+These are test and local-run evidence, not installed or real-account evidence.

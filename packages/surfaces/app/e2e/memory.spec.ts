@@ -31,7 +31,7 @@ test('a chat says what it remembered, and the Memory page shows it to change or 
   const { end } = await opened(page, 'memory-chat');
   try {
     await page.reload();
-    await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
     await page.getByRole('textbox', { name: 'Message' }).fill('Remember that the launch moved to Friday.');
     await page.getByRole('textbox', { name: 'Message' }).press('Enter');
     const card = page.getByTestId('turn-memory');
@@ -69,7 +69,7 @@ test('a skill drafted from a chat waits for an OK; memories from Codex come in a
     const sent = await api<{ value: { threadId: string } }>(page, 'turns.send', { projectId, text: 'Prepare the weekly report', attachments: [], settings, clientKey: 'first' });
     await expect.poll(async () => (await api<{ value: { summary: { running: boolean } } }>(page, 'threads.get', { id: sent.value.threadId })).value.summary.running).toBe(false);
     await page.reload();
-    await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
     await page.getByRole('navigation').getByText('Prepare the weekly report').first().click();
     await page.getByRole('button', { name: 'Chat details' }).click();
     await page.getByRole('menuitem', { name: 'Make a skill from this chat' }).click();

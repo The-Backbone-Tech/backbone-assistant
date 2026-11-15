@@ -52,7 +52,7 @@ export function createUnknownChecks(deps: {
     if (!snapshot) return refused('The uncertain turn is still running or unavailable.');
     const effects = snapshot.unknownEvidence?.connectorEffects ?? [];
     if (!Array.isArray(effects) || effects.some(id => typeof id !== 'string' || !id)) return refused('This turn needs its existing recovery controls.');
-    if (effects.length && outerLock) return refused('Inspect this connector outcome outside a pending home write.');
+    if (effects.length && outerLock) return refused('Inspect this connector outcome outside a pending data folder write.');
     const reconciled: string[] = [];
     // Core crossings run outside the home lock. No provider action is performed or repeated.
     for (const effect of new Set(effects)) {

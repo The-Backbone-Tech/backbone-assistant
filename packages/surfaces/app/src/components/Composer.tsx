@@ -6,6 +6,7 @@ import { ArrowUp, Check, Laptop, ListChecks, Paperclip, Plus, ShieldCheck, Squar
 import * as React from 'react';
 import { brand } from '../brand';
 import { call, clientKey, toBase64 } from '../lib/api';
+import { onComposerFocusRequest, takeComposerFocusRequest } from '../lib/composer-focus';
 import { acceptDraftRead, flushDraft, hasUnconfirmedDraft, hasUncertainDraft, retryUncertainDraft, keepReviewedDraft, persistDraft, persistDraftNow, readDraft, reviewSavedDraft, useReviewedDraft, trackDraftOperation } from '../lib/drafts';
 import { useApp, useLive } from '../lib/state';
 import { cn } from '../lib/utils';
@@ -206,7 +207,11 @@ function LocalComposer({ projectId, threadId, running, recoveryHeld, steering, s
   }, [draftKey, loadAttempt]);
 
   React.useEffect(() => {
-    if (draftReady && autoFocus && document.activeElement === document.body) area.current?.focus();
+    if (!draftReady || !autoFocus) return;
+    // Take the keyboard when nothing else has it, or when New chat asked for it (lib/composer-focus.ts).
+    const focus = () => { if (takeComposerFocusRequest() || document.activeElement === document.body) area.current?.focus(); };
+    focus();
+    return onComposerFocusRequest(focus);
   }, [draftReady, autoFocus]);
 
   const update = (value: string, ids = latest.current.ids, off = memoryOff) => {
@@ -399,9 +404,10 @@ function LocalComposer({ projectId, threadId, running, recoveryHeld, steering, s
         let sendProject = projectId;
         let madeProject: string | undefined;
         if (!sendProject) {
-          const existing = projects.find((p) => p.name === DEFAULT_PROJECT_NAME) ?? projects[0];
+          const existing = projects.find((p) => !p.archived&&p.name === DEFAULT_PROJECT_NAME) ?? projects.find(p=>!p.archived);
           if (existing) sendProject = existing.id;
           else {
+            if(projects.length){remember();return setError('There is no active project. Restore one or create a new project before sending.');}
             const made = await call('projects.create', { name: DEFAULT_PROJECT_NAME, kind: 'folder', clientKey: `${key}:project` });
             if (!made.ok) { remember(); return setError(made.detail); }
             sendProject = madeProject = made.value.id;
@@ -689,13 +695,18 @@ function LocalComposer({ projectId, threadId, running, recoveryHeld, steering, s
           <DropdownMenuContent align="start" className="w-72">
             <DropdownMenuLabel>How should actions be approved?</DropdownMenuLabel>
             <DropdownMenuRadioGroup value={settings.permission} onValueChange={(v) => setSettings({ permission: v as Permission })}>
-              {PERMISSIONS.map((p) => (
-                <DropdownMenuRadioItem key={p.id} value={p.id} className="flex-col items-start gap-0">
+              {PERMISSIONS.map((p) => {
+                // A choice the engine would not keep is shown as unavailable, never accepted and then dropped.
+                const unavailable = !!modelChoice?.permissions && !modelChoice.permissions.includes(p.id);
+                return <DropdownMenuRadioItem key={p.id} value={p.id} disabled={unavailable} className="flex-col items-start gap-0">
                   <span>{p.label}</span>
-                  <span className="text-xs text-muted">{p.hint}</span>
-                </DropdownMenuRadioItem>
-              ))}
+                  <span className="text-xs text-muted">{unavailable ? 'Not available with this engine' : p.hint}</span>
+                </DropdownMenuRadioItem>;
+              })}
             </DropdownMenuRadioGroup>
+            {modelChoice?.permissions?.length === 1 && modelChoice.permissions[0] === 'full' && (
+              <p className="px-2 py-1.5 text-xs text-muted">This engine works with Full access only. To approve steps yourself, choose another engine in Settings › AI and models.</p>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

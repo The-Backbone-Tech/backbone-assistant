@@ -31,7 +31,7 @@ async function chat(page: Page, label: string, engine?: ScriptedModel) {
   await expect.poll(async () => (await api<{ value: { summary: { running: boolean } } }>(page, 'threads.get', { id: threadId })).value.summary.running).toBe(false);
   await page.reload();
   await expect(page.locator('[data-ready=true]')).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
   await page.getByRole('navigation').getByText('Hello').first().click();
   await expect(page.getByTestId('turn').first()).toBeVisible();
   return { threadId, projectId: p.value.id, end: async () => { await stopBridge(bridge.proc); await removeDataHome(home); } };
@@ -112,7 +112,7 @@ test('an agent\'s proposed goal waits for the person and changes nothing until a
     await page.getByRole('navigation').getByText('Hello').first().click();
     await page.reload();
     await expect(page.locator('[data-ready=true]')).toBeVisible();
-    await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
     await page.getByRole('navigation').getByText('Hello').first().click();
     const proposal = page.getByTestId('goal-proposal');
     await expect(proposal).toContainText('Cut scope');
@@ -344,7 +344,7 @@ test('an unconfirmed steer is never shown as delivered, and an engine that canno
     });
     await page.reload();
     await expect(page.locator('[data-ready=true]')).toBeVisible();
-    await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
     await page.getByRole('navigation').getByText('Hello').first().click();
     const steer = page.getByTestId('turn-steer');
     await expect(steer).toContainText('Not confirmed');
@@ -393,7 +393,7 @@ test('a document that cannot come back says why and offers nothing', async ({ pa
     });
     await page.reload();
     await expect(page.locator('[data-ready=true]')).toBeVisible();
-    await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
     await page.getByRole('navigation').getByText('Hello').first().click();
     const doc = page.getByTestId('child-document');
     await expect(doc).toContainText('UNKNOWN');
@@ -414,7 +414,7 @@ test('asking for a review where none can run explains why before anything is typ
     });
     await page.reload();
     await expect(page.locator('[data-ready=true]')).toBeVisible();
-    await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
     await page.getByRole('navigation').getByText('Hello').first().click();
     await details(page);
     await page.getByRole('menuitem', { name: 'Ask for a review…' }).click();

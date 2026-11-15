@@ -14,8 +14,9 @@ over stored own, gateway and Keychain credentials until you clear the local sele
 An invalid stored local setting refuses with a repair message instead of selecting a paid route. Pi must be the selected engine; native agents choose their own connections.
 
 Send a message, inspect its result and continue after reopening the app: the selected
-route is stored in the same home as other model settings. If the server stops or refuses
-the model, the turn fails with a restart/load-model message. It keeps that selected route
+route is stored in the same data folder as other model settings. If the server stops or refuses
+the model, the turn fails with a message naming the address it tried and three things to check:
+the address path (usually `/v1`), that the server is running, and that the model is loaded. It keeps that selected route
 and never silently tries a different server or a paid connection. Start the server again
 and send a new turn when ready. A cut-off stream remains an unfinished answer.
 

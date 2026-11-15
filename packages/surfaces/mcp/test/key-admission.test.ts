@@ -19,7 +19,7 @@ for (const op of ['grant', 'revoke']) for (const choice of [undefined, 'plaintex
     if (!absent) mkdirSync(home);
     const result = run(home, op, choice);
     assert.equal(result.status, 2, result.stdout + result.stderr);
-    assert.match(result.stderr, /not an existing data home/);
+    assert.match(result.stderr, /not an existing data folder/);
     assert.equal(existsSync(home), !absent);
     if (!absent) assert.deepEqual(readdirSync(home), []);
   } finally { rmSync(root, { recursive: true, force: true }); }

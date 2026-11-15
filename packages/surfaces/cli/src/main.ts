@@ -45,7 +45,7 @@ const io: Io = {
 /** Commands that only read: they open read-only, so none of them can start a model call. */
 const READS = new Set(['solutions options', 'solutions verify', 'projects list', 'threads list', 'threads show', 'now', 'files', 'files read', 'models', 'export']);
 /** Commands that change the home: an interrupted turn is carried on before them. */
-const CHANGES = new Set(['solutions run', 'projects create', 'threads archive', 'send', 'stop', 'chat', 'goal set', 'goal run', 'queue', 'schedule add']);
+const CHANGES = new Set(['solutions run', 'threads archive', 'send', 'stop', 'chat', 'goal set', 'goal run', 'queue', 'schedule add']);
 /** Commands whose write the app asks the person about, each one, when it goes over the app's line. */
 const ASKED = new Set(['solutions run', 'send', 'chat', 'goal', 'goal set', 'goal run', 'queue', 'schedule add']);
 
@@ -126,6 +126,8 @@ async function command(parsed: Parsed, io: Io): Promise<number> {
     // The line carries no export: the database is read as its installer, which only the app's own process does.
     if (parsed.name === 'export') { line.close(); io.err('REFUSED (NOT_AVAILABLE): the app holds this data folder. Export it from Settings › Backup, or close the app and run this again.'); return EXIT.REFUSED; }
     try {
+      // These sends cannot carry attachments; refuse before the shared helper uploads an original.
+      if (parsed.options.attach?.length) { io.err('REFUSED (NOT_AVAILABLE): Send attachments in the app, or stop the app or background service holding this data folder and send through a standalone data folder. Nothing was attached or started.'); return EXIT.REFUSED; }
       if (ASKED.has(parsed.name) && line.send === 'ask') io.err('Waiting for you in the app: it asks whether each message, goal or schedule may go ahead.');
       return await run(line, { ...io, live: true });
     } finally {

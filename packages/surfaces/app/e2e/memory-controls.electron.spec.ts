@@ -231,9 +231,12 @@ test('memory off follows a draft into its first project and through saved-draft 
     });
     await f.page.getByRole('navigation').getByRole('button', { name: 'New chat', exact: true }).click();
     await expect(f.page.getByRole('button', { name: 'Use memory for this task' })).toHaveAttribute('aria-pressed', 'true');
+    // The page clears the sent message's saved draft a moment after the message box empties. Another client's write is
+    // made on the revision after that clear; made on the one before, it is rightly refused as stale.
+    await expect.poll(async () => (await api<{ text: string } | null>(f.page, 'drafts.get', { key }))?.text ?? '').toBe('');
     const prior = await api<{ revision: number } | null>(f.page, 'drafts.get', { key });
     const external = await api<Receipt<unknown>>(f.page, 'drafts.put', { key, text: 'Remember that my report marker is ochre.', meta: { memory: 'off' }, baseRevision: prior?.revision ?? 0, clientKey: 'off-saved-draft' });
-    expect(external.ok).toBe(true);
+    expect(external.ok, JSON.stringify({ external, prior, now: await api(f.page, 'drafts.get', { key }) })).toBe(true);
     await input.fill('My local report request');
     await f.page.getByRole('button', { name: 'Review saved draft', exact: true }).click();
     await f.page.getByRole('button', { name: 'Use saved draft', exact: true }).click();

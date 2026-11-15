@@ -13,7 +13,7 @@ import { CoreRefusal, definiteServerRefusal } from './core.ts';
 import { METHODS, type Method, type ApiEvent } from '../api.ts';
 import type { Host } from './host-types.ts';
 import { reserveSignIn,signInBudget,SignInRateLimited } from './identity-attempts.ts';
-import { IdentityRefused,IdentityUnavailable, SharedEngineRequired } from './identity-core.ts';
+import { IdentityRefused,IdentityUnavailable, SharedEngineRequired, PersonalConversationRequired } from './identity-core.ts';
 
 async function bodyOf(request: IncomingMessage): Promise<string> {
   let size=0;const chunks:Buffer[]=[];
@@ -100,7 +100,7 @@ export async function serveIdentityApi(options:{host:Host;port?:number;address?:
         json(response,{error:'No such endpoint.'},404);
       }catch(error){
         if(response.headersSent){response.end();return;}
-        if(error instanceof SharedEngineRequired){json(response,{error:error.message,outcome:'REFUSED'},409);return;}
+        if(error instanceof SharedEngineRequired || error instanceof PersonalConversationRequired){json(response,{error:error.message,outcome:'REFUSED'},409);return;}
         if(error instanceof IdentityUnavailable){json(response,{error:error.message,outcome:'REFUSED',availability:error.availability},503);return;}
         if(error instanceof SignInRateLimited){response.setHeader('retry-after',String(error.retryAfter));json(response,{error:'Too many sign-in attempts.',outcome:'REFUSED'},429);return;}
         if(error instanceof IdentityRefused){

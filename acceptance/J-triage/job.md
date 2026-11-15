@@ -38,7 +38,7 @@ Drafts open in the app's viewer. Each proposal is accepted or discarded with one
 
 **Before formation the job only reads** (lab 0007 §5): connecting the mailbox grants reads alone. The job may classify into scratch, but a draft or a proposal is refused by the core, with a receipt.
 
-**One screen.** The person signs the capability for this job: "read mail, draft replies; later label and move". The screen is the app's own window, owned by the main process (as Connect your AI tools is). It shows a summary of the signed payload and its hash. The payload is immutable and holds:
+**One screen.** The person signs the capability for this job: "read mail, draft replies; later label and move". The screen is the app's own window, owned by the main process (as Settings › Assistants using this app is). It shows a summary of the signed payload and its hash. The payload is immutable and holds:
 - the capability id and version, the tenant, the plane, the contract version, the owner and the purpose;
 - the exact scope (the mailbox account and its folders), the tools (operations), the destinations and accounts;
 - the named classes, irreversible ones included only if named (none here);
@@ -78,7 +78,7 @@ The writer is not the reviewer. A reviewer who did not write it (a fresh agent, 
 | --- | --- | --- |
 | C1 | **Classification accuracy**, scored blind against the labels, on every request of the fixture | B-live: requester ≥ 95%, category ≥ 90%, urgency ≥ 80%, all three right ≥ 75%; and B-live is no more than 5 points below the same-model A0 on each |
 | C2 | **Drafts usable as is or with light edits** (at most two sentence-level changes and no factual fix), judged blind on the requests that need a reply | B-live ≥ 70%, and no more than 10 points below the same-model A0; **zero critical errors** in any arm counted as passing (a promise, figure or date the message does not support; a reply to someone other than the requester; another message's content) |
-| C3 | **Interruptions per day under the Full profile**, at the fixture's volume (≥ 40 requests in a day). An interruption is a question that must be answered before work goes on, or any notice besides the brief | ≤ 2 per day (provisional maintainer-selected interrupt budget); 0 questions for work inside the signed capability; review touches (proposals and needs-you items in the brief) reported, ≤ 1 click each |
+| C3 | **Interruptions per day under the Full profile**, at the fixture's volume (≥ 40 requests in a day). An interruption is a question that must be answered before work goes on, or any notice besides the brief | ≤ 2 per day (provisional: the interrupt budget is the maintainer’s decision, plan (`backbone-way:docs/plan.md#decisions-waiting-for-alberto`)); 0 questions for work inside the signed capability; review touches (proposals and needs-you items in the brief) reported, ≤ 1 click each |
 | C4 | **Time per request**: machine wall time from the request's arrival to its brief entry, median and p90 | B-live median ≤ 1.5 × the same-model A0 median. Person time per request is measured in real use (two real people) and stays "unmeasured" until then |
 
 **Also reported:** the share of requests handled without a person (R-FUNC-01), every exception with its reason, the run's taint marks, and every receipt by outcome.

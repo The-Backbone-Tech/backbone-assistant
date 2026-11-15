@@ -24,6 +24,6 @@ test('desktop ending returns an uncertain receipt with the exact Host diagnostic
   }
 });
 test('a Host refusal remains a refusal, with no success or diagnostic rewriting', async () => {
-  const refusal = { ok: false, reason: 'NOT_AVAILABLE', outcome: 'REFUSED', detail: 'This data home was opened read-only.' };
+  const refusal = { ok: false, reason: 'NOT_AVAILABLE', outcome: 'REFUSED', detail: 'This data folder was opened read-only.' };
   assert.equal(await endConnectorSignature(hostWith(async () => refusal), 'server', 'tool'), refusal);
 });

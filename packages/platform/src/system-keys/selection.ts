@@ -13,7 +13,7 @@ export function homeKeyProvider(home: string): { holder: KeyHolder; wrap: string
   try { text = readFileSync(join(home, 'keys', 'vault.json'), 'utf8'); }
   catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
-    throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This home\'s key provider could not be read; nothing was changed.');
+    throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This data folder\'s key provider could not be read; nothing was changed.');
   }
   try {
     const file = JSON.parse(text);
@@ -22,11 +22,11 @@ export function homeKeyProvider(home: string): { holder: KeyHolder; wrap: string
       if (file.holder === 'keychain' && typeof file.wrap === 'string' && file.wrap.length > 0) return { holder: 'keychain', wrap: file.wrap };
     }
   } catch {}
-  throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This home\'s vault names an unknown or invalid key provider; nothing was changed.');
+  throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This data folder\'s vault names an unknown or invalid key provider; nothing was changed.');
 }
 
 const legacyKeys = (home: string) => ['keys/master.key', 'pg/secrets.json'].some((path) => existsSync(join(home, path)));
-const noExistingHome = () => new SystemKeysRefused({ kind: 'keys-not-chosen' }, 'no-keys', 'This folder is not an existing data home: no vault or legacy keys were found. Only host creates a home; nothing was changed.');
+const noExistingHome = () => new SystemKeysRefused({ kind: 'keys-not-chosen' }, 'no-keys', 'This folder is not an existing data folder: no vault or legacy keys were found. Only host creates a data folder; nothing was changed.');
 
 /** A transport or grant command may open an existing home, but never initialize one. */
 export function requireExistingKeyHome(home: string): void {
@@ -37,7 +37,7 @@ function children(path: string): string[] {
   try { return readdirSync(path); }
   catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-    throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This home could not be checked for existing data; nothing was changed.');
+    throw new SystemKeysRefused({ kind: 'vault-unreadable' }, 'not-unwrapped', 'This data folder could not be checked for existing data; nothing was changed.');
   }
 }
 
@@ -66,22 +66,22 @@ export async function chooseKeys(home: string, env: NodeJS.ProcessEnv = process.
     throw new SystemKeysRefused({ kind: 'downgrade' }, 'plaintext-home', `${existing ? 'A plaintext vault was found' : 'Plaintext keys were requested'} beside ${trace}, a system-store protection record; downgrade refused and nothing was changed.`);
   }
   if (!existing && legacyKeys(home)) {
-    if (options.readOnly) throw new SystemKeysRefused({ kind: 'legacy-home' }, 'no-keys', 'This home has legacy plaintext keys and no vault; a read-only command cannot migrate it. Nothing was changed.');
+    if (options.readOnly) throw new SystemKeysRefused({ kind: 'legacy-home' }, 'no-keys', 'This data folder has legacy plaintext keys and no vault; a read-only command cannot migrate it. Nothing was changed.');
     if (choice === 'plaintext') return keysFromEnvironment(env)!;
-    throw new SystemKeysRefused({ kind: 'legacy-home' }, 'no-keys', 'This home has legacy plaintext keys and no vault. Explicit BACKBONE_KEYS=plaintext permits the existing migration and keeps the data key in plain text; no system conversion was chosen and nothing was changed.');
+    throw new SystemKeysRefused({ kind: 'legacy-home' }, 'no-keys', 'This data folder has legacy plaintext keys and no vault. Explicit BACKBONE_KEYS=plaintext permits the existing migration and keeps the data key in plain text; no system conversion was chosen and nothing was changed.');
   }
   if (!existing && (options.create === false || options.readOnly)) throw noExistingHome();
-  if (!existing && hasHomeData(home)) throw new SystemKeysRefused({ kind: 'missing-vault' }, 'no-keys', 'This home has data but no vault of its keys; nothing was changed. No new keys were made.');
+  if (!existing && hasHomeData(home)) throw new SystemKeysRefused({ kind: 'missing-vault' }, 'no-keys', 'This data folder has data but no vault of its keys; nothing was changed. No new keys were made.');
   if (existing?.holder === 'keychain' && existing.wrap !== SYSTEM_WRAP) {
-    if (existing.wrap === 'electron-safeStorage') throw new SystemKeysRefused({ kind: 'app-required' }, 'held-by-app', 'This home needs electron-safeStorage through the app. Its keys are held in the Keychain by the app; open the app to use it. Nothing was changed.');
-    throw new SystemKeysRefused({ kind: 'app-required' }, 'held-by-app', 'This home\'s keys are held in the Keychain by the app or another provider that this command cannot open; nothing was changed.');
+    if (existing.wrap === 'electron-safeStorage') throw new SystemKeysRefused({ kind: 'app-required' }, 'held-by-app', 'This data folder needs electron-safeStorage through the app. Its keys are held in the Keychain by the app; open the app to use it. Nothing was changed.');
+    throw new SystemKeysRefused({ kind: 'app-required' }, 'held-by-app', 'This data folder\'s keys are held in the Keychain by the app or another provider that this command cannot open; nothing was changed.');
   }
   if (existing?.holder === 'plaintext') {
-    if (choice === 'system') throw new SystemKeysRefused({ kind: 'provider-mismatch', provider: 'plaintext' }, 'plaintext-home', 'This home keeps its keys in plain text and is not converted by choosing a provider. Nothing was changed.');
+    if (choice === 'system') throw new SystemKeysRefused({ kind: 'provider-mismatch', provider: 'plaintext' }, 'plaintext-home', 'This data folder keeps its keys in plain text and is not converted by choosing a provider. Nothing was changed.');
     return keysFromEnvironment({ ...env, BACKBONE_KEYS: 'plaintext' })!;
   }
   if (choice === 'plaintext') {
-    if (existing) throw new SystemKeysRefused({ kind: 'provider-mismatch', provider: 'system' }, 'not-unwrapped', 'This home needs os-keyring-v1 through the system key store; plaintext keys cannot open it. Nothing was changed.');
+    if (existing) throw new SystemKeysRefused({ kind: 'provider-mismatch', provider: 'system' }, 'not-unwrapped', 'This data folder needs os-keyring-v1 through the system key store; plaintext keys cannot open it. Nothing was changed.');
     return keysFromEnvironment(env)!;
   }
   if (!store && process.platform !== 'darwin' && process.platform !== 'linux') throw unavailable();

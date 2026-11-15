@@ -2,7 +2,7 @@
 // sealed by the platform at once and never shown again; the field clears as soon as it is sent.
 // Each route says who bills it (R-MODEL-01). A model already running on this computer is one click,
 // with no key; nothing is started or downloaded from here.
-import { LOCAL_RUNTIMES, ROUTE_CHOICES, type GatewayProvider, type LocalModels, type ModelSettings, type ModelSettingsChange, type OwnProvider } from '@backbone-next/platform';
+import { LOCAL_RUNTIMES, ROUTE_CHOICES, settingsModelHint, type GatewayProvider, type LocalModels, type ModelSettings, type ModelSettingsChange, type OwnProvider } from '@backbone-next/platform';
 import * as React from 'react';
 import { call } from '../../lib/api';
 import { Badge } from '../ui/badge';
@@ -10,6 +10,7 @@ import { Button } from '../ui/button';
 import { Input, Select } from '../ui/input';
 import { SettingsRow } from './SettingsRow';
 import { AcpAgentForm } from './AcpAgentForm';
+import { EngineChoice } from './EngineChoice';
 
 export function ModelRouteSection() {
   const [s, setS] = React.useState<ModelSettings>();
@@ -23,35 +24,60 @@ export function ModelRouteSection() {
     }).catch(() => { if (live) setLoadError(true); });
     return () => { live = false; };
   }, [reload]);
-  if (loadError) return <div className="space-y-3 py-4"><p role="alert" className="text-sm text-danger">Couldn’t load the model settings.</p><Button variant="outline" size="sm" onClick={() => setReload((n) => n + 1)}>Try again</Button></div>;
-  if (!s) return <p role="status" className="py-4 text-sm text-muted">Loading…</p>;
   return (
     <div>
-      <SettingsRow title="Chat connection" about="The configured route for new turns. Available usage is checked when the model runs.">
-        <div className="text-sm sm:text-right" data-testid="model-active">
-          <p>
-            <span className="text-muted">Engine</span> {s.harness}
-          </p>
-          <p>
-            <span className="text-muted">Model</span> {s.active ? s.active.label : 'Not connected'}
-          </p>
-          {s.hint && <p className="mt-1 max-w-xs text-xs text-draft">{s.hint}</p>}
-        </div>
-      </SettingsRow>
-      {/codex/i.test(s.harness) && <NativeModel onChange={setS} />}
-      <RouteForm
-        title="Your own key"
-        note="Used when no local model is selected. API usage is billed separately from a Claude or ChatGPT subscription."
-        route="own"
-        choices={['anthropic', 'openai', 'openai-compatible']}
-        current={s.own}
-        onChange={setS}
-      />
-      <RouteForm title="Or a gateway" note="Used when no local model or own key is selected. Routes never switch silently." route="gateway" choices={['vercel', 'openrouter']} current={s.gateway} onChange={setS} />
-      {!/codex/i.test(s.harness) && <LocalModelsBlock current={s.local ?? null} onChange={setS} />}
-      <AcpAgentForm onChange={setS} machineClient={s.machineClient} />
+      <EngineChoice />
+      {loadError ? <div className="space-y-3 py-4"><p role="alert" className="text-sm text-danger">Couldn’t load the model settings.</p><Button variant="outline" size="sm" onClick={() => setReload((n) => n + 1)}>Try again</Button></div>
+        : !s ? <p role="status" className="py-4 text-sm text-muted">Loading…</p>
+        : <>
+          <section aria-label="Your model" className="mt-6">
+            <SettingsRow title="Your model" about="What your own chats on this computer use. Available usage is checked when the model runs.">
+              <div className="text-sm sm:text-right" data-testid="model-active">
+                <p>
+                  <span className="text-muted">Engine</span> {s.harness}
+                </p>
+                <p>
+                  <span className="text-muted">Model</span> {s.active ? s.active.label : 'Not connected'}
+                </p>
+                {s.hint && <p className="mt-1 max-w-xs text-xs text-draft">{settingsModelHint(s.hint, 'own')}</p>}
+              </div>
+            </SettingsRow>
+            {/codex/i.test(s.harness) && <NativeModel onChange={setS} />}
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm">Change your model</summary>
+              <RouteForm
+                title="Your own key"
+                note="Used when no local model is selected. API usage is billed separately from a Claude or ChatGPT subscription."
+                route="own"
+                choices={['anthropic', 'openai', 'openai-compatible']}
+                current={s.own}
+                onChange={setS}
+              />
+              <RouteForm title="Or a gateway" note="Used when no local model or own key is selected. Routes never switch silently." route="gateway" choices={['vercel', 'openrouter']} current={s.gateway} onChange={setS} />
+              {!/codex/i.test(s.harness) && <LocalModelsBlock current={s.local ?? null} onChange={setS} />}
+              <AcpAgentForm onChange={setS} machineClient={s.machineClient} />
+            </details>
+          </section>
+          <SharedModelRoute settings={s} onChange={setS} />
+        </>}
     </div>
   );
+}
+
+/** Colleagues use an explicit route through Pi, independently of the personal client. */
+export function SharedModelRoute({ settings, onChange }: { settings: ModelSettings; onChange: (s: ModelSettings) => void }) {
+  const shared = settings.shared;
+  return <section aria-label="Shared work" data-testid="shared-model-route" className="mt-6">
+    <SettingsRow title="Shared work" about="Used for colleagues and for your own sessions from other computers, including project files you open from them, and for named automations. Your own engine and model stay selected on this computer.">
+      <div><p className="text-sm">{shared?.active ? `Pi · ${shared.active.label}` : 'Not configured'}</p>{shared?.hint && <p role="status" className="text-xs text-draft">{settingsModelHint(shared.hint, 'shared')}</p>}</div>
+    </SettingsRow>
+    <details className="mt-3">
+      <summary className="cursor-pointer text-sm">Configure shared work</summary>
+      <RouteForm title="Shared work: your own key" note="Choose a key explicitly for shared work. It stays sealed on this computer." route="own" choices={['anthropic', 'openai', 'openai-compatible']} current={shared?.own ?? null} onChange={onChange} shared />
+      <RouteForm title="Shared work: gateway" note="Choose the provider and model billed for shared work. Routes never switch silently." route="gateway" choices={['vercel', 'openrouter']} current={shared?.gateway ?? null} onChange={onChange} shared />
+      <LocalModelsBlock current={shared?.local ?? null} onChange={onChange} shared />
+    </details>
+  </section>;
 }
 
 /** The installed client's own models. It uses the sign-in already on this computer, so there is no key here. */
@@ -78,7 +104,7 @@ function NativeModel({ onChange }: { onChange: (s: ModelSettings) => void }) {
 }
 
 /** What runs on this computer (Ollama, LM Studio, llama.cpp, vLLM), each model one click. Used when no key is set. */
-function LocalModelsBlock({ current, onChange }: { current: ModelSettings['local'] | null; onChange: (s: ModelSettings) => void }) {
+function LocalModelsBlock({ current, onChange, shared = false }: { current: ModelSettings['local'] | null; onChange: (s: ModelSettings) => void; shared?: boolean }) {
   const [found, setFound] = React.useState<LocalModels>();
   const [looking, setLooking] = React.useState(false);
   const [error, setError] = React.useState<string>();
@@ -89,17 +115,17 @@ function LocalModelsBlock({ current, onChange }: { current: ModelSettings['local
   React.useEffect(() => { void look(); }, [look]);
   const send = async (change: ModelSettingsChange) => {
     setError(undefined);
-    const r = await call('settings.model.put', { change });
+    const r = await call('settings.model.put', { change: shared ? { route: 'shared', change } : change });
     if (!r.ok) return setError(r.detail);
     onChange(r.value);
   };
   return (
-    <section aria-label="Local models" className="mt-6" data-testid="local-models">
+    <section aria-label={shared ? 'Shared local models' : 'Local models'} className="mt-6" data-testid={shared ? 'shared-local-models' : 'local-models'}>
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold">Local models</h3>
+        <h3 className="text-sm font-semibold">{shared ? 'Shared local models' : 'Local models'}</h3>
         {current && <Badge tone="committed">{LOCAL_RUNTIMES[current.provider].name} · {current.model}</Badge>}
       </div>
-      <p className="mt-0.5 text-xs text-muted">A model running on this computer. No key and no charge. Your local selection takes priority over stored API keys until you clear it.</p>
+      <p className="mt-0.5 text-xs text-muted">{shared ? 'A model running on this computer for shared work. Stored shared API keys are kept. Clear this local selection to use the stored shared provider route again.' : 'A model running on this computer. No key and no charge. Your local selection takes priority over stored API keys until you clear it.'}</p>
       {!found ? (
         <p role="status" className="py-2 text-sm text-muted">Looking…</p>
       ) : found.runtimes.length === 0 ? (
@@ -131,10 +157,11 @@ function LocalModelsBlock({ current, onChange }: { current: ModelSettings['local
 
 type Provider = OwnProvider | GatewayProvider;
 
-function RouteForm({ title, note, route, choices, current, onChange }: {
+function RouteForm({ title, note, route, choices, current, onChange, shared = false }: {
   title: string;
   note: string;
   route: 'own' | 'gateway';
+  shared?: boolean;
   choices: Provider[];
   current: { provider: Provider; model: string; keySet: boolean; baseUrl?: string } | null;
   onChange: (s: ModelSettings) => void;
@@ -157,7 +184,7 @@ function RouteForm({ title, note, route, choices, current, onChange }: {
     setSaved(false);
     setKey('');
     try {
-      const r = await call('settings.model.put', { change });
+      const r = await call('settings.model.put', { change: shared ? { route: 'shared', change } : change });
       if (!r.ok) return setError(r.detail);
       setSaved(!('clear' in change));
       onChange(r.value);
@@ -188,7 +215,7 @@ function RouteForm({ title, note, route, choices, current, onChange }: {
             <legend className="sr-only">{title}: provider</legend>
             {choices.map((c) => (
               <label key={c} className="inline-flex items-center gap-1.5">
-                <input type="radio" className="accent-[var(--accent)]" name={`${route}-provider`} checked={provider === c} onChange={() => (setProvider(c), setModel(current?.provider === c ? current.model : ''), setSaved(false))} />
+                <input type="radio" className="accent-[var(--accent)]" name={`${id}-${route}-provider`} checked={provider === c} onChange={() => (setProvider(c), setModel(current?.provider === c ? current.model : ''), setSaved(false))} />
                 {ROUTE_CHOICES[c].name.replace(' (your key)', '')}
               </label>
             ))}
@@ -209,7 +236,7 @@ function RouteForm({ title, note, route, choices, current, onChange }: {
       {saved && !error && <p role="status" className="mt-2 text-xs text-muted">Connection saved. The key stays sealed on this computer. This does not test available usage.</p>}
       <div className="mt-3 flex justify-end gap-2">
         {current && (
-          <Button type="button" variant="outline" onClick={() => void send({ route, clear: true })}>
+          <Button type="button" variant="outline" className="border-danger text-danger" onClick={() => void send({ route, clear: true })}>
             Remove
           </Button>
         )}

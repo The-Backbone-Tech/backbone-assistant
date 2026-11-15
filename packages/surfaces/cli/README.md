@@ -12,7 +12,10 @@ A local npm tarball can be installed without a checkout; it is not published. Se
 | `backbone exec <text> [--json] [--output-schema <file>]` | one `turns.send`, followed through `threads.get`; the same thread, project, attachment and turn settings as `send` |
 | `backbone projects list` | `projects.list` |
 | `backbone projects create <name> [--kind folder\|git]` | `projects.create`; the one command that makes a data folder |
-| `backbone threads list [--all]` | `threads.list`; `--all` includes archived threads |
+| `backbone projects rename <id> <name>` | `projects.update` |
+| `backbone projects archive <id>` | `projects.update`; hides the project and its chats |
+| `backbone projects restore <id>` | `projects.update`; brings the project back |
+| `backbone threads list [--all]` | `threads.list`; `--all` includes archived threads and projects |
 | `backbone threads show <thread>` | `threads.get` |
 | `backbone threads archive <thread>` | `threads.update` |
 | `backbone send <text> [--thread <thread>] [--project <project>] [--attach <path>]... [--model <id>] [--effort 1-5] [--permission ask\|auto-review\|full] [--plan]` | `turns.send`, then follows `threads.get` |
@@ -52,7 +55,7 @@ The exit code says what is known:
 | 4 | `UNKNOWN` | Whether something happened is not known. It is never sent again; a person settles it. `threads show` and `now` exit 4 for as long as they show one. |
 | 5 | `BUSY` | Another process holds this data folder, and nothing was done. |
 
-**With the app running,** a command goes through the app's api line and opens nothing itself: reads and `stop` work at once, beside a running turn, and each `send`, `goal`, `goal set`, `goal run`, `queue` and `schedule add` waits until you click Allow for it in the app, which shows all of it: its words, its thread or project, and for a goal run or a schedule its budget or its times. A No closes them until the app reopens. `projects create` creates a new folder or Git project through the personal app without starting model work, limited to 10 requests per minute and 100 until restart. With company sign-in, create the project in the signed-in app. `threads archive` is refused there: use the app. [ADR 0002](../../../docs/adr/0002-api-line.md) has who may do what.
+**With the app running,** a command goes through the app's api line and opens nothing itself: reads and `stop` work at once, beside a running turn, and each `send`, `goal`, `goal set`, `goal run`, `queue` and `schedule add` waits until you click Allow for it in the app, which shows all of it: its words, its thread or project, and for a goal run or a schedule its budget or its times. A No closes them until the app reopens. `projects create` creates a new folder or Git project through the personal app without starting model work, limited to 10 requests per minute and 100 until restart. With company sign-in, create the project in the signed-in app. `projects rename`, `projects archive` and `projects restore` also work through that personal line, sharing the creation limit. `threads archive` is refused there: use the app. [ADR 0002](../../../docs/adr/0002-api-line.md) has who may do what.
 
 **With the app closed,** the app's own data folder is refused in plain words, and no host starts: only the app reads its keys.
 
@@ -87,7 +90,7 @@ The existing `send --json` still returns its single Turn object.
 
 ## Backup, export and restore
 
-Export and restore work on a data folder this command can hold: a test or headless data folder, with the app closed. With the app running, `export` is refused (use Settings › Backup); `restore` goes only into a new data folder. A restore exits 0 only when it finished, and 1, changing nothing, on a conflict; its `--json` is the plan.
+Export and restore work on a data folder this command can hold: a test or headless data folder, with the app closed. With the app running, `export` is refused (use Settings › Backup); `restore` goes only into a new data folder, and Settings › Backup › Restore from a backup runs the same operation from the app, with a preview first. A restore exits 0 only when it finished, and 1, changing nothing, on a conflict; its `--json` is the plan.
 
 ## The chat
 

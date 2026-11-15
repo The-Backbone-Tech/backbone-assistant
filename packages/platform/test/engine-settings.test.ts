@@ -41,3 +41,18 @@ test('the app and terminal get separate no-route instructions from the same rout
   const terminalHint = terminalModelHint(appHint); assert.match(terminalHint, /backbone engine codex/); assert.doesNotMatch(terminalHint, /gear in the sidebar/);
   assert.equal(terminalModelHint('An unrelated refusal.'), 'An unrelated refusal.');
 });
+
+test('Settings shows the no-route hint without sending the person to Settings, and the other surfaces keep theirs', async t => {
+  const { settingsModelHint, terminalModelHint } = await import('../src/api.ts');
+  const home = mkdtempSync(join(tmpdir(), 'route-hints-settings-')); t.after(() => rmSync(home, { recursive: true, force: true }));
+  const credentials = new CredentialStore(home, async () => { throw Error('No credential'); });
+  const appHint = new ModelRoutes(home, credentials, {}).settings().hint!;
+  assert.match(appHint, /Open Settings \(the gear in the sidebar\)/, 'chat and turn refusals keep the sentence that sends the person to Settings');
+  for (const place of ['own', 'shared'] as const) {
+    const shown = settingsModelHint(appHint, place);
+    assert.doesNotMatch(shown, /Open Settings|gear/); assert.match(shown, /paste your own Anthropic or OpenAI key/); assert.match(shown, /Nothing was sent\.$/);
+  }
+  assert.match(settingsModelHint(appHint, 'own'), /Change your model/); assert.match(settingsModelHint(appHint, 'shared'), /Configure shared work/);
+  assert.equal(settingsModelHint('An unrelated refusal.', 'own'), 'An unrelated refusal.');
+  assert.match(terminalModelHint(appHint), /backbone engine codex/);
+});

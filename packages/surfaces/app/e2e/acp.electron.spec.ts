@@ -27,6 +27,7 @@ test('own-agent-route: installed ACP setup survives restart and writes a documen
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
     await dialog.getByRole('button', { name: 'AI and models', exact: true }).click();
+    await dialog.getByText('Change your model', { exact: true }).click();
     const form = dialog.getByRole('form', { name: 'ACP agent', exact: true });
     await form.getByLabel('Agent setup').selectOption('custom');
     await form.getByLabel('Agent name', { exact: true }).fill('installed-owned-agent');

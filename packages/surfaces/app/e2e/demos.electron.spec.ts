@@ -173,7 +173,7 @@ test('row 12, 6 and 14: side pane, memory kept and waiting, Backup export', asyn
   await memory.getByRole('button', { name: 'Add' }).click();
   await expect(memory.getByTestId('memory-entry').filter({ hasText: 'chosen by the person' })).toContainText('Added by you');
   for (const words of ['Invoices are paid on the 5th.', 'The release build tag is canary-42.']) {
-    await page.getByRole('navigation').getByRole('button', { name: 'Q4 review' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Q4 review', exact: true }).click();
     await page.getByRole('button', { name: 'New chat' }).click();
     await message.fill(`Propose ${words}`);
     await message.press('Enter');
@@ -272,7 +272,7 @@ test('row 1: a native Codex turn that delegates to a sub-agent, on the harness\'
     PATH: `${bin}:${process.env.PATH}`, BACKBONE_MODEL_ENDPOINT: '', BACKBONE_MODEL_ID: '',
   });
   await api(page, 'projects.create', { name: 'Native', kind: 'folder' });
-  await page.getByRole('navigation').getByRole('button', { name: 'Native' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Native', exact: true }).click();
   await page.getByRole('textbox', { name: 'Message' }).fill('Write a brief, and hand the drafts to a helper');
   await page.getByRole('textbox', { name: 'Message' }).press('Enter');
   const work = page.getByTestId('work-block').first();

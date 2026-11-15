@@ -9,7 +9,7 @@ import { appSharing, computerAddresses } from '../electron/shared-listener.ts';
 // No Host or database is needed to prove preference/lifetime ownership.
 test('sharing defaults off, persists the chosen address, restores and closes the owned listener', async () => {
   const home=await mkdtemp(join(tmpdir(),'app-sharing-'));let opens=0,closes=0;
-  const dependencies={addresses:()=>['127.0.0.1'],start:async(address:string,port:number)=>{opens++;assert.equal(address,'127.0.0.1');assert.equal(port,8443);return{origin:'https://127.0.0.1:8443',fingerprint:'a'.repeat(64),close:async()=>{closes++;}};}};
+  const dependencies={engineBringsOwnTools:()=>false,addresses:()=>['127.0.0.1'],start:async(address:string,port:number)=>{opens++;assert.equal(address,'127.0.0.1');assert.equal(port,8443);return{origin:'https://127.0.0.1:8443',fingerprint:'a'.repeat(64),close:async()=>{closes++;}};}};
   try {
     const first=await appSharing(home,plaintextKeys(),dependencies);
     assert.equal(first.view().enabled,false);assert.equal(opens,0);
@@ -26,7 +26,7 @@ test('sharing defaults off, persists the chosen address, restores and closes the
 
 test('an unavailable saved address stays off with a reason; wildcard binding and invalid ports are refused',async()=>{
   const home=await mkdtemp(join(tmpdir(),'app-sharing-address-'));let addresses=['127.0.0.1'];let opens=0;
-  const dependencies={addresses:()=>addresses,start:async()=>{opens++;return{origin:'https://127.0.0.1:8443',fingerprint:'b'.repeat(64),close:async()=>{}};}};
+  const dependencies={engineBringsOwnTools:()=>false,addresses:()=>addresses,start:async()=>{opens++;return{origin:'https://127.0.0.1:8443',fingerprint:'b'.repeat(64),close:async()=>{}};}};
   try {
     const first=await appSharing(home,plaintextKeys(),dependencies);
     for(const address of ['0.0.0.0','::','192.0.2.1'])await assert.rejects(first.configure({enabled:true,address,port:8443}));
@@ -39,7 +39,7 @@ test('an unavailable saved address stays off with a reason; wildcard binding and
 test('closing waits for an in-flight start and leaves no listener behind',async()=>{
   const home=await mkdtemp(join(tmpdir(),'app-sharing-close-'));let release!:()=>void,closed=0;
   try {
-    const controller=await appSharing(home,plaintextKeys(),{addresses:()=>['127.0.0.1'],start:async()=>{await new Promise<void>(resolve=>{release=resolve;});return{origin:'https://127.0.0.1:8443',fingerprint:'a'.repeat(64),close:async()=>{closed++;}};}});
+    const controller=await appSharing(home,plaintextKeys(),{engineBringsOwnTools:()=>false,addresses:()=>['127.0.0.1'],start:async()=>{await new Promise<void>(resolve=>{release=resolve;});return{origin:'https://127.0.0.1:8443',fingerprint:'a'.repeat(64),close:async()=>{closed++;}};}});
     const configuring=controller.configure({enabled:true,address:'127.0.0.1',port:8443});await new Promise(resolve=>setImmediate(resolve));
     await assert.rejects(controller.configure({enabled:false,address:'127.0.0.1',port:8443}));
     let settled=false;const stopping=controller.close().then(()=>{settled=true;});await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false);
@@ -54,7 +54,7 @@ test('turning sharing off closes the existing TLS listener and its open event st
   const home=await mkdtemp(join(tmpdir(),'app-sharing-stream-'));const abort=new AbortController();
   let controller:Awaited<ReturnType<typeof appSharing>>|undefined;
   try {
-    controller=await appSharing(home,plaintextKeys(),{addresses:()=>['127.0.0.1'],start:async address=>{
+    controller=await appSharing(home,plaintextKeys(),{engineBringsOwnTools:()=>false,addresses:()=>['127.0.0.1'],start:async address=>{
       const tls=await sharedCertificate(home,plaintextKeys());
       const host={callAuthenticated:async()=>({ok:true,value:{}}),// The listener sends events only once the stream is open (after `ready`), so keep notifying until it unsubscribes.
       onAuthenticated:(_token:string,notify:(event:{topic:'identity'})=>void)=>{const timer=setInterval(()=>notify({topic:'identity'}),20);return Object.assign(()=>clearInterval(timer),{ready:Promise.resolve()});}};
@@ -100,4 +100,17 @@ test('the address offered first is one another computer can reach', () => {
   // This computer's network address comes first; link-local addresses, which a link cannot carry, are left out.
   assert.deepEqual(computerAddresses(interfaces), ['192.168.1.152', 'fd12:3456:789a::10', '127.0.0.1', '::1']);
   assert.deepEqual(computerAddresses({ lo0: interfaces.lo0 }), ['127.0.0.1', '::1']);
+});
+
+test('the sharing view says whether the engine in use cannot answer colleagues, using the fact the platform supplies', async () => {
+  for (const brings of [true, false]) {
+    const home=await mkdtemp(join(tmpdir(),'app-sharing-engine-'));
+    try {
+      const controller=await appSharing(home,plaintextKeys(),{engineBringsOwnTools:()=>brings,addresses:()=>['127.0.0.1'],start:async()=>({origin:'https://127.0.0.1:8443',fingerprint:'a'.repeat(64),close:async()=>{}})});
+      assert.equal(controller.view().engineRefusesColleagues,brings,'off');
+      await controller.configure({enabled:true,address:'127.0.0.1',port:8443});
+      assert.equal(controller.view().engineRefusesColleagues,brings,'on');
+      await controller.close();
+    } finally { await rm(home,{recursive:true,force:true}); }
+  }
 });

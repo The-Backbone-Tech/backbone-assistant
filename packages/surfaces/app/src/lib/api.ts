@@ -1,10 +1,14 @@
 // The surface's only door: the platform api port, over Electron IPC or the HTTP bridge.
+import type { Refused, RestorePreview, RestoreRequest, RestoreView } from '../../electron/restore';
 import type { AiTool, AiToolId, ApiEvent, Args, CapabilityView, ConnectorServer, HeldCall, ConnectorEffectResolution, Method, Receipt, Result } from '@backbone-next/platform';
 
-export interface SharingView { enabled:boolean;address:string;port:number;addresses:string[];origin?:string;fingerprint?:string;notice?:string }
+export interface SharingView { enabled:boolean;address:string;port:number;addresses:string[];origin?:string;fingerprint?:string;notice?:string;engineRefusesColleagues:boolean;engineNotice?:string }
 export interface RemoteView {origin:string;connection:'connecting'|'online'|'temporary'|'ended'}
 export interface IdentityConfiguration {company:boolean;signedIn:boolean;workspaceWindow?:boolean;remote?:RemoteView}
 interface Bridge {
+  browserRequest?(request: import('./browser-types').BrowserRequest): Promise<import('./browser-types').BrowserState>;
+  onBrowserState?(listener: (state: import('./browser-types').BrowserState) => void): () => void;
+  onBrowserFocusAddress?(listener: () => void): () => void;
   remoteSendChecked?(key:string):Promise<void>;
   onSharingSettings?(listener:()=>void):()=>void;
   joinRemoteWorkspace?(link:string,name:string):Promise<Receipt<import('@backbone-next/platform').WorkspacePerson>>;
@@ -33,7 +37,8 @@ interface Bridge {
   onMacNewChat?(listener: () => void): () => void;
   telemetrySettings?(): Promise<{ endpoint: string }>;
   configureTelemetry?(request: { endpoint: string; headers?: string }): Promise<{ ok: boolean }>;
-  appInfo?(): Promise<{ packaged: boolean; version: string }>;
+  dataFolderStatus?(): Promise<import('../../electron/data-folder-open').FolderStartupProblem | undefined>;
+  appInfo?(): Promise<{ packaged: boolean; version: string; dataFolder?: string }>;
   call(method: string, args: unknown): Promise<unknown>;
   onEvent(listener: (e: ApiEvent) => void): () => void;
   setTheme(theme: string): void;
@@ -57,6 +62,14 @@ interface Bridge {
   exportDocument?(projectId: string, id: string, version: number, format: ExportFormat): Promise<unknown>;
   /** Asks main to show the folder picker: the export folder inside the one the person chose, and the one-time ticket `backup.export` takes; null if they chose none. */
   chooseExportFolder?(): Promise<{ ticket: string; folder: string } | null>;
+  /** One step of restoring a backup into a new data folder (main runs the platform's restore; the page never names a folder to write). */
+  restoreBackup?(request: RestoreRequest): Promise<unknown>;
+  /** Asks main to show the folder picker for a backup to restore: a ticket for it, or null if they chose none. */
+  chooseBackupFolder?(): Promise<unknown>;
+  /** The native picker checks an existing data folder and returns only a window-bound opening ID. */
+  chooseDataFolder?(): Promise<import('../../electron/data-folder-open').FolderPick | null>;
+  /** Asks main to show the folder picker for where the restored data folder goes: a one-time ticket for a new folder inside it, or null. */
+  chooseRestorePlace?(): Promise<unknown>;
   /** Drain existing surface writes before main destroys its renderer. */
   beforeClose?(prepare: () => Promise<void>, failed: (message: string) => void): () => void;
 }
@@ -200,3 +213,30 @@ export async function checkedTurn(threadId: string, turnId: string): Promise<Rec
   if (!window.backbone?.checkedTurn) return { ok: false, outcome: 'REFUSED', reason: 'NOT_AVAILABLE', detail: 'Open the desktop app to check this outcome.' };
   return await window.backbone.checkedTurn(threadId, turnId) as Receipt<import('@backbone-next/platform').UnknownCheck>;
 }
+
+const post = async <T>(path: string, body?: unknown): Promise<T> => {
+  const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+  if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? `The request failed (${res.status}).`);
+  return (await res.json()) as T;
+};
+
+/** The restore wizard's calls. In the desktop app main runs them; in a browser the bridge does. */
+export const restore = {
+  step<T>(request: RestoreRequest): Promise<T> {
+    return window.backbone?.restoreBackup ? window.backbone.restoreBackup(request) as Promise<T> : post<T>('/api/restore', request);
+  },
+  view: () => restore.step<RestoreView>({ step: 'view' }),
+  preview: (ticket: string) => restore.step<{ ok: true; preview: RestorePreview } | Refused>({ step: 'preview', ticket }),
+  target: () => restore.step<{ ok: true; ticket: string; folder: string } | Refused>({ step: 'target' }),
+  start: (previewId: string, ticket: string) => restore.step<{ ok: true } | Refused>({ step: 'start', previewId, ticket }),
+  open: (id: string) => restore.step<import('../../electron/data-folder-open').FolderOpenResult>({step:'open',id}),
+  dismiss: () => restore.step<RestoreView>({ step: 'dismiss' }),
+  /** The native picker for the backup folder: a one-time-bound ticket for it (the only thing a preview reads), or null if none was chosen. */
+  async chooseBackup(): Promise<({ ok: true; ticket: string; folder: string } | Refused) | null> {
+    return (window.backbone?.chooseBackupFolder ? window.backbone.chooseBackupFolder() : post('/api/choose-backup-folder')) as Promise<({ ok: true; ticket: string; folder: string } | Refused) | null>;
+  },
+  /** The native picker for where the new data folder goes: a ticket for a new folder inside it, or null. */
+  async choosePlace(): Promise<({ ok: true; ticket: string; folder: string } | Refused) | null> {
+    return (window.backbone?.chooseRestorePlace ? window.backbone.chooseRestorePlace() : post('/api/choose-restore-place')) as Promise<({ ok: true; ticket: string; folder: string } | Refused) | null>;
+  },
+};

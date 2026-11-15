@@ -110,7 +110,7 @@ test('two apps share a project, join, read and send, restore the session, then e
     await people.getByRole('button',{name:'Sharing',exact:true}).click();await people.getByLabel('Shared project',{exact:true}).selectOption(shared.value.id);await people.getByLabel('Share with',{exact:true}).selectOption({label:'Remote colleague'});
     await people.getByLabel('Project permission',{exact:true}).selectOption('viewer');await people.getByRole('button',{name:'Save sharing',exact:true}).click();
     await expect(restored.getByText('Viewer access: this project is read only.',{exact:true})).toBeVisible();await expect(restored.getByRole('textbox',{name:'Message',exact:true})).toBeDisabled();
-    await people.getByRole('button',{name:'People and roles',exact:true}).click();await people.getByRole('button',{name:'Remove Remote colleague',exact:true}).click();
+    await people.getByRole('button',{name:'People and roles',exact:true}).click();await people.getByRole('button',{name:'Remove Remote colleague',exact:true}).click();await people.page().getByRole('dialog',{name:'Remove Remote colleague?'}).getByRole('button',{name:'Remove Remote colleague',exact:true}).click();
     await expect(restored.getByText('Your workspace access ended. Sign in again.',{exact:true})).toBeVisible();await expect(restored.getByRole('button',{name:'Join a workspace…',exact:true})).toBeVisible();
     const localRestored=colleagueApp.windows().find(page=>page!==restored)!;expect((await api<Project[]>(localRestored,'projects.list',{})).map(project=>project.name)).toEqual(['Colleague local project']);
     await people.getByLabel('Let people on other computers connect',{exact:true}).uncheck();await expect(people.getByText(/Certificate SHA-256:/)).toHaveCount(0);

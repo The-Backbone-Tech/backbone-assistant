@@ -96,5 +96,5 @@
     "rule": "delete the package; it holds nothing durable, and held UNKNOWNs stay with the core's gateway"
   },
   "swap": "any surface over the same api: the thread app, or the MCP door for agents",
-  "digest": "sha256:3718077b2c7a3dbed0238592cb627b2bb5f4bb317e44627357f86bb3c90eedc3"
+  "digest": "sha256:66ca88f3781678c76f50266767b983a302421c281d6b87059ccaaa50fa52d060"
 }

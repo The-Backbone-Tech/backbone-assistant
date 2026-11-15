@@ -1,3 +1,4 @@
+import {ArchivedProjectNotice} from './project-actions';
 import { SharedConversation } from './SharedConversation';
 import { UnknownOutcome } from './UnknownOutcome';
 import { FileAccessHint } from './MacFileAccess';
@@ -31,7 +32,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 const VISIBLE_TURNS = 3;
 
 export function Thread({id}:{id:string}){
-  const {remote}=useApp();return remote?<SharedConversation id={id} />:<LocalThread id={id} />;
+  const {remote,threads}=useApp();const projectId=threads.find(t=>t.id===id)?.projectId;return <>{projectId&&<ArchivedProjectNotice projectId={projectId} />}{remote?<SharedConversation id={id} />:<LocalThread id={id} />}</>;
 }
 function LocalThread({ id }: { id: string }) {
   const { openTab, setPrefs } = useApp();

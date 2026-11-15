@@ -3,7 +3,7 @@ import type { Args, Method } from '../src/api.ts';
 import { settings } from './helpers.ts';
 
 // Explicitly scoped methods are checked by the shared-project journey itself.
-export const memberMethods = ['identity.get','identity.sharing','identity.automations','projects.list','projects.create','threads.list','threads.search','threads.get','threads.update','threads.delete','turns.send','turns.stop','material.list','material.read','material.save','material.lifecycle','files.list','files.resolveLink','changes.get','work.now','viewer.get','viewer.put','drafts.get','drafts.put','models.list','host.status'] as const satisfies readonly Method[];
+export const memberMethods = ['identity.get','identity.sharing','identity.automations','projects.list','projects.create','projects.update','threads.list','threads.search','threads.get','threads.update','threads.delete','turns.send','turns.stop','material.list','material.read','material.save','material.lifecycle','files.list','files.resolveLink','changes.get','work.now','viewer.get','viewer.put','drafts.get','drafts.put','models.list','host.status'] as const satisfies readonly Method[];
 type RestrictedMethod = Exclude<Method, typeof memberMethods[number]>;
 
 /** Well-formed calls, with real project/thread/turn/person IDs where resource admission uses them. */
@@ -37,10 +37,15 @@ export function restrictedMethodArgs(projectId:string,threadId:string,turnId:str
     'sidechat.ask':{threadId,text:'Authority probe',clientKey},
     'sidechat.stop':{threadId,turnId},
     'material.attach':{projectId,name:'authority.txt',base64:Buffer.from('probe').toString('base64'),mediaType:'text/plain'},
+    'terminal.list':{projectId},
+    'terminal.clear':{projectId},
+    'terminal.start':{projectId,command:'printf authority-probe',clientKey},
+    'terminal.stop':{projectId,id},
     'terminal.run':{projectId,command:'printf authority-probe'},
     'models.local':{},
     'settings.engine.put':{engine:'harness-stub'},
     'settings.model.get':{},
+    'settings.engines.get':{},
     'settings.policy.get':{},
     'settings.model.put':{change:{route:'own',provider:'openai-compatible',baseUrl:'http://127.0.0.1:1',model:'probe',key:'fake-authority-probe'}},
     'tools.list':{},

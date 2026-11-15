@@ -30,7 +30,7 @@ for(const loss of [false,true])test(`failed master preparation closes link, clos
     assert.equal(outcome,'closing');
     const {port}=JSON.parse(readFileSync(join(home,'pg','cluster.json'),'utf8')) as {port:number};assert.equal(await reachable(port),true);
     resume.resolve();
-    await assert.rejects(pending,error=>error instanceof Error&&error.message==="This home's keys could not be prepared; nothing was started.");
+    await assert.rejects(pending,error=>error instanceof Error&&error.message==="This data folder's keys could not be prepared; nothing was started.");
     host.close();await hangDetector(hostClosed(home), 'hostClosed(home)', {diagnostic:()=>JSON.stringify({loss,closes,coreClosePending:!!CoreLink.pendingClose(home)})});
     assert.equal(closes,1);assert.equal(CoreLink.pendingClose(home),undefined);await hangDetector(CoreLink.whenClosed(home), 'CoreLink.whenClosed(home)');
     assert.equal(await reachable(port),false);assert.equal(existsSync(join(home,'pg','data','postmaster.pid')),false);

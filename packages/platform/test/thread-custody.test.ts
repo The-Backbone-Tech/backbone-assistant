@@ -186,6 +186,6 @@ test('a lock-loss notification during a Core read keeps the private original int
     }
     return read(...args);
   };
-  await assert.rejects(reconcileClosedCustody({ home: s.home, thread: 'thread', run: 'run', turn: 'turn', project: 'project' }, fake.core), /home lock was lost/);
+  await assert.rejects(reconcileClosedCustody({ home: s.home, thread: 'thread', run: 'run', turn: 'turn', project: 'project' }, fake.core), /data folder lock was lost/);
   assert.deepEqual(readJson(s.path, {}), before);
 });

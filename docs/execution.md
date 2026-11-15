@@ -1,32 +1,33 @@
 # Roadmap and status
 
-Source pre-release 0.2.0, reviewed 14 November 2026. This repository contains a clean source snapshot with fresh Git history. It does not host a previously built private binary. [README](../README.md) and the [source release record](source-release.md) explain installation and evidence.
+15 November 2026. Source pre-release 2, version 0.2.0, equivalent to qualified development pre-release 8. This page separates implemented capabilities, observed use and the complete [goal](../GOAL.md). Build instructions are in [README](../README.md).
 
-## Public Mac download
+## Available in this source cut
 
-The [unsigned Apple-silicon pre-release](https://github.com/The-Backbone-Tech/backbone-assistant/releases/tag/v0.2.0-macos-arm64.1) is built from clean public source `b1bcaa865e572a14a2d48c759bbd39cd04162cb5`, preserved by `v0.2.0-source.1`. Its two focused installed tests cover the scripted file/document journey with restart and edits, and reading every bundled notice. The actual extracted native libraries passed PostgreSQL, encoding and translation smoke checks. The complete installed inventory and privacy review passed; the release includes exact digests, provenance, notices inventory and GNU source archives.
+The desktop app, CLI and MCP surface share versioned working material and the platform's applicable contracts. Implemented capabilities include conversations; editable documents and CSV working tables; document previews; projects that can be renamed, archived and restored; engine and model selection; native Codex connectors and skills; memory; schedules; audit and export; backup restoration; browser and streaming terminal panes; and managed policy. Preview support for Word, Excel and PowerPoint is not general native editing of those formats.
 
-This is a source-linked binary delivery, not full J-01, human, two-physical-computer Team or Company acceptance. It remains unsigned and unnotarised. Later private-runtime fixes are outside this frozen public build.
+Team adds people, roles, shared projects, invitations and joining through the app or CLI. Colleagues use a shareable engine chosen by the owner; they do not inherit the owner's native client sign-in and independent tools. The owner can keep their own engine. Company identity, fleet and shared-database examples remain separate qualification work.
 
-## Personal and Team
+PostgreSQL is the current relational and durable operating substrate. The open/composable working environment in the goal is broader than the present assistant app. Source packages and optional configurations are not, by themselves, proof that every part has a complete independent adoption path or that learning improves subsequent work.
 
-Personal includes the desktop conversation, CLI and MCP surface, editable versioned files, engine/model choice, connectors, memory and skills, scheduled/background work, audit and data export. Team adds people and roles, shared projects, joining from another client, viewer restrictions and removal. The source includes both terminal and app joining paths.
+## Evidence and distribution
 
-The upstream candidate passed its composed gate and was installed on one macOS arm64/APFS machine. An agent used the installed product for real jobs through an existing signed-in client. An installed test used two app instances on that machine to exercise join, read/send, session restoration, viewer access and removal. This is not a recorded successful journey between two physical computers or human acceptance. [Sharing a project](how-to/share-with-a-team.md) states the network and operator setup.
+The private development cut equivalent to this source passed its composed gate on one Mac and was installed and exercised by an agent acting as a user. Observed work includes mail and calendar through the signed-in Codex client, project actions, a saved CSV edit followed by an assistant answer from that edit, and terminal work. This is agent use, not a person's acceptance. Scripted and fake-provider tests establish their bounded cases, not every account or engine route.
 
-The public export has its own privacy, source and structural checks, recorded separately from upstream installed evidence. Tests using scripted engines, fake providers and local pages retain those limits. [Contracts](contracts/), [guides](how-to/), [map](map.md) and [coverage](scorecard.md) locate each consumer.
+The public source has separate checks for the cleaned export and its documented substitutions. [Source releases](https://github.com/The-Backbone-Tech/backbone-assistant/releases) identify immutable source revisions. The existing [public Mac disk image](https://github.com/The-Backbone-Tech/backbone-assistant/releases/tag/v0.2.0-macos-arm64.1) was rebuilt from source pre-release 1, so it is behind this source cut. A new binary requires its own source-bound build, installed checks, native-library smoke, privacy audit and release receipt before publication.
 
-## Open work
+The public Mac build is unsigned and unnotarised. macOS arm64 with a local APFS data folder is the qualified writable profile. Linux writes require explicit experimental opt-in; Windows writable data folders are unsupported. Native LGPL packaging uses unmodified, dynamically linked libraries rebuilt from pinned GNU sources, with sources and notices supplied as described in [ADR 0005](adr/0005-lgpl-native-libraries.md).
 
-- Record human use and feedback on everyday Personal and Team work.
-- Exercise Team joining, recovery and access control on two physical computers and the actual network configuration.
-- Complete the Company configuration, including identity-provider operation, directory lifecycle, policy, audit and fleet qualification.
-- Sign and notarise macOS builds; independently build and inspect each future public binary before publication.
-- Continue platform-specific real-engine, account, upgrade and recovery qualification.
-- Compare complete jobs when a claim of being better depends on the result.
+## Known limits and open work
 
-macOS arm64/APFS is the qualified writable profile. Linux writes require explicit experimental opt-in; Windows writable data folders remain unsupported. GNU native-library source provenance, rebuild recipe, notices and public-payload checks are implemented under [ADR 0005](adr/0005-lgpl-native-libraries.md); each future shipped binary must pass those checks on its own bytes.
+- Use by two real people on two physical computers remains unqualified; complete Company identity, fleet and data-in-place operation remain open.
+- A person can edit a CSV working file, but an original they attached remains read-only in this cut. A semicolon CSV can be split differently by its preview and its Table view. Repairs in development are not part of this cut.
+- CSV editing is bounded and is not a spreadsheet calculation engine. Other file previews do not establish full editing support.
+- Everyday human feedback, cross-engine recovery, learning benefits and complete-job comparisons with existing tools still need evidence at their claimed scope.
+- Signing, notarisation, other binary platforms and remaining [reference journeys](journeys.json) remain open. Binary assets must be validated individually.
 
-## Contribute
+Supported paths are described in the [guides](how-to/), [source map](map.md), [contracts](contracts/) and [scorecard](scorecard.md). An integrated gate, installed checks, comparative evidence, agent use and human acceptance answer different questions.
 
-Choose a useful user journey, inspect its actual contract and consumer, preserve unrelated work, run focused tests/typechecks and regeneration, then the relevant integration checks. [CONTRIBUTING](../CONTRIBUTING.md) and the [development guide](development-map.md) own the workflow. Test counts support their declared scope; they do not establish complete Company or human acceptance.
+## How to contribute
+
+Choose a useful user journey, read its contract and named tests, and describe the smallest complete change. Preserve existing work and outside outcomes, add a failing test for behaviour changes, then run focused tests, typechecks and regeneration. Follow [CONTRIBUTING](../CONTRIBUTING.md) and the [development guide](development-map.md).

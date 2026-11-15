@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { CredentialStore } from '../src/credentials/store.ts';
 import type { KeychainReader } from '../src/credentials/keychain.ts';
-import { detectLocalModels, LOCAL_PORTS, MAX_LOCAL_MODEL } from '../src/models/local.ts';
+import { detectLocalModels, LOCAL_PORTS, MAX_LOCAL_MODEL, normaliseLocalEndpoint } from '../src/models/local.ts';
 import { ModelRoutes, ROUTE_ORDER } from '../src/models/route.ts';
 import { startScriptedModel } from '../src/testing/scripted-model.ts';
 import { b64, idle, open, settings, value } from './helpers.ts';
@@ -209,4 +209,53 @@ test('saving an API key replaces an older saved local preference for ordinary ch
     assert.equal(r.settings().local, null);
     assert.equal(r.resolve()?.model, change.model);
   }
+});
+
+// A saved address that cannot work is the most common mistake: the runtime's server answers under /v1 and the
+// person gave the bare address. The same function serves the terminal and the app through ModelRoutes.change.
+test('an address with no path gets /v1 for each runtime that serves it there, and other is saved as given', () => {
+  for (const runtime of ['ollama', 'lmstudio', 'llamacpp', 'vllm'] as const) {
+    assert.deepEqual(normaliseLocalEndpoint(runtime, 'http://127.0.0.1:11434'), { baseUrl: 'http://127.0.0.1:11434/v1', addedPath: true });
+    assert.deepEqual(normaliseLocalEndpoint(runtime, ' http://localhost:1234/ '), { baseUrl: 'http://localhost:1234/v1', addedPath: true });
+    assert.deepEqual(normaliseLocalEndpoint(runtime, 'http://[::1]:8080/v1/'), { baseUrl: 'http://[::1]:8080/v1', addedPath: false });
+    assert.deepEqual(normaliseLocalEndpoint(runtime, 'http://127.0.0.1:8000/custom'), { baseUrl: 'http://127.0.0.1:8000/custom', addedPath: false });
+  }
+  assert.deepEqual(normaliseLocalEndpoint('other', 'http://127.0.0.1:9000'), { baseUrl: 'http://127.0.0.1:9000', addedPath: false });
+  assert.deepEqual(normaliseLocalEndpoint('ollama', 'https://example.com'), { baseUrl: 'https://example.com', addedPath: false }, 'a non-loopback address is left for the loopback rule to refuse');
+});
+
+test('saving a bare ollama address stores /v1, says so, and confirms the model the server lists', async () => {
+  const server = await serve((url) => url === '/v1/models' ? { status: 200, body: JSON.stringify({ data: [{ id: 'gemma4:e4b' }, { id: 'other:1b' }] }) } : { status: 404 });
+  const { routes: r } = routes();
+  const saved = await r.change({ route: 'local', provider: 'ollama', baseUrl: `http://127.0.0.1:${server.port}`, model: 'gemma4:e4b' });
+  assert.equal(saved.local?.baseUrl, `http://127.0.0.1:${server.port}/v1`);
+  assert.match(saved.localNote ?? '', new RegExp(`Using http://127\\.0\\.0\\.1:${server.port}/v1`));
+  assert.match(saved.localNote ?? '', /gemma4:e4b is listed/);
+  assert.deepEqual(server.hits, ['/v1/models'], 'only the models list on the given loopback address is read');
+  assert.equal(r.resolve()?.baseUrl, `http://127.0.0.1:${server.port}/v1`);
+});
+
+test('a model the answering server does not list is saved and reported with what it does list', async () => {
+  const server = await serve(() => ({ status: 200, body: JSON.stringify({ data: [{ id: 'a:1b' }, { id: 'b:2b' }] }) }));
+  const { routes: r } = routes();
+  const saved = await r.change({ route: 'local', provider: 'other', baseUrl: `http://127.0.0.1:${server.port}/v1`, model: 'missing:3b' });
+  assert.equal(saved.local?.model, 'missing:3b');
+  assert.doesNotMatch(saved.localNote ?? '', /Using /, 'nothing was changed in the address');
+  assert.match(saved.localNote ?? '', /does not list missing:3b/); assert.match(saved.localNote ?? '', /a:1b, b:2b/);
+});
+
+test('a server that does not answer is allowed, saved, and reported as not checked', async () => {
+  const port = await closedPort();
+  const { routes: r } = routes();
+  const saved = await r.change({ route: 'local', provider: 'ollama', baseUrl: `http://127.0.0.1:${port}`, model: 'gemma4:e4b' });
+  assert.equal(saved.local?.baseUrl, `http://127.0.0.1:${port}/v1`);
+  assert.match(saved.localNote ?? '', /could not be checked/i); assert.match(saved.localNote ?? '', /Using http:\/\/127\.0\.0\.1:\d+\/v1/);
+});
+
+test('a server answering 404 at the address is reported as not checked, and a non-loopback address is still refused', async () => {
+  const server = await serve(() => ({ status: 404 }));
+  const { routes: r } = routes();
+  const saved = await r.change({ route: 'local', provider: 'other', baseUrl: `http://127.0.0.1:${server.port}`, model: 'm' });
+  assert.match(saved.localNote ?? '', /could not be checked/i);
+  await assert.rejects(r.change({ route: 'local', provider: 'ollama', baseUrl: 'http://192.168.1.5:11434', model: 'm' }), /on this computer/);
 });

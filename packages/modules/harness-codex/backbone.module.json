@@ -77,5 +77,5 @@
     "rule": "stop active native attempts first; held UNKNOWNs remain with the core gateway"
   },
   "swap": "another HarnessV1 adapter selected by the owning composition; no automatic route fallback",
-  "digest": "sha256:697ef4e55c021b856ac5087fc61a59035be27da46c1847a9a6a486d6bde393ef"
+  "digest": "sha256:28d4738704f3fea92b07da53d13870669c93b91f868e451fbe4b9d5bac7593a7"
 }

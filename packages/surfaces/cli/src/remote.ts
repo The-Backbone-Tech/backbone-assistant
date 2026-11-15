@@ -1,5 +1,6 @@
 // Remote work uses the same command presentation and turn follower as local work.
 // This module opens only the colleague's vault; it never starts a local Host/Core.
+import { sharedEngineNote } from './shared-engine-note.ts';
 import { readJoinDetails } from './remote-input.ts';
 import { readFileSync } from 'node:fs';
 import { attachApi } from '@backbone-next/platform/doors/api-line';
@@ -54,9 +55,12 @@ export async function teamCommand(parsed:Parsed,io:Io):Promise<number>{
   if(!api)throw new Error('The shared daemon could not be reached on this computer. Check backbone daemon status.');
   try{
     if(parsed.name==='team invite'){
+      const settings=await api.call('settings.model.get',{});
+      const loadError=settings.shared?.hint?.startsWith('Shared engine could not load:')?settings.shared.hint:undefined;
+      const note=loadError?sharedEngineNote(parsed.home,()=>true,loadError):settings.shared?.active?undefined:sharedEngineNote(parsed.home);
       const invitation=value(await api.call('identity.invite',{role:parsed.options.role??'member'}));
       const link=makeJoinLink({...state.shared,invitation:invitation.token});
-      io.out(parsed.json?JSON.stringify({link,expiresAt:invitation.expiresAt}):`Join link (one use, expires ${invitation.expiresAt}):\n${link}\nAfter they join, use backbone team people and backbone team share to share a project.`);
+      io.out(parsed.json?JSON.stringify({link,expiresAt:invitation.expiresAt}):`Join link (one use, expires ${invitation.expiresAt}):\n${link}\nAfter they join, use backbone team people and backbone team share to share a project.${note?`\n${note}`:''}`);
     }else if(parsed.name==='team people'){
       const identity=value(await api.call('identity.get',{}));
       io.out(parsed.json?JSON.stringify(identity.people):identity.people.map(p=>`${p.id}  ${p.name} (${p.role}, ${p.status})`).join('\n'));

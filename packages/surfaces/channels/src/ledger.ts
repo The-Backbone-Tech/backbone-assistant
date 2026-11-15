@@ -90,6 +90,8 @@ export class Ledger {
     return !!this.db.prepare('INSERT OR IGNORE INTO intake(provider,external_id,conversation,sender,text,binding_version,direct) VALUES (?,?,?,?,?,?,?)').run(m.provider,m.id,m.conversation,m.sender,m.text,this.bindingVersion(m.provider,m.sender),m.direct?1:0).changes;
   }
   intakeCount(): number { return Number(this.db.prepare('SELECT count(*) AS n FROM intake').get()!.n); }
+  /** The text of every recorded message in the order the journal recorded it, whatever became of it since. */
+  arrivals(): string[] { return this.db.prepare('SELECT text FROM intake ORDER BY seq').all().map(row=>String(row.text)); }
   pending(): (Inbound & { seq: number })[] {
     return this.db.prepare("SELECT seq,provider,external_id AS id,conversation,sender,text,binding_version AS bindingVersion,direct FROM intake WHERE state='pending' ORDER BY seq").all().map(row=>({...row,direct:row.direct===1})) as unknown as (Inbound & { seq: number })[];
   }

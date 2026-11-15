@@ -181,7 +181,7 @@ export function createDocumentDoor(options: DocumentDoorOptions): Gateway {
           }
         });
       } catch { landing = 'not written'; }
-      if (landing === 'not written') return notWritten(`The run, the home or ${target.name} changed before it was written.`);
+      if (landing === 'not written') return notWritten(`The run, the data folder or ${target.name} changed before it was written.`);
       if ('error' in landing) {
         const closed = await settle(landing.absent ? 'failed' : 'unknown');
         effect.outcome = !landing.absent || closed.status !== 'committed' ? 'UNKNOWN' : 'REFUSED';
@@ -197,7 +197,7 @@ export function createDocumentDoor(options: DocumentDoorOptions): Gateway {
       }
       if (landing.lost) {
         await settle('unknown');
-        effect.detail = `The home was taken over while ${target.name} was being written, so it may have been written. Its outcome is UNKNOWN and it will not be resent.`;
+        effect.detail = `The data folder was taken over while ${target.name} was being written, so it may have been written. Its outcome is UNKNOWN and it will not be resent.`;
         return undefined;
       }
       const settled = await settle('executed');

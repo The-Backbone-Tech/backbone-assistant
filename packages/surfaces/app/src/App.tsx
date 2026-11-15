@@ -1,3 +1,5 @@
+import {DataFolderLabel} from './components/DataFolderLabel';
+import {ProjectActionsProvider} from './components/project-actions';
 import {BackupSection} from './components/settings/Backup';
 // The shell: sidebar, the centre (Home or a thread) and the right pane, composed like the
 // Codex and Claude desktop apps (reference-baseline §2; R-UX-FAMILIAR-01), in Backbone's colours.
@@ -20,7 +22,7 @@ import { Thread } from './components/Thread';
 import { ConversationTabs } from './components/ConversationTabs';
 
 function Shell() {
-  const { remote, ready, failed, identityRecovery, held, prefs, threads, projects, openTab, setPaneOpen, sentNotice, selectThread, dismissSentNotice } = useApp();
+  const { remote, ready, dataFolder, folderProblem, failed, identityRecovery, held, prefs, threads, projects, openTab, setPaneOpen, sentNotice, selectThread, dismissSentNotice } = useApp();
   const thread = threads.find((t) => t.id === prefs.selectedThreadId);
   const projectId = thread?.projectId ?? (projects.some((p) => p.id === prefs.selectedProjectId) ? prefs.selectedProjectId : undefined);
   const workspace = usePanelRef();
@@ -48,35 +50,38 @@ function Shell() {
       const s = SHORTCUTS.find((x) => x.match(e, mac));
       if (!s) return;
       e.preventDefault();
-      if(!remote)openTab(s.kind);
+      if(!remote) {
+        openTab(s.kind);
+        if (s.kind === 'browser') setTimeout(() => document.querySelector<HTMLInputElement>('[aria-label="Page address"]')?.focus(), 0);
+      }
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
   }, [openTab,remote]);
 
   if (!ready) return <div className="h-full bg-bg" />;
-  if (held) return <HeldHome status={held} />;
-  if(!identityRecovery?.available&&(failed==='Sign in to this workspace.'||failed==='Your workspace access ended. Sign in again.'))return <div className="flex h-full items-center justify-center bg-bg p-6 text-fg"><div className="w-full max-w-md"><IdentityEntry /></div></div>;
+  if (held) return <HeldHome status={held} folder={dataFolder} />;
+  if(!identityRecovery?.available&&(failed==='Sign in to this workspace.'||failed==='Your workspace access ended. Sign in again.'))return <div className="flex h-full items-center justify-center bg-bg p-6 text-fg"><div className="w-full max-w-md space-y-3"><DataFolderLabel folder={dataFolder} /><IdentityEntry /></div></div>;
   if(remote&&failed==='Temporary workspace connection problem. Reconnecting automatically.')return <div className="flex h-full items-center justify-center bg-bg p-6 text-fg"><p role="status">{failed}</p></div>;
   if (failed) return (
     <div className="flex h-full items-center justify-center bg-bg p-6 text-fg" role="alert" data-startup-failed="true">
       <div className="max-w-md space-y-3">
-        <h1 className="text-lg font-semibold">The app could not start</h1>
+        <h1 className="text-lg font-semibold">{folderProblem?.kind==='keys'?'This app cannot open this data folder':'The app could not start'}</h1>
+        <DataFolderLabel folder={dataFolder} />
         <p className="text-sm text-fg-muted">{failed}</p>
-        <p className="text-sm text-fg-muted">Quit and open the app again to retry.</p>
+        {folderProblem?.kind!=='keys'&&<p className="text-sm text-fg-muted">Quit and open the app again to retry.</p>}
         {identityRecovery?.available&&<button type="button" className="underline" disabled={repairing} onClick={()=>void repair()}>Restore my access on this Mac</button>}
         {repairError&&<p role="alert" className="text-sm text-danger">{repairError}</p>}
         {failed==='Team features are paused on this Mac. Your work is safe; export it from Settings › Backup.'&&<details><summary className="cursor-pointer underline">Settings › Backup</summary><BackupSection /></details>}
-        <IdentityEntry />
       </div>
     </div>
   );
   return (
-    <div className="flex h-full overflow-hidden bg-bg text-fg" data-ready="true" data-native-titlebar={window.backbone && isMac() ? 'true' : undefined}>
+    <ProjectActionsProvider><div className="flex h-full overflow-hidden bg-bg text-fg" data-ready="true" data-native-titlebar={window.backbone && isMac() ? 'true' : undefined}>
       <Sidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         {identityRecovery?.notice&&<p role="status" className="border-b border-border px-4 py-2 text-sm">{identityRecovery.notice}</p>}
-        {remote&&<div role="status" className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 text-sm"><span className="min-w-0 flex-1 break-all">Workspace at {remote.origin} · Runs on the owner’s computer{remote.connection==='temporary'?' · Temporary connection problem. Reconnecting automatically.':''}</span><LeaveWorkspace /></div>}
+        {remote&&<div role="status" className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 text-sm"><span className="min-w-0 flex-1 break-all">Workspace at {remote.origin} · Runs on the owner’s computer{remote.connection==='temporary'?' · Temporary connection problem. Reconnecting automatically.':''}</span><span>Browser is not available here; pages belong to the local device owner.</span><LeaveWorkspace /></div>}
         {!remote&&<Urgent />}
         {sentNotice && <div role={sentNotice.attention ? "alert" : "status"} data-testid={sentNotice.attention ? "side-chat-notice" : "sent-notice"} className="flex flex-wrap items-center gap-2 border-b border-border bg-sunken px-4 py-2 text-sm"><p className="min-w-0 flex-1">{sentNotice.detail}</p><button type="button" className="underline" onClick={() => { selectThread(sentNotice.threadId); if (sentNotice.target === 'side-chat') openTab('side-chat'); dismissSentNotice(); }}>{sentNotice.target === 'side-chat' ? 'Open side chat' : 'Open sent chat'}</button></div>}
         <Group
@@ -98,7 +103,7 @@ function Shell() {
         </Panel>}
         </Group>
       </main>
-    </div>
+    </div></ProjectActionsProvider>
   );
 }
 

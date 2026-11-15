@@ -41,6 +41,12 @@
   }
 }
 
+/* Help on hover and focus never takes a click meant for a control it covers: its positioning wrapper
+   would otherwise catch the pointer (src/components/ui/tooltip.tsx). */
+[data-radix-popper-content-wrapper]:has(> [data-tip]) {
+  pointer-events: none;
+}
+
 /* Backbone tokens, from the old app's palette. Light is warm with a deep green accent; Dark is
    neutral with light-grey actions. test/tokens.test.ts checks contrast and that no orange is left. */
 :root {
@@ -336,3 +342,13 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Inert document structure uses the same palette as the surrounding workspace. */
+.document-preview h1 { font-size: 1.5rem; font-weight: 600; }
+.document-preview h2 { font-size: 1.25rem; font-weight: 600; }
+.document-preview h3 { font-size: 1.1rem; font-weight: 600; }
+.document-preview ul { list-style: disc; padding-left: 1.5rem; }
+.document-preview ol { list-style: decimal; padding-left: 1.5rem; }
+.document-preview table { border-collapse: collapse; width: 100%; }
+.document-preview th, .document-preview td { border: 1px solid var(--border); padding: 0.5rem; }
+.document-preview { overflow-wrap: anywhere; }

@@ -117,7 +117,7 @@ for (const marker of ['credentials', 'doors', 'memory', 'skills', 'tools', 'conn
 
 for (const choice of [undefined, 'plaintext', 'system']) test(`selector with create:false refuses a fresh folder (${choice ?? 'unset'})`, async () => {
   const h = home(), store = new MemoryKeyStore(); store.available = async () => { assert.fail('non-creating choice probed store'); };
-  await assert.rejects(chooseKeys(h, { BACKBONE_KEYS: choice }, store, { create: false }), /not an existing data home/);
+  await assert.rejects(chooseKeys(h, { BACKBONE_KEYS: choice }, store, { create: false }), /not an existing data folder/);
   assert.deepEqual(homeKeyProvider(h), null); assert.equal(store.writes, 0);
 });
 

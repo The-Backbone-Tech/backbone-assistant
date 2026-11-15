@@ -1,7 +1,7 @@
 // Public audit format and offline reader. This imports no home, database, engine or credential code.
 import { createHash } from 'node:crypto';
 
-export const AUDIT_CONTENT_DIRECT_ONLY = 'Content can be exported only by a command that opens a plaintext-key home itself, with nothing holding it. Content export through an app or daemon API line is not available; it needs a person-confirmed asked call in the app.';
+export const AUDIT_CONTENT_DIRECT_ONLY = 'Content can be exported only by a command that opens a plaintext-key data folder itself, with nothing holding it. Content export through an app or daemon API line is not available; it needs a person-confirmed asked call in the app.';
 export const AUDIT_WRITE_TIMEOUT_MS = 30000;
 export const AUDIT_SLOT_BUSY = 'Another audit export is active on this holder; waiting clients may retry this refused read.';
 export const AUDIT_SCHEMA = 'backbone.audit.v1' as const;
@@ -133,9 +133,9 @@ export class AuditVerifier {
   finish():AuditSummary{if(!this.header||!this.trailer)return fail('Audit header or trailer is missing.');return{header:this.header,trailer:this.trailer};}
 }
 export function auditJoin(current:AuditSummary,previous:AuditSummary){
-  if(previous.header.homeId!==current.header.homeId||!same(previous.header.period,current.header.period)||previous.header.includeContent!==current.header.includeContent)return fail('Audit files do not join at the same source cursor, home, period and content policy.');
-  if(previous.header.digestKey.id!==current.header.digestKey.id)return fail("these files were digested under different keys (the home's keys changed between them); each verifies alone");
-  if(!same(previous.trailer.cursor,current.header.after))return fail('Audit files do not join at the same source cursor, home, period and content policy.');
+  if(previous.header.homeId!==current.header.homeId||!same(previous.header.period,current.header.period)||previous.header.includeContent!==current.header.includeContent)return fail('Audit files do not join at the same source cursor, data folder, period and content policy.');
+  if(previous.header.digestKey.id!==current.header.digestKey.id)return fail("these files were digested under different keys (the data folder's keys changed between them); each verifies alone");
+  if(!same(previous.trailer.cursor,current.header.after))return fail('Audit files do not join at the same source cursor, data folder, period and content policy.');
 }
 export function auditVerification(record:AuditSummary,joined:boolean){
   return{valid:true as const,homeId:record.header.homeId,count:record.trailer.count,cursor:record.trailer.cursor,joined,assurance:'internal-consistency-only' as const};

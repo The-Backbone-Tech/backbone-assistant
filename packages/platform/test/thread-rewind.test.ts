@@ -624,3 +624,37 @@ test('rewind accepts ended stopped and failed targets but refuses a running targ
     if (!result.ok) assert.match(result.detail, /still running/i);
   }
 });
+
+test('a running project terminal refuses rewind before its record is begun', async () => {
+  const s = setup();
+  value(await s.material.save(s.first.id, 'Agent edit', 1, 'agent'));
+  const args = { threadId: 'thread', turnId: 'earlier' };
+  const plan = value(await s.rewind.preview(args));
+  const guarded = createThreadRewind({ ...s, projectDir: () => s.home, busy: () => false, terminalRunning: () => true, save: async () => {}, changed() {} } as Parameters<typeof createThreadRewind>[0]);
+  const refused = await guarded.apply({ ...args, revision: plan.revision, clientKey: 'terminal-busy', choices: [] });
+  assert.equal(refused.ok, false);
+  if (!refused.ok) assert.equal(refused.detail, 'A terminal command is running in this project; stop it in Terminal first.');
+  assert.equal(s.thread.rewindPending, undefined);
+  assert.equal(readFileSync(join(s.home, 'note.md'), 'utf8'), 'Agent edit');
+});
+
+test('Stop and terminal list remain controls while start is held by a rewind', () => {
+  assert.equal(rewindControl('terminal.stop', {}), true);
+  assert.equal(rewindControl('terminal.list', {}), true);
+  assert.equal(rewindControl('terminal.clear', {}), true, 'clearing finished or corrupt history does not restore project files');
+  assert.equal(rewindControl('terminal.start', {}), false);
+});
+
+test('an unreadable terminal record refuses rewind with Clear in Terminal rather than a running-command claim', async () => {
+  const s = setup();
+  const { createTerminal } = await import('../src/composition/terminal-stream.ts');
+  const terminal = createTerminal({ home: s.home, directory: () => s.home, exists: () => true, changed() {} });
+  mkdirSync(join(s.home, 'terminal'));
+  writeFileSync(join(s.home, 'terminal', createHash('sha256').update('project').digest('hex') + '.json'), '{bad');
+  const guarded = createThreadRewind({ ...s, projectDir: () => s.home, busy: () => false, terminalRunning: id => terminal.hasRunning(id), save: async () => {}, changed() {} } as Parameters<typeof createThreadRewind>[0]);
+  try {
+    const result = await guarded.preview({ threadId: 'thread', turnId: 'earlier' });
+    assert.equal(result.ok, false);
+    if (!result.ok) { assert.match(result.detail, /record.*cannot be read.*Clear.*Terminal/); assert.doesNotMatch(result.detail, /command is running/); }
+  } finally { await terminal.close(); }
+});

@@ -6,7 +6,7 @@ import { policyView } from '../policy/index.ts';
 import { join } from 'node:path';
 import { selectedHarness, engineLabel } from './engine-settings.ts';
 import type { Args, Changes, Method, ModelSettings, Project, Receipt, Result, Thread, ThreadSummary, ViewerPrefs } from '../api.ts';
-import { DEFAULT_PREFS } from '../api.ts';
+import { DEFAULT_PREFS, normaliseViewerPrefs } from '../api.ts';
 import type { ConnectorService } from '../connectors/service.ts';
 import type { CredentialStore } from '../credentials/store.ts';
 import { detectLocalModels } from '../models/local.ts';
@@ -30,7 +30,7 @@ import { standingSignatureStatus } from './signature-status.ts';
 import type { StoredThread } from './thread-journal.ts';
 
 /** What a read-only host answers. Everything else changes something, or can. */
-export const READS = new Set<Method>(['threads.rewindPreview', 'audit.export', 'core.signatureStatus', 'backup.export', 'backup.inspect', 'solutions.options', 'solutions.verify', 'projects.list', 'threads.list', 'threads.get', 'material.list', 'material.read', 'files.list', 'files.resolveLink', 'work.now', 'drafts.get', 'changes.get', 'models.list', 'models.local', 'settings.policy.get', 'settings.model.get', 'viewer.get', 'board.get', 'connectors.list', 'schedules.get']);
+export const READS = new Set<Method>(['threads.rewindPreview', 'audit.export', 'core.signatureStatus', 'backup.export', 'backup.inspect', 'solutions.options', 'solutions.verify', 'projects.list', 'threads.list', 'threads.get', 'material.list', 'material.read', 'files.list', 'files.resolveLink', 'work.now', 'drafts.get', 'changes.get', 'models.list', 'models.local', 'settings.policy.get', 'settings.model.get', 'settings.engines.get', 'viewer.get', 'board.get', 'connectors.list', 'schedules.get']);
 
 const refused = <T>(reason: 'NOT_FOUND' | 'NOT_A_REPOSITORY' | 'NOT_AVAILABLE' | 'INVALID' | 'STALE_BASE', detail: string): Receipt<T> => ({ ok: false, reason, detail, outcome: 'REFUSED' });
 
@@ -39,7 +39,7 @@ type Names = 'settings.policy.get' | 'core.signatureStatus' | 'projects.list' | 
 /** What the read handlers use of the Host, under the names they had there. The last three change while it runs, so they are read (and the last one set) through the Host. */
 export interface HostReadDeps extends Pick<ReturnType<typeof createProjectFiles>, 'filesOf' | 'linkedPath'> {
   home: string;
-  options: Pick<HostOptions, 'localModels' | 'harness'>;
+  options: Pick<HostOptions, 'localModels' | 'harness' | 'readOnly'>;
   core: Promise<CoreLink>;
   material: MaterialStore;
   threads: Map<string, StoredThread>;
@@ -69,7 +69,7 @@ export function createHostReads(deps: HostReadDeps) {
   const label = () => deps.engine?.label ?? engineLabel(selected);
   const handlers: { [M in Names]: (a: Args<M>) => Promise<Result<M>> | Result<M> } = {
     'core.signatureStatus': async () => standingSignatureStatus(await core),
-    'projects.list': () => deps.projects.map(({ dir: _dir, ...p }) => p),
+    'projects.list': () => deps.projects.map(({ dir: _dir, ...p }) => ({...p,canUpdate:!options.readOnly})),
     'threads.list': async () => (await Promise.all([...threads.values()].map(summaryView))).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
     'threads.get': async ({ id }) => {
       const t = threads.get(id);
@@ -161,7 +161,7 @@ export function createHostReads(deps: HostReadDeps) {
     },
     'settings.policy.get': () => policyView(home),
     'settings.model.get': (): ModelSettings => ({ ...routes.settings(), ...(deps.nativeProblem ? { hint: deps.nativeProblem } : {}), harness: label() }),
-    'viewer.get': () => ({ ...DEFAULT_PREFS, ...readJson<Partial<ViewerPrefs>>(join(home, 'viewer.json'), {}) }),
+    'viewer.get': () => normaliseViewerPrefs({ ...DEFAULT_PREFS, ...readJson<Partial<ViewerPrefs>>(join(home, 'viewer.json'), {}) }),
     // Listing observes only; writable startup and mutations reconcile connector authority.
     'connectors.list': () => connectors.list(),
     'audit.export': async (args) => auditReceipt(await core, args),
@@ -181,7 +181,7 @@ export function createHostReads(deps: HostReadDeps) {
         const receipts = (await link.read<{ id: string; status: string; operation: string; description: string | null; created_at: string }>(link.person(), 'SELECT id::text AS id, status, operation, description, created_at FROM app.effects ORDER BY created_at, id')).rows;
         return { ok: true, value: await withHomeLock(home, async () => exportHome({
           home,
-          projects: deps.projects.map(({ id, name, kind }) => ({ id, name, kind })),
+          projects: deps.projects.map(({ id, name, kind, archived }) => ({ id, name, kind, ...(archived===undefined?{}:{archived}) })),
           documents: (projectId) => material.list(projectId, true),
           versionPath: (id, version) => join(home, 'material', id, 'versions', String(version)),
           threads: [...threads.values()],

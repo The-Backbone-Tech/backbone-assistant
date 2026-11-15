@@ -57,7 +57,9 @@ export type RefusalReason =
   /** A child tried to start a child: delegation stops at depth one. */
   | 'DEPTH_LIMIT'
   /** A child asked for more than its parent has; the detail names the axis. */
-  | 'WIDER_THAN_PARENT';
+  | 'WIDER_THAN_PARENT'
+  /** Nothing was done: the owner has no model for shared work, which this needs (Settings › AI and models › Shared work). */
+  | 'SHARED_WORK_REQUIRED';
 
 // ---- Projections -----------------------------------------------------------
 
@@ -67,6 +69,10 @@ export interface Project {
   name: string;
   kind: ProjectKind;
   createdAt: string;
+  /** Absent on older data folders means active. Archiving changes visibility only. */
+  archived?: boolean;
+  /** Display hint computed by Host; every update still checks live ownership. */
+  canUpdate?: boolean;
   /** Present on authenticated shared-project projections; enforced by Host, not the UI. */
   access?: import('./api-identity.ts').ProjectAccess;
 }
@@ -137,6 +143,10 @@ export interface UnknownCheckInput { threadId: Id; turnId: Id; revision: string 
 export const unknownCheckConfirmation = (app: string): string => `Mark as checked? ${app} will not repeat this action; continuing may ask the assistant to try again.`;
 
 export interface Turn {
+  /** A shared carrier remains required during recovery, even for a device-owner session. */
+  sharedEngine?: 'harness-pi';
+  /** A recovery admission result, separate from the original turn and its receipts. */
+  recoveryAttempt?: { detail: string; at: string };
   /** Submission identity for read-only reconciliation; never a send instruction. */
   clientKey?:string;
   /** Owner inspection, never success. The journal owns this durable acknowledgement. */
@@ -202,6 +212,8 @@ export interface Turn {
     endedAt?: string;
     steps: WorkStep[];
     harness: string;
+    /** Ordered carriers used by this turn, including its original route on recovery. No endpoint or key is exposed. */
+    carriers?: { engine: string; fingerprint: string; model: string; label: string; shared: boolean }[];
     /** Provider's finish reason; an unfinished answer is never a done turn. */
     finishReason?: string;
     /** Counts reported by the harness, not subscription balance or money spent. */
@@ -430,7 +442,7 @@ export interface ChildView {
 
 /** original = bytes as attached; working = agent-written; accepted = the person saved it. */
 export { isCutOffFinish } from './completion.ts';
-export { terminalModelHint } from './model-setup.ts';
+export { terminalModelHint, settingsModelHint } from './model-setup.ts';
 
 export type MaterialClass = 'original' | 'working' | 'accepted';
 export interface MaterialVersion {
@@ -583,10 +595,14 @@ export interface LocalModels {
   runtimes: { provider: Exclude<LocalProvider, 'other'>; name: string; baseUrl: string; models: string[] }[];
 }
 export interface ModelSettings extends AcpModelSettings {
+  /** Explicit Pi route for colleagues and named automations. */
+  shared?: Omit<ModelSettings, 'shared'>;
   own: { provider: OwnProvider; model: string; keySet: boolean; baseUrl?: string } | null;
   gateway: { provider: GatewayProvider; model: string; keySet: boolean } | null;
   /** A model running on this computer, chosen in Settings. No key. */
   local?: { provider: LocalProvider; baseUrl: string; model: string } | null;
+  /** Said once, after a local choice is saved: the address used and whether the server lists the model. */
+  localNote?: string;
   /** The route the next turn will use, or null with `hint` saying what to do. */
   active: ModelRouteView | null;
   hint: string | null;
@@ -594,6 +610,31 @@ export interface ModelSettings extends AcpModelSettings {
   native?: { provider: 'codex'; model: string };
   /** The engine turns run on. */
   harness: string;
+}
+/** One engine a person may choose in Settings, and whether it can run on this computer. */
+export interface EngineOption {
+  id: string;
+  /** The short name `settings.engine.put` and `backbone engine` take. */
+  name: 'pi' | 'codex' | 'acp' | 'stub';
+  label: string;
+  /** What changes with this engine, in one sentence. */
+  about: string;
+  /** Refused: managed policy does not allow it, so it is not offered. */
+  state: 'available' | 'unavailable' | 'refused';
+  /** Why it is unavailable or refused, in words the person can act on. */
+  reason?: string;
+}
+/** The engines for this data folder. A choice is saved with `settings.engine.put` and applies when the app next starts. */
+export interface EngineChoices {
+  /** The engine this process runs on now. */
+  running: string;
+  /** The engine the next start will use, or null when the managed policy refuses the saved choice. */
+  next: string | null;
+  /** The engine saved for this data folder, or null when none is saved. Differs from `next` when the launch environment fixes the engine. */
+  stored: string | null;
+  /** BACKBONE_HARNESS is set for this process, so a saved choice does not apply while it is. */
+  environment: boolean;
+  options: EngineOption[];
 }
 /** The routes a person can choose, in policy order: their own key first, then a gateway. */
 export const ROUTE_CHOICES = {
@@ -608,6 +649,7 @@ export type { AcpAgentConfiguration, AcpAgentDraft, AcpPrepared, AcpExecutableId
 import type { AcpSettingsChange, AcpModelSettings } from './api-acp.ts';
 /** A key is pasted by the person and sealed at once; it is never read back. */
 export type ModelSettingsChange =
+  | { route: 'shared'; change: ModelSettingsChange }
   | AcpSettingsChange
   | { route: 'native'; provider: 'codex'; model: string }
   | { route: 'own'; provider: OwnProvider; model?: string; key?: string; baseUrl?: string }
@@ -621,6 +663,26 @@ export interface TerminalResult {
   code: number | null;
 }
 
+/** A person's line-mode command, owned by the platform rather than an open tab. */
+export interface TerminalBlock extends TerminalResult {
+  id: string;
+  clientKey: string;
+  status: 'running' | 'succeeded' | 'failed' | 'not-known';
+  cwd: string;
+  startedAt: string;
+  detail?: string;
+  stopping?: boolean;
+  saveError?: string;
+  signals: string[];
+  omittedBytes: number;
+  omittedLines: number;
+}
+export interface TerminalView {
+  cwd: string; commands: TerminalBlock[]; omittedCommands: number;
+  /** Prefix fresh client keys with this namespace; compaction expires forgotten requests without replay. */
+  historyKey?: string;
+}
+
 /** Per-viewer UI state (layout, theme, open tabs). Never durable work state. */
 export interface ViewerPrefs {
   theme: 'light' | 'dark' | 'system';
@@ -632,9 +694,20 @@ export interface ViewerPrefs {
   composer?: Partial<TurnSettings>;
   /** The person has seen what Full access reaches on a new data folder (kept, changed, or a first message sent). It stays with the data folder. */
   fullAccessNotice?: 'decided';
+  /** The Settings section this viewer used last, opened again when Settings opens without a named section. */
+  settingsSection?: SettingsSectionId;
+}
+/** Every Settings section, by id. The app's list and the stored last-used section share this one set. */
+export const SETTINGS_SECTIONS = ['general', 'model-route', 'agent-roles', 'connectors', 'signed-tools', 'plugins', 'ai-tools', 'people', 'sharing', 'proactive', 'backup', 'telemetry', 'notices'] as const;
+export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number];
+/** Viewer settings as stored and served: a last-used Settings section that names no section is dropped. */
+export function normaliseViewerPrefs<T extends ViewerPrefs>(prefs: T): T {
+  if (prefs?.settingsSection === undefined || (SETTINGS_SECTIONS as readonly unknown[]).includes(prefs.settingsSection)) return prefs;
+  const { settingsSection: _dropped, ...rest } = prefs;
+  return rest as T;
 }
 export type PaneTab =
-  | { id: string; kind: 'changes' | 'files' | 'terminal' | 'side-chat' | 'launcher' }
+  | { id: string; kind: 'changes' | 'files' | 'terminal' | 'side-chat' | 'browser' | 'launcher' }
   | { id: string; kind: 'file'; materialId: Id; version?: number }
   /** What one version of a document changed, against the version before it. */
   | { id: string; kind: 'diff'; materialId: Id; version: number };
@@ -1051,6 +1124,7 @@ export interface ApiMethods extends RewindMethods, ThreadControlMethods, SkillCo
   /** Pure inspection of the Core step's receipt and exact profile; no vault, install or work. */
   'core.signatureStatus': (a: Record<string, never>) => StandingSignatureStatus;
   'projects.list': (a: Record<string, never>) => Project[];
+  'projects.update': (a: { id: Id; patch: Partial<Pick<Project, 'name' | 'archived'>> }) => Receipt<Project>;
   'projects.create': (a: { name: string; kind: ProjectKind; clientKey?: string }) => Receipt<Project>;
   'threads.list': (a: Record<string, never>) => ThreadSummary[];
   'threads.get': (a: { id: Id }) => Receipt<Thread>;
@@ -1149,10 +1223,21 @@ export interface ApiMethods extends RewindMethods, ThreadControlMethods, SkillCo
   'drafts.get': (a: { key: string }) => Draft | null;
   /** With `version`, that one document version of this project against the version before it, whatever the scope. */
   'changes.get': (a: { projectId: Id; threadId?: Id; scope: ChangeScope; base?: string; version?: { materialId: Id; version: number } }) => Receipt<Changes>;
+  /** Local device owner only, with terminal.run project and policy admission; list and Stop remain available during a rewind. */
+  'terminal.list': (a: { projectId: Id }) => Receipt<TerminalView>;
+  /** Record before dispatch. Reusing clientKey observes the original command; it never runs it again. */
+  'terminal.start': (a: { projectId: Id; command: string; clientKey: string }) => Receipt<TerminalBlock>;
+  /** Only this project's admitted command: interrupt, wait one second, terminate, wait, then kill its group. */
+  'terminal.stop': (a: { projectId: Id; id: string }) => Receipt<TerminalBlock>;
+  /** Clear finished blocks only; a running command and its custody remain. */
+  'terminal.clear': (a: { projectId: Id }) => Receipt<TerminalView>;
   'terminal.run': (a: { projectId: Id; command: string }) => Receipt<TerminalResult>;
   'models.list': (a: Record<string, never>) => ModelChoice[];
   /** Store the engine for the next Host open; never changes a running turn. */
   'settings.engine.put': (a: { engine: string }) => Receipt<{ engine: string; detail: string }>;
+  /** The engines this computer offers, which one runs and which one the next start uses. Changes nothing. */
+  /** `fresh` asks the installed clients again instead of reusing an answer from the last few seconds. */
+  'settings.engines.get': (a: { fresh?: boolean }) => EngineChoices;
   'settings.policy.get': (a: Record<string, never>) => PolicyView;
   'settings.model.get': (a: Record<string, never>) => ModelSettings;
   'settings.model.put': (a: { change: ModelSettingsChange }) => Receipt<ModelSettings>;
@@ -1293,11 +1378,11 @@ export const METHODS: Method[] = [
   'threads.rewindPreview', 'threads.rewind', 'threads.rewindFinish',
   'identity.get', 'identity.invite', 'identity.role', 'identity.remove', 'identity.share', 'identity.sharing', 'identity.automations', 'identity.automation.create', 'identity.automation.revoke', 'identity.automation.run',
   'core.signatureStatus',
-  'projects.list', 'projects.create', 'threads.list', 'threads.get', 'threads.update', 'threads.delete', 'threads.restart', 'threads.fork',
+  'projects.list', 'projects.create', 'projects.update', 'threads.list', 'threads.get', 'threads.update', 'threads.delete', 'threads.restart', 'threads.fork',
   'goals.set', 'goals.clear', 'goals.decide', 'children.start',
   'children.merge', 'turns.send', 'turns.stop', 'turns.keepRecovery', 'turns.steer', 'queue.add', 'queue.edit', 'queue.remove', 'queue.send', 'sidechat.ask', 'sidechat.stop', 'material.attach', 'material.list', 'material.read',
-  'material.save', 'material.lifecycle', 'work.now', 'files.list', 'files.resolveLink', 'drafts.put', 'drafts.get', 'changes.get', 'terminal.run',
-  'models.list', 'models.local', 'settings.engine.put', 'settings.model.get', 'settings.policy.get', 'settings.model.put', 'viewer.get', 'viewer.put',
+  'material.save', 'material.lifecycle', 'work.now', 'files.list', 'files.resolveLink', 'drafts.put', 'drafts.get', 'changes.get', 'terminal.run', 'terminal.list', 'terminal.start', 'terminal.stop', 'terminal.clear',
+  'models.list', 'models.local', 'settings.engine.put', 'settings.engines.get', 'settings.model.get', 'settings.policy.get', 'settings.model.put', 'viewer.get', 'viewer.put',
   'tools.list', 'tools.disconnect',
   'triage.get', 'triage.connect', 'triage.run', 'triage.stop', 'triage.undo', 'triage.decide', 'triage.disconnect',
   'schedules.get', 'schedules.parse', 'schedules.create', 'schedules.update', 'schedules.delete', 'schedules.run', 'heartbeat.put', 'brief.put', 'brief.done',

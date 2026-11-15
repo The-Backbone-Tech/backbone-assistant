@@ -22,7 +22,7 @@ export function AgentRolesSection() {
       if (!result.ok) { setError(result.detail); return; }
       setRoles(result.value.roles); setTruncated(result.value.truncated); setManualReview(result.value.manualReview);
     }
-    catch { setError('Could not load agent roles. Try again.'); }
+    catch { setError('Could not load helper roles. Try again.'); }
   }, []);
   React.useEffect(() => { void load(); }, [load]);
   const choose = (role?: AgentRole) => {
@@ -62,7 +62,7 @@ export function AgentRolesSection() {
     <form aria-label="Agent role" onSubmit={save} className="space-y-3" aria-busy={busy}>
       <label className="block">Role name<Input aria-label="Role name" value={name} disabled={busy || !!selected} onChange={event => setName(event.target.value)} /></label>
       <label className="block">Definition<textarea aria-label="Agent role definition" className="mt-1 min-h-64 w-full rounded-md border border-strong-border bg-surface p-2 font-mono text-xs" value={markdown} disabled={busy} onChange={event => setMarkdown(event.target.value)} /></label>
-      <div className="flex gap-2"><Button type="submit" disabled={busy}>Save role</Button>{selected && <Button type="button" variant="outline" disabled={busy} onClick={() => void remove()}>Delete role</Button>}</div>
+      <div className="flex gap-2">{selected && <Button type="button" variant="outline" className="border-danger text-danger" disabled={busy} onClick={() => void remove()}>Delete role</Button>}<Button type="submit" disabled={busy}>Save role</Button></div>
     </form>
     {error && <p role="alert" className="text-danger">{error}</p>}
     {notice && <p role="status">{notice}</p>}

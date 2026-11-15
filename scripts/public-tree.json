@@ -78,7 +78,7 @@
     "scripts/notices/README.md": "public/scripts/notices/README.md.txt",
     "docs/how-to/install-and-open-the-app.md": "public/docs/how-to/install-and-open-the-app.md.txt",
     "packages/platform/README.md": "public/packages/platform/README.md.txt",
-    "docs/how-to/share-with-a-team.md": "public/docs/how-to/share-with-a-team.md.txt"
+    ".github/workflows/check.yml": "public/.github/workflows/check.yml.txt"
   },
   "forbiddenPatterns": [
     {

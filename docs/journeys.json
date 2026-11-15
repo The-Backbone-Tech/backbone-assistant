@@ -902,6 +902,15 @@
         "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"formatted documents/reports"}]
       },
       {
+        "id": "browser-beside-work",
+        "sentence": "A person opens a private page beside their conversation, navigates and recovers from a failed load without exposing app data or giving the assistant control.",
+        "kind": "platform",
+        "kindReason": "The pane contract promises personal browsing beside work; assistant-driven browsing has its own journey.",
+        "evidenceRequired": "installed",
+        "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/browser-pane.electron.spec.ts","name":"a person browses beside work with isolated pages and recovers using the keyboard","suite":"app-e2e","level":"test"},{"file":"packages/surfaces/app/e2e/browser-pane.electron.spec.ts","name":"managed policy blocks browsing and revokes an already running page","suite":"app-e2e","level":"test"}]
+      },
+      {
         "id": "browser-task",
         "sentence": "A person asks the assistant to look something up or fill a web page under their existing grant, sees what it did, and receives a receipt for any outside effect.",
         "kind": "platform",
@@ -926,6 +935,7 @@
         "kindReason": "Scorecard requires the capability; Shape activates this journey only for the named configuration.",
         "evidenceRequired": "installed",
         "provingTest": null,
+        "supportingTests": [{"file":"packages/surfaces/app/e2e/csv-table.browser.spec.ts","name":"person and AI continue the same versioned CSV; table/text drafts survive, stale Save keeps the newer version","suite":"app-e2e","level":"test","scope":"partial"}],
         "references": [{"product":"Claude Cowork","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"formatted documents"},{"product":"OpenCode V2","file":"backbone:docs/references/2026-11-claude-openclaw-opencode.md","section":"12 Workspace","sourceKeys":"interactive HTML artifacts"}]
       }
     ]

@@ -14,7 +14,7 @@ export interface TurnAdmissionOptions {
 export function turnAdmissions(home: string) {
   let pending: Promise<unknown> = Promise.resolve();
   return <T>(work: () => Promise<T>): Promise<T> => {
-    if (inActiveHomeLockScope(home)) throw new Error('Turn admission must start outside the home lock.');
+    if (inActiveHomeLockScope(home)) throw new Error('Turn admission must start outside the data folder lock.');
     const next=pending.then(work,work);
     pending=next.catch(()=>{});
     return next;

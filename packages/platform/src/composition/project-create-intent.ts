@@ -23,7 +23,8 @@ export function decideProjectIntent(prior: ProjectIntent | null, proposed: Proje
   if (!prior) return { action: 'reserve', intent: proposed };
   if (prior.key !== proposed.key || prior.name !== proposed.name || prior.kind !== proposed.kind) return { action: 'conflict' };
   if (recorded) {
-    if (recorded.id !== prior.project.id || recorded.name !== prior.project.name || recorded.kind !== prior.project.kind || recorded.dir !== prior.project.dir || recorded.createdAt !== prior.project.createdAt) return { action: 'unknown' };
+    // The creation intent stays bound to its original name; later project edits do not change its identity.
+    if (recorded.id !== prior.project.id || recorded.kind !== prior.project.kind || recorded.dir !== prior.project.dir || recorded.createdAt !== prior.project.createdAt) return { action: 'unknown' };
     return { action: 'ready', intent: {...prior, phase:'ready'} };
   }
   if (prior.phase === 'failed') return { action: 'failed', intent: prior };

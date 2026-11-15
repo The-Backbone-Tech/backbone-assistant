@@ -2,18 +2,21 @@
 // Chats with Show more, More, and Settings and utility controls at the foot (R-UX-SIDEBAR-01). Pins,
 // sections, unread state and a row menu stay; child threads fold under their parent. Anything
 // without a backend yet is left out rather than shown disabled.
-import type { GoalRun, HeldCall, ThreadHit, ThreadSummary } from '@backbone-next/platform';
+import type { Project, GoalRun, HeldCall, ThreadHit, ThreadSummary } from '@backbone-next/platform';
 import { defaultFilter } from 'cmdk';
 import {
-  Archive, ArchiveRestore, Bell, Brain, CalendarClock, ChevronDown, ChevronRight, Folder, FolderGit2, Loader2, Mail, MessagesSquare, Monitor, Moon,
+  Archive, ArchiveRestore, Bell, Brain, CalendarClock, ChevronDown, ChevronRight, Folder, Loader2, Mail, MessagesSquare, Monitor, Moon,
   MoreHorizontal, PanelLeft, PenSquare, Pin, Plus, Search, Settings, Sun, Trash2, X,
   ListChecks,
 } from 'lucide-react';
 import * as React from 'react';
 import { call, isMac } from '../lib/api';
+import { requestComposerFocus } from '../lib/composer-focus';
 import { brand } from '../brand';
 import { useApp, useLive } from '../lib/state';
 import { cn } from '../lib/utils';
+import { ProjectRow } from './ProjectRow';
+import { useProjectActions } from './project-actions';
 import { NewProjectDialog } from './NewProjectDialog';
 import { ScheduleDialog, useProactivity } from './Scheduled';
 import { ForkRoleNotice } from './ForkRoleNotice';
@@ -23,9 +26,10 @@ import { Input } from './ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Dialog, DialogClose, DialogContent } from './ui/dialog';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
   DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { AreaContextMenu, ItemContextMenu, ItemMenuButton, type MenuEntry } from './ui/item-menu';
 import { Kbd } from './ui/kbd';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
@@ -34,6 +38,9 @@ const item = 'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left te
 
 export function Sidebar() {
   const { remote, projects, threads, prefs, setPrefs, selectProject, sidebarOpen, setSidebarOpen } = useApp();
+  const projectActions = useProjectActions();
+  const activeProjects=projects.filter(project=>!project.archived);
+  const archivedProjectIds=new Set(projects.filter(project=>project.archived).map(project=>project.id));
   const [newProject, setNewProject] = React.useState(false);
   const [settings, setSettings] = React.useState(false);
   const [settingsSection, setSettingsSection] = React.useState<SectionId | undefined>(undefined);
@@ -43,14 +50,14 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [showAll, setShowAll] = React.useState(false);
   const mac = isMac();
-  const live = threads.filter((t) => !t.archived);
-  const archived = threads.filter((t) => t.archived);
+  const live = threads.filter((t) => !t.archived&&!archivedProjectIds.has(t.projectId));
+  const archived = threads.filter((t) => t.archived&&!archivedProjectIds.has(t.projectId));
   const pinned = live.filter((t) => t.pinned);
   const sections = [...new Set(live.filter((t) => !t.pinned && t.section).map((t) => t.section as string))].sort();
   const childrenOf = (id: string) => live.filter((t) => t.parentId === id);
   const chats = live.filter((t) => !t.pinned && !t.section && !t.parentId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const shown = showAll ? chats : chats.slice(0, FIRST_CHATS);
-  const newChat = React.useCallback(() => (selectProject(prefs.selectedProjectId), setSidebarOpen(false)), [selectProject, prefs.selectedProjectId, setSidebarOpen]);
+  const newChat = React.useCallback(() => { selectProject(prefs.selectedProjectId); setSidebarOpen(false); requestComposerFocus(); }, [selectProject, prefs.selectedProjectId, setSidebarOpen]);
 
   React.useEffect(() => window.backbone?.onMacNewChat?.(newChat), [newChat]);
 
@@ -71,7 +78,7 @@ export function Sidebar() {
   React.useEffect(() => {
     if (!sidebarOpen) return;
     closeButton.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !document.querySelector('[role=dialog],[data-radix-popper-content-wrapper]')) setSidebarOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !(e.target instanceof HTMLElement&&e.target.matches('input[data-menu-focus]')) && !document.querySelector('[role=dialog],[data-radix-popper-content-wrapper]')) setSidebarOpen(false); };
     // Capture sees the key before a popover closes on it, so one Escape closes one thing.
     window.addEventListener('keydown', onKey, true);
     return () => {
@@ -90,13 +97,13 @@ export function Sidebar() {
         >
           <div className="app-window-bar app-sidebar-bar flex h-[42px] shrink-0 items-center gap-1 pl-3 pr-2">
             <span className="min-w-0 truncate text-sm font-semibold tracking-tight" title={brand.name}>{brand.name}</span>
-            <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label="Search chats" title="Search chats" onClick={() => setSearch(true)}>
+            <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label="Search chats" tip onClick={() => setSearch(true)}>
               <Search />
             </Button>
-            <Button variant="ghost" size="icon-sm" className="hidden md:inline-flex" aria-label="Collapse sidebar" title="Collapse sidebar" onClick={() => setCollapsed(true)}>
+            <Button variant="ghost" size="icon-sm" className="hidden md:inline-flex" aria-label="Collapse sidebar" tip onClick={() => setCollapsed(true)}>
               <PanelLeft />
             </Button>
-            <Button ref={closeButton} variant="ghost" size="icon-sm" className="md:hidden" aria-label="Close sidebar" onClick={() => setSidebarOpen(false)}>
+            <Button ref={closeButton} variant="ghost" size="icon-sm" className="md:hidden" aria-label="Close sidebar" tip onClick={() => setSidebarOpen(false)}>
               <X />
             </Button>
           </div>
@@ -108,18 +115,24 @@ export function Sidebar() {
             </button>
           </div>
 
+          <AreaContextMenu entries={[
+            { kind: 'item', id: 'new-chat', label: 'New chat', onSelect: newChat },
+            ...(remote ? [] : [{ kind: 'item' as const, id: 'new-project', label: 'New project', onSelect: () => setNewProject(true) }]),
+          ]}>
           <div className="mt-2 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
             <Section
               title="Projects"
               action={
-                !remote&&<Button variant="ghost" size="icon-sm" aria-label="New project" title="New project" onClick={() => setNewProject(true)}>
+                !remote&&<Button variant="ghost" size="icon-sm" aria-label="New project" tip onClick={() => setNewProject(true)}>
                   <Plus />
                 </Button>
               }
             >
-              {projects.length === 0 && <p className="px-2 py-1 text-xs text-muted">No projects yet.</p>}
-              {projects.map((p) => (
-                <ProjectRow key={p.id} project={p} threads={live.filter((t) => t.projectId === p.id && !t.parentId)} childrenOf={childrenOf} />
+              {activeProjects.length === 0 && <p className="px-2 py-1 text-xs text-muted">No projects yet.</p>}
+              {activeProjects.map((p) => (
+                <ProjectRow key={p.id} project={p} threads={live.filter((t) => t.projectId === p.id && !t.parentId)} change={projectActions.change} busy={!!projectActions.busy}>
+                  {live.filter(t=>t.projectId===p.id&&!t.parentId).map(t=><Row key={t.id} thread={t} childrenOf={childrenOf} />)}
+                </ProjectRow>
               ))}
             </Section>
             {pinned.length > 0 && (
@@ -147,8 +160,9 @@ export function Sidebar() {
                 {showAll ? 'Show less' : 'Show more'}
               </button>
             )}
-            {!remote&&<MoreMenu archived={archived} />}
+            {(!remote||archivedProjectIds.size>0)&&<MoreMenu archived={archived} archivedProjects={projects.filter(project=>project.archived)} change={projectActions.change} busy={!!projectActions.busy} />}
           </div>
+          </AreaContextMenu>
 
           <div className="space-y-0.5 border-t border-border p-2">
             <div className="flex items-center gap-1">
@@ -170,7 +184,7 @@ export function Sidebar() {
                     size="icon-sm"
                     className={cn('text-muted', prefs.theme === id && 'bg-surface text-fg shadow-sm')}
                     aria-label={`${label} theme`}
-                    title={`${label} theme`}
+                    tip
                     aria-pressed={prefs.theme === id}
                     onClick={() => setPrefs((p) => ({ ...p, theme: id }))}
                   >
@@ -193,7 +207,7 @@ export function Sidebar() {
 function Rail({ collapsed, onExpand }: { collapsed: boolean; onExpand: () => void }) {
   return (
     <div className="app-rail hidden w-11 flex-col items-center gap-1 border-r border-border bg-sidebar py-2 md:flex">
-      <Button variant="ghost" size="icon" className="bg-hover" aria-label={collapsed ? 'Expand sidebar' : 'Chats'} title={collapsed ? 'Expand sidebar' : 'Chats'} aria-pressed={!collapsed ? true : undefined} onClick={onExpand}>
+      <Button variant="ghost" size="icon" className="bg-hover" aria-label={collapsed ? 'Expand sidebar' : 'Chats'} tip aria-pressed={!collapsed ? true : undefined} onClick={onExpand}>
         <MessagesSquare />
       </Button>
     </div>
@@ -227,7 +241,7 @@ function NeedsYou({ onHeld }: { onHeld: () => void }) {
           size="icon-sm"
           className="relative shrink-0 text-muted"
           aria-label={count > 0 ? `Needs you (${count})` : 'Needs you'}
-          title="Needs you"
+          tip
         >
           <Bell aria-hidden />
           {count > 0 && <span aria-hidden className="absolute right-1 top-1 size-1.5 rounded-full bg-draft" />}
@@ -281,17 +295,17 @@ function NeedsYou({ onHeld }: { onHeld: () => void }) {
   );
 }
 
-function MoreMenu({ archived }: { archived: ThreadSummary[] }) {
-  const { selectThread, prefs, setPrefs, setSidebarOpen } = useApp();
+function MoreMenu({ archived,archivedProjects,change,busy }: { archived: ThreadSummary[];archivedProjects:Project[];change(id:string,patch:{archived:boolean}):Promise<boolean>;busy:boolean }) {
+  const { remote,selectThread,selectProject, prefs, setPrefs, setSidebarOpen } = useApp();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className={cn(item, 'mt-1')}>
+        <button type="button" data-project-archive-place className={cn(item, 'mt-1')}>
           <MoreHorizontal className="text-muted" /> More <ChevronRight className="ml-auto text-muted" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="bottom" align="start" className="w-64">
-        {([
+      <DropdownMenuContent side="bottom" align="start" className="w-64 max-sm:w-[calc(50vw-0.5rem)] max-sm:min-w-0">
+        {!remote&&([
           ['now', 'Now', ListChecks],
           ['scheduled', 'Scheduled', CalendarClock],
           ['memory', 'Memory', Brain],
@@ -310,15 +324,25 @@ function MoreMenu({ archived }: { archived: ThreadSummary[] }) {
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger disabled={archived.length === 0}>
-            <Archive /> Archived chats <span className="ml-auto text-xs text-muted">{archived.length}</span>
+          <DropdownMenuSubTrigger disabled={archivedProjects.length===0&&(!!remote||archived.length===0)}>
+            <Archive /> Archived <span className="ml-auto text-xs text-muted">{archivedProjects.length+(remote?0:archived.length)}</span>
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
-            {archived.map((t) => (
-              <DropdownMenuItem key={t.id} onSelect={() => void call('threads.update', { id: t.id, patch: { archived: false } }).then(() => selectThread(t.id))}>
-                <ArchiveRestore /> <span className="truncate">{t.title}</span>
-              </DropdownMenuItem>
-            ))}
+          <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto max-sm:w-[calc(50vw-0.5rem)] max-sm:min-w-0">
+            {archivedProjects.length>0&&<DropdownMenuLabel>Projects</DropdownMenuLabel>}
+            {archivedProjects.map(project=>!project.canUpdate?
+              <DropdownMenuLabel key={project.id}><span className="block truncate">{project.name}</span><span className="text-xs text-muted">The project owner can restore it.</span></DropdownMenuLabel>:
+              <DropdownMenuItem key={project.id} disabled={busy} onSelect={()=>void change(project.id,{archived:false}).then(ok=>{if(ok)selectProject(project.id);})}>
+                <ArchiveRestore /><span className="truncate">{project.name}</span>
+              </DropdownMenuItem>)}
+            {!remote&&archived.length>0&&<>
+              {archivedProjects.length>0&&<DropdownMenuSeparator />}
+              <DropdownMenuLabel>Chats</DropdownMenuLabel>
+              {archived.map((t) => (
+                <DropdownMenuItem key={t.id} onSelect={() => void call('threads.update', { id: t.id, patch: { archived: false } }).then(() => selectThread(t.id))}>
+                  <ArchiveRestore /> <span className="truncate">{t.title}</span>
+                </DropdownMenuItem>
+              ))}
+            </>}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
       </DropdownMenuContent>
@@ -327,7 +351,24 @@ function MoreMenu({ archived }: { archived: ThreadSummary[] }) {
 }
 
 function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const { threads, projects, selectThread, selectProject } = useApp();
+  const { threads, projects, selectThread, selectProject,refresh,setSidebarOpen } = useApp();
+  const actions=useProjectActions();
+  const finishSearch=()=>{setQuery('');onOpenChange(false);setSidebarOpen(false);};
+  const [problem,setProblem]=React.useState(''),[restoring,setRestoring]=React.useState<string>();
+  const [unconfirmed,setUnconfirmed]=React.useState<string>();
+  const restoreChat=async(thread:ThreadSummary)=>{
+    if(restoring||unconfirmed)return;setRestoring(thread.id);setProblem('');
+    try{
+      const project=projects.find(p=>p.id===thread.projectId);
+      if(project?.archived&&!await actions.change(project.id,{archived:false}))return;
+      if(thread.archived){const result=await call('threads.update',{id:thread.id,patch:{archived:false}});if(!result.ok){setProblem(result.detail);return;}}
+      await refresh();selectThread(thread.id);finishSearch();
+    }catch{setUnconfirmed(thread.id);setProblem('Chat restoration could not be confirmed. Check the list before another attempt. Nothing will be sent again.');}
+    finally{setRestoring(undefined);}
+  };
+  const archivedChat=(thread:ThreadSummary)=>thread.archived||projects.find(p=>p.id===thread.projectId)?.archived;
+  const canRestore=(thread:ThreadSummary)=>{const project=projects.find(p=>p.id===thread.projectId);return (!project?.archived||project.canUpdate)&&(!thread.archived||thread.access!=='viewer');};
+  const restoreControl=(thread:ThreadSummary)=>archivedChat(thread)?<span className="ml-auto text-xs text-muted">Archived {canRestore(thread)?<Button size="sm" variant="ghost" disabled={!!actions.busy||!!restoring||!!unconfirmed} onClick={event=>{event.stopPropagation();void restoreChat(thread);}} onKeyDown={event=>event.stopPropagation()}>Restore</Button>:<span> · The owner can restore it.</span>}</span>:null;
   const [query, setQuery] = React.useState('');
   const [hits, setHits] = React.useState<ThreadHit[]>([]);
   // The Host owns matching and ranking, including titles and archived conversations.
@@ -349,29 +390,30 @@ function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
       <DialogContent title="Search" bare className="top-[20%] max-w-lg translate-y-0 overflow-hidden">
         <Command label="Search chats and projects" shouldFilter={false} className="max-h-[60vh]">
           <CommandInput placeholder="Search chats, their words and answers…" autoFocus value={query} onValueChange={setQuery} />
+          {problem&&<p role="alert" className="px-3 py-2 text-sm">{problem}{unconfirmed&&<Button size="sm" variant="ghost" onClick={()=>void refresh().then(list=>{if(list){setUnconfirmed(undefined);setProblem('The list was refreshed. Nothing was sent again.');}},()=>setProblem('The list could not be checked. Nothing was sent again.'))}>Check list</Button>}</p>}
           <CommandList>
             <CommandEmpty>Nothing matches.</CommandEmpty>
             {hits.length > 0 && (
               <CommandGroup heading="In chats">
                 {hits.map((h, i) => (
-                  <CommandItem key={`${h.threadId}:${h.turnId}:${h.field}:${i}`} value={`found ${h.threadId} ${h.turnId ?? ''} ${h.field}`} data-testid="search-hit" onSelect={() => { selectThread(h.threadId); setQuery(''); onOpenChange(false); }}>
+                  <CommandItem key={`${h.threadId}:${h.turnId}:${h.field}:${i}`} value={`found ${h.threadId} ${h.turnId ?? ''} ${h.field}`} data-testid="search-hit" onSelect={() => { selectThread(h.threadId); setQuery(''); finishSearch(); }}>
                     <MessagesSquare className="text-muted" />
-                    <span className="min-w-0 flex-1"><span className="block truncate">{h.title}</span><span className="block truncate text-xs text-muted">{FIELD[h.field]}: {h.snippet}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate">{h.title}</span><span className="block truncate text-xs text-muted">{FIELD[h.field]}: {h.snippet}</span></span>{threads.find(t=>t.id===h.threadId)&&restoreControl(threads.find(t=>t.id===h.threadId)!)}
                   </CommandItem>
                 ))}
               </CommandGroup>
             )}
             {!query.trim() && <CommandGroup heading="Chats">
-              {threads.filter((t) => !t.archived).map((t) => (
-                <CommandItem key={t.id} value={`chat ${t.title} ${t.id}`} onSelect={() => (selectThread(t.id), onOpenChange(false))}>
-                  <MessagesSquare className="text-muted" /> <span className="truncate">{t.title}</span>
+              {threads.map((t) => (
+                <CommandItem key={t.id} value={`chat ${t.title} ${t.id}`} onSelect={() => (selectThread(t.id), finishSearch())}>
+                  <MessagesSquare className="text-muted" /> <span className="truncate">{t.title}</span>{restoreControl(t)}
                 </CommandItem>
               ))}
             </CommandGroup>}
             {matchingProjects.length > 0 && <CommandGroup heading="Projects">
               {matchingProjects.map((p) => (
-                <CommandItem key={p.id} value={`project ${p.name} ${p.id}`} onSelect={() => (selectProject(p.id), onOpenChange(false))}>
-                  <Folder className="text-muted" /> {p.name}
+                <CommandItem key={p.id} value={`project ${p.name} ${p.id}`} disabled={!!p.archived&&(!!actions.busy||!p.canUpdate)} onSelect={() => {if(p.archived)void actions.change(p.id,{archived:false}).then(ok=>{if(ok){selectProject(p.id);finishSearch();}});else{selectProject(p.id);finishSearch();}}}>
+                  <Folder className="text-muted" /> {p.name}{p.archived&&<span className="ml-auto text-xs text-muted">Archived · {p.canUpdate?'Restore':'The project owner can restore it.'}</span>}
                 </CommandItem>
               ))}
             </CommandGroup>}
@@ -398,34 +440,6 @@ function Section({ title, action, children }: { title: string; action?: React.Re
   );
 }
 
-function ProjectRow({ project, threads, childrenOf }: { project: { id: string; name: string; kind: string }; threads: ThreadSummary[]; childrenOf: (id: string) => ThreadSummary[] }) {
-  const { prefs, selectProject, setSidebarOpen } = useApp();
-  const [open, setOpen] = React.useState(false);
-  const Icon = project.kind === 'git' ? FolderGit2 : Folder;
-  const selected = prefs.selectedProjectId === project.id && !prefs.selectedThreadId;
-  return (
-    <li>
-      <div className={cn('group flex items-center rounded-md hover:bg-hover', selected && 'bg-accent-soft')}>
-        <button type="button" aria-label={open ? 'Hide its chats' : 'Show its chats'} aria-expanded={open} className="flex size-7 shrink-0 items-center justify-center text-muted" onClick={() => setOpen(!open)}>
-          {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-        </button>
-        <button type="button" className="flex min-w-0 flex-1 items-center gap-2 py-1.5 pr-2 text-left text-sm" onClick={() => (selectProject(project.id), setSidebarOpen(false))}>
-          <Icon className="size-4 shrink-0 text-muted" aria-hidden />
-          <span className="truncate">{project.name}</span>
-          {threads.length > 0 && <span className="ml-auto text-xs text-muted">{threads.length}</span>}
-        </button>
-      </div>
-      {open && (
-        <ul className="ml-5 border-l border-border pl-1">
-          {threads.length === 0 && <li className="px-2 py-1 text-xs text-muted">No chats in this project.</li>}
-          {threads.map((t) => (
-            <Row key={t.id} thread={t} childrenOf={childrenOf} />
-          ))}
-        </ul>
-      )}
-    </li>
-  );
-}
 
 function Row({ thread, childrenOf, depth = 0 }: { thread: ThreadSummary; childrenOf: (id: string) => ThreadSummary[]; depth?: number }) {
   const { remote, prefs, selectThread, projects, threads } = useApp();
@@ -439,8 +453,14 @@ function Row({ thread, childrenOf, depth = 0 }: { thread: ThreadSummary; childre
   const sections = [...new Set(threads.map((t) => t.section).filter(Boolean) as string[])];
   if (!sections.includes('Workstreams')) sections.unshift('Workstreams');
 
+  const entries = threadActions({
+    thread, projects:projects.filter(project=>!project.archived), sections, patch,
+    rename: () => setRenaming(true), schedule: () => setScheduling(true), remove: () => setConfirmDelete(true),
+    fork: () => void call('threads.fork', { id: thread.id, clientKey: crypto.randomUUID() }).then((r) => { if (r.ok) selectThread(r.value.id); }),
+  });
   return (
     <li>
+      <ItemContextMenu entries={entries} disabled={!!remote} focusTarget="[data-row-main],[data-menu-focus]">
       <div className={cn('group flex items-center rounded-md hover:bg-hover', selected && 'bg-accent-soft hover:bg-accent-soft')} style={{ paddingLeft: depth * 12 }}>
         {kids.length > 0 && (
           <button type="button" aria-label={folded ? 'Show child threads' : 'Hide child threads'} className="px-1 text-muted" onClick={() => setFolded(!folded)}>
@@ -450,10 +470,12 @@ function Row({ thread, childrenOf, depth = 0 }: { thread: ThreadSummary; childre
         {renaming ? (
           <Input
             autoFocus
+            data-menu-focus
             aria-label="Thread name"
             defaultValue={thread.title}
             size="sm"
             className="m-0.5 min-w-0 flex-1"
+            onContextMenu={(e) => e.stopPropagation()}
             onBlur={(e) => (patch({ title: e.target.value.trim() || thread.title }), setRenaming(false))}
             onKeyDown={(e) => {
               if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
@@ -461,68 +483,19 @@ function Row({ thread, childrenOf, depth = 0 }: { thread: ThreadSummary; childre
             }}
           />
         ) : (
-          <button type="button" className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left text-sm" aria-current={selected ? 'page' : undefined} onClick={() => selectThread(thread.id)}>
+          <button type="button" data-row-main className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left text-sm" aria-current={selected ? 'page' : undefined} onClick={() => selectThread(thread.id)}>
             <span className={cn('truncate', thread.unread && 'font-semibold')}>{thread.title}</span>
             {thread.running && <Loader2 className="size-3.5 shrink-0 animate-spin text-muted" aria-label="Running" />}
             {thread.unread && !thread.running && <span className="ml-auto size-2 shrink-0 rounded-full bg-accent" aria-label="Unread" data-testid="unread-dot" />}
           </button>
         )}
-        {!remote&&<DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="reveal text-muted" aria-label={`Thread actions for ${thread.title}`}>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => setRenaming(true)}>Rename</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => patch({ pinned: !thread.pinned })}>
-              <Pin /> {thread.pinned ? 'Unpin' : 'Pin'}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => patch({ unread: !thread.unread })}>{thread.unread ? 'Mark as read' : 'Mark as unread'}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setScheduling(true)}>Schedule…</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Project</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={thread.projectId} onValueChange={(v) => patch({ projectId: v })}>
-                  {projects.map((p) => (
-                    <DropdownMenuRadioItem key={p.id} value={p.id}>
-                      {p.name}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Section</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={thread.section ?? ''} onValueChange={(v) => patch({ section: v })}>
-                  <DropdownMenuRadioItem value="">None</DropdownMenuRadioItem>
-                  {sections.map((s) => (
-                    <DropdownMenuRadioItem key={s} value={s}>
-                      {s}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Fork</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuLabel><ForkRoleNotice /></DropdownMenuLabel>
-                <DropdownMenuItem onSelect={() => void call('threads.fork', { id: thread.id, clientKey: crypto.randomUUID() }).then((r) => { if (r.ok) selectThread(r.value.id); })}>As a chat</DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => patch({ archived: true })}>
-              <Archive /> Archive
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-danger" onSelect={() => setConfirmDelete(true)}>
-              <Trash2 /> Delete permanently
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>}
+        {!remote&&<ItemMenuButton entries={entries} trigger={
+          <Button variant="ghost" size="icon-sm" className="reveal text-muted" aria-label={`Thread actions for ${thread.title}`} tip>
+            <MoreHorizontal />
+          </Button>
+        } />}
       </div>
+      </ItemContextMenu>
       {kids.length > 0 && !folded && (
         <ul>
           {kids.map((k) => (
@@ -552,4 +525,30 @@ function Row({ thread, childrenOf, depth = 0 }: { thread: ThreadSummary; childre
       </Dialog>
     </li>
   );
+}
+
+/** A conversation's actions, declared once: its "more" button and a right-click on it both render this list. */
+function threadActions({ thread, projects, sections, patch, rename, schedule, remove, fork }: {
+  thread: ThreadSummary;
+  projects: { id: string; name: string }[];
+  sections: string[];
+  patch: (p: Parameters<typeof call<'threads.update'>>[1]['patch']) => void;
+  rename: () => void;
+  schedule: () => void;
+  remove: () => void;
+  fork: () => void;
+}): MenuEntry[] {
+  return [
+    { kind: 'item', id: 'rename', label: 'Rename', onSelect: rename },
+    { kind: 'item', id: 'pin', icon: <Pin />, label: thread.pinned ? 'Unpin' : 'Pin', onSelect: () => patch({ pinned: !thread.pinned }) },
+    { kind: 'item', id: 'unread', label: thread.unread ? 'Mark as read' : 'Mark as unread', onSelect: () => patch({ unread: !thread.unread }) },
+    { kind: 'item', id: 'schedule', label: 'Schedule…', onSelect: schedule },
+    { kind: 'separator', id: 'a' },
+    { kind: 'choice', id: 'project', label: 'Project', value: thread.projectId, onValueChange: (v) => patch({ projectId: v }), options: projects.map((p) => ({ value: p.id, label: p.name })) },
+    { kind: 'choice', id: 'section', label: 'Section', value: thread.section ?? '', onValueChange: (v) => patch({ section: v }), options: [{ value: '', label: 'None' }, ...sections.map((x) => ({ value: x, label: x }))] },
+    { kind: 'sub', id: 'fork', label: 'Fork', note: <ForkRoleNotice />, entries: [{ kind: 'item', id: 'fork-chat', label: 'As a chat', onSelect: fork }] },
+    { kind: 'separator', id: 'b' },
+    { kind: 'item', id: 'archive', icon: <Archive />, label: 'Archive', onSelect: () => patch({ archived: true }) },
+    { kind: 'item', id: 'delete', icon: <Trash2 />, label: 'Delete permanently', danger: true, onSelect: remove },
+  ];
 }

@@ -9,7 +9,7 @@ export class HomeIncomplete extends Error {
   constructor(home: string, missing: readonly string[]) {
     // A shell argument, including literal apostrophes, dollars and backticks in the home name.
     const quoted = `'${home.replaceAll("'", "'\"'\"'")}'`;
-    super(`This home's first run did not finish. Missing or unusable: ${missing.join(', ')}. Complete it with backbone projects create "My project" --home ${quoted}.`);
+    super(`This data folder's first run did not finish. Missing or unusable: ${missing.join(', ')}. Complete it with backbone projects create "My project" --home ${quoted}.`);
     this.name = 'HomeIncomplete';
     this.missing = Object.freeze([...missing]);
   }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { isFontPackage, licenceOk } from './licences.mjs';
-import { mkdirSync, mkdtempSync, writeFileSync, cpSync, rmSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync, cpSync, rmSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { edgeProblems, sqlProblems } from './structure.mjs';
@@ -497,10 +497,9 @@ function closedCoreFixture(run) {
   try {
     const core = join(root, 'packages/core'); mkdirSync(join(core, 'src/db'), {recursive:true});
     cpSync(new URL('../packages/core/schema/', import.meta.url), join(core, 'schema'), {recursive:true});
-    cpSync(new URL('../packages/core/src/db/material-closure-release.generated.ts', import.meta.url), join(core, 'src/db/material-closure-release.generated.ts'));
-    cpSync(new URL('../packages/core/src/db/material-closure-hardening-release.generated.ts', import.meta.url), join(core, 'src/db/material-closure-hardening-release.generated.ts'));
-    // Explicit identity releases are independent files, just like the material releases.
-    for (const file of ['identity-release.generated.ts','identity-work-release.generated.ts','identity-role-revocation-release.generated.ts','identity-resource-release.generated.ts','identity-admission-release.generated.ts','identity-guarantees-release.generated.ts','identity-platform-release.generated.ts','identity-role-closure-release.generated.ts','identity-piece-admission-release.generated.ts','identity-lookup-closure-release.generated.ts','identity-invitation-closure-release.generated.ts']) cpSync(new URL('../packages/core/src/db/'+file, import.meta.url),join(core,'src/db',file));
+    // Every explicit release is an independent generated file; copy them all so a new release cannot be forgotten here.
+    const releases = new URL('../packages/core/src/db/', import.meta.url);
+    for (const file of readdirSync(releases).filter((name) => name.endsWith('-release.generated.ts'))) cpSync(new URL(file, releases), join(core, 'src/db', file));
     const files = ['packages/core/package.json', 'packages/core/schema/gov/_material_source_state.sql',
       'packages/core/schema/versions/material-closure-foundation-v1/gov/_material_source_state.sql'];
     run(root, files);

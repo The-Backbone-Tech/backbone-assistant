@@ -67,12 +67,12 @@ export async function exportAuditHome(homePath: string, supplied: AuditOptions, 
   const period = auditOptions(supplied), home = canonicalHome(homePath), root = auditTemporaryRoot(options.scratchRoot ?? options.temporaryRoot);
   auditDecision(governedPolicy(home), period.includeContent === true);
   await sweepAuditTemporary(root);
-  if (!existsSync(home)) throw new AuditInvalid('No audit home exists at the named path.');
+  if (!existsSync(home)) throw new AuditInvalid('No audit data folder exists at the named path.');
   refuseStampedHome(home);
-  if (await hasOwner(home)) throw new AuditInvalid('This home has a live owner whose API line is not available; retry when the line is ready.');
+  if (await hasOwner(home)) throw new AuditInvalid('This data folder has a live owner whose API line is not available; retry when the line is ready.');
   const identity = JSON.parse(readFileSync(join(home, 'core.json'), 'utf8')) as { workspace: string; person: string };
-  if (!AUDIT_UUID.test(identity.workspace) || !AUDIT_UUID.test(identity.person)) throw new AuditInvalid('This home has no valid Core identity.');
-  if (JSON.parse(readFileSync(join(home, 'keys', 'vault.json'), 'utf8')).holder !== 'plaintext') throw new AuditInvalid('Standalone audit export requires a home with plaintext keys. Use the running app for content-free export.');
+  if (!AUDIT_UUID.test(identity.workspace) || !AUDIT_UUID.test(identity.person)) throw new AuditInvalid('This data folder has no valid Core identity.');
+  if (JSON.parse(readFileSync(join(home, 'keys', 'vault.json'), 'utf8')).holder !== 'plaintext') throw new AuditInvalid('Standalone audit export requires a data folder with plaintext keys. Use the running app for content-free export.');
   if(existsSync(join(home,'keys','master.key')))throw new AuditInvalid('A legacy master key must be migrated by the app before a standalone audit read.');
   const vault=await Vault.open(home,options.keys,{readOnly:true});
   const abort = new AbortController(), signals = ['SIGINT', 'SIGTERM', 'SIGHUP'] as const;
@@ -87,7 +87,7 @@ export async function exportAuditHome(homePath: string, supplied: AuditOptions, 
     else {
       const data = join(home, 'pg', 'data'); stopped(data);
       const controlPath = join(data, 'global', 'pg_control'), control = readFileSync(controlPath);
-      if (inside(root, home)) throw new AuditInvalid('The temporary folder is inside the data home.');
+      if (inside(root, home)) throw new AuditInvalid('The temporary folder is inside the data folder.');
       temporary = allocateAuditTemporary(root, abort.signal,error=>abort.abort(error)); await temporary.ready;
       const folder = temporary.folder; await observe('allocated', folder, options, abort.signal);
       let observedCopy = false;

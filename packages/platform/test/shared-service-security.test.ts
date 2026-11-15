@@ -16,13 +16,13 @@ function boundary(native=false){
   const adapter=createIdentityHost({home:freshHome(),readOnly:false,link:async()=>link,projects:()=>[{id:'shared'} as Project],threads:new Map(),summary:async t=>t.summary,material:{} as IdentityHostDeps['material'],piece:()=>null,nativeEngine:()=>native,emit(){},abort(){},on:fn=>{listener=fn;return()=>{listener=undefined;};},dispatch:async()=>assert.fail('The member cannot dispatch to this native engine.')});
   return {adapter,expire:()=>{live=false;},withdraw:()=>{visible=false;listener?.({topic:'identity'});}};
 }
-test('a native-account engine refusal explains how the owner selects a shareable engine',async()=>{
+test('a native-account engine refusal tells the colleague the message was not sent and what the owner does',async()=>{
   const {adapter}=boundary(true);
   const server=await serveIdentityApi({host:{callAuthenticated:adapter.call} as unknown as Host});
   try{
     const response=await fetch(server.origin+'/api',{method:'POST',headers:{authorization:'Bearer '+'a'.repeat(40)},body:JSON.stringify({method:'turns.send',args:{projectId:'shared',text:'Hello',attachments:[],settings:{},clientKey:randomUUID()}})});
     assert.equal(response.status,409);
-    assert.match((await response.json()).error,/owner must select a shareable engine.*backbone engine pi/);
+    assert.match((await response.json()).error,/was not sent.*workspace owner.*backbone model shared local/);
   }finally{await server.close();}
 });
 for(const action of ['expire','withdraw'] as const)test(`an idle stream ends after ${action} without needing a model event`,async t=>{

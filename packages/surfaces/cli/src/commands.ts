@@ -21,6 +21,9 @@ export const USAGE = `usage: backbone <command> [--home <data folder>] [--json]
   solutions verify <turn> --thread <thread> --deliverable <name>...
   projects list
   projects create <name> [--kind folder|git]
+  projects rename <id> <name>
+  projects archive <id>
+  projects restore <id>
   threads list [--all]
   threads checked <thread> --turn <turn>
   threads show <thread>
@@ -47,6 +50,7 @@ export const USAGE = `usage: backbone <command> [--home <data folder>] [--json]
   models
   engine [pi|codex|acp|stub]          show or store the engine for this data folder (next process)
   model codex --model <id>
+  model shared local --endpoint <loopback-url> --model <id> [--runtime ollama|lmstudio|llamacpp|vllm|other]
   model local --endpoint <loopback-url> --model <id> [--runtime ollama|lmstudio|llamacpp|vllm|other]
   files attach <path> [--project <project>]
   files read <name-or-id> [--version <n>] [--project <project>]
@@ -154,6 +158,9 @@ const COMMANDS: Record<string, 'none' | 'one' | 'optional' | 'text' | 'folder'> 
   chat: 'none',
   'projects list': 'none',
   'projects create': 'text',
+  'projects rename': 'text',
+  'projects archive': 'one',
+  'projects restore': 'one',
   'threads list': 'none',
   'threads checked': 'one',
   'threads show': 'one',
@@ -239,13 +246,14 @@ export function parse(argv: string[], env: NodeJS.ProcessEnv = process.env): Par
   const shape = COMMANDS[name ?? ''];
   if (!shape) return blank(name ? `no command ${two}.` : 'name a command.');
   const words = positionals.slice(name.split(' ').length);
+  if(name==='projects rename'&&(words.length<2||!words[0].trim()||!words.slice(1).join(' ').trim()))return blank('projects rename needs a project id and a name.');
   if (shape === 'none' && words.length) return blank(`${name} takes no words after it.`);
   if (shape === 'folder' && words.length !== 1) return blank(`${name} takes one folder.`);
   if (values['dry-run'] && name !== 'restore') return blank('--dry-run is for restore.');
   // The thing a command takes, in plain words, for the messages below.
-  const noun = name === 'team share' ? 'project id' : name === 'team remove' ? 'person id' : name.startsWith('audit ') ? 'file' : 'thread';
+  const noun = name.startsWith('projects ') || name === 'team share' ? 'project id' : name === 'team remove' ? 'person id' : name.startsWith('audit ') ? 'file' : 'thread';
   if (shape === 'one' && words.some(word => !word.trim()) && name.startsWith('team ')) return blank(`${name} needs a ${noun}.`);
-  if ((shape === 'one' || shape === 'optional') && words.length > 1) return blank(name === 'telemetry endpoint' ? 'telemetry endpoint takes one URL.' : `${name} takes one ${noun}.`);
+  if ((shape === 'one' || shape === 'optional') && words.length > 1 && !(name === 'model' && words[0] === 'shared' && words.length === 2)) return blank(name === 'telemetry endpoint' ? 'telemetry endpoint takes one URL.' : `${name} takes one ${noun}.`);
   const what: Record<string, string> = { send: 'the text to send', queue: 'the text to send', 'goal set': 'the goal', 'schedule add': 'what each run says' };
   if ((shape === 'one' || shape === 'text') && !words.length) return blank(name === 'telemetry endpoint' ? 'telemetry endpoint needs a full OTLP traces URL.' : shape === 'one' ? `${name} needs ${name.endsWith(' verify') ? 'a file' : `a ${noun}`}.` : `${name} needs ${what[name] ?? 'a name'}.`);
   if ((name === 'goal set' || name === 'queue') && !values.thread) return blank(`${name} needs --thread <thread>.`);
@@ -268,7 +276,7 @@ export function parse(argv: string[], env: NodeJS.ProcessEnv = process.env): Par
   if (values['output-schema'] !== undefined && name !== 'exec') return blank('--output-schema is for exec.');
   if (name === 'exec' && /^\/goal(?:\s|$)/.test(words.join(' ').trim())) return blank('exec runs one turn; use goal for a goal run.');
   if (values.attach && name !== 'send' && name !== 'exec') return blank('--attach is for send; use files attach to attach separately.');
-  if (name === 'model' && (!['codex', 'local'].includes(words[0]) || !values.model || (words[0] === 'local' && !values.endpoint))) return blank('use model codex --model <id>, or model local --endpoint <loopback-url> --model <id>. Hosted keys are added in the app Settings > AI and models; never type them into CLI arguments.');
+  if (name === 'model' && (!['codex', 'local', 'shared local'].includes(words.join(' ')) || !values.model || (words.at(-1) === 'local' && !values.endpoint))) return blank('use model codex --model <id>, model local --endpoint <loopback-url> --model <id>, or model shared local --endpoint <loopback-url> --model <id>. Hosted keys are added in the app Settings > AI and models; never type them into CLI arguments.');
   if ((values.endpoint || values.runtime) && name !== 'model') return blank('--endpoint and --runtime are for model local.');
   if (values.from && name !== 'files save') return blank('--from is for files save.');
   if (values.version && name !== 'files read') return blank('--version is for files read.');
@@ -299,10 +307,10 @@ export function parse(argv: string[], env: NodeJS.ProcessEnv = process.env): Par
     name,
     home: home!,
     json: values.json,
-    target: words.join(' ') || undefined,
+    target: (name==='projects rename'?words[0]:words.join(' ')) || undefined,
     options: {
       ...(name.startsWith('solutions ') ? { task: { needs: values.needs.split(',') as Args<'solutions.options'>['needs'], network: values.network === 'true', spend: values.spend as Args<'solutions.options'>['spend'], structured: values.structured, ...(values.evidence ? { evidenceQuery: values.evidence } : {}) }, deliverables: values.deliverable } : {}),
-      share:values.share,name:values.name,person:values.person,access:values.access as Parsed['options']['access'],role:values.role as Parsed['options']['role'],
+      share:values.share,name:name==='projects rename'?words.slice(1).join(' '):values.name,person:values.person,access:values.access as Parsed['options']['access'],role:values.role as Parsed['options']['role'],
       outputSchema: values['output-schema'],
       endpoint: values.endpoint, runtime: values.runtime, attach: values.attach, from: values.from, version: values.version === undefined ? undefined : Number(values.version), baseVersion: values['base-version'] === undefined ? undefined : Number(values['base-version']),
       turnId: values.turn, argsHash: values['args-hash'], connectorAnswer: values.answer as Parsed['options']['connectorAnswer'],
@@ -380,8 +388,10 @@ export async function runCommand(parsed: Parsed, api: Api, io: Io): Promise<numb
     const all = await api.call('projects.list', {});
     if (options.project) return all.find((p) => p.id === options.project || p.name === options.project) ?? refuse(`No project ${options.project}.`);
     if (!all.length) refuse('There is no project yet; make one with: backbone projects create <name>.');
-    if (all.length > 1) usage(`name one of ${all.length} projects with --project.`);
-    return all[0];
+    const active=all.filter(project=>!project.archived);
+    if (!active.length) refuse('There is no active project; restore one or make one with: backbone projects create <name>.');
+    if (active.length > 1) usage(`name one of ${active.length} projects with --project.`);
+    return active[0];
   }
 
   /** What a settled turn came to, said once. Effects first: they are what happened. */
@@ -598,7 +608,7 @@ export async function runCommand(parsed: Parsed, api: Api, io: Io): Promise<numb
     switch (parsed.name) {
       case 'projects list': {
         const all = await api.call('projects.list', {});
-        show(all, () => all.map((p) => `${p.id}  ${p.name} (${p.kind})`).join('\n') || 'No projects yet.');
+        show(all, () => all.map((p) => `${p.id}  ${p.name} (${p.kind})${p.archived ? ' archived' : ''}`).join('\n') || 'No projects yet.');
         return EXIT.OK;
       }
       case 'projects create': {
@@ -606,8 +616,19 @@ export async function runCommand(parsed: Parsed, api: Api, io: Io): Promise<numb
         show(made, () => `Created ${made.name} (${made.id}).`);
         return EXIT.OK;
       }
+      case 'projects rename':
+      case 'projects archive':
+      case 'projects restore': {
+        const patch=parsed.name==='projects rename'?{name:options.name!}:{archived:parsed.name==='projects archive'};
+        const done=value(await changing(()=>api.call('projects.update',{id:target!,patch})));
+        const verb=parsed.name==='projects rename'?'Renamed':parsed.name==='projects archive'?'Archived':'Restored';
+        show(done,()=>`${verb} ${done.name} (${done.id}).`);
+        return EXIT.OK;
+      }
       case 'threads list': {
-        const all = (await api.call('threads.list', {})).filter((t) => options.all || !t.archived);
+        const [threads,projects]=await Promise.all([api.call('threads.list',{}),api.call('projects.list',{})]);
+        const archivedProjects=new Set(projects.filter(project=>project.archived).map(project=>project.id));
+        const all = threads.filter(t=>options.all||(!t.archived&&!archivedProjects.has(t.projectId)));
         show(all, () => all.map(summaryLine).join('\n') || 'No threads.');
         return EXIT.OK;
       }
@@ -687,7 +708,7 @@ export async function runCommand(parsed: Parsed, api: Api, io: Io): Promise<numb
         const models = await api.call('models.list', {});
         const settings = await api.call('settings.model.get', {});
         show({ models, settings }, () =>
-          [...models.map((m) => `${m.id}  ${m.label}`), `Engine: ${settings.harness}`, `Route: ${settings.active?.label ?? terminalModelHint(settings.hint ?? 'none')}`].join('\n'));
+          [...models.map((m) => `${m.id}  ${m.label}`), `Engine: ${settings.harness}`, `Route: ${settings.active?.label ?? terminalModelHint(settings.hint ?? 'none')}`, `Shared work: Pi · ${settings.shared?.active?.label ?? 'not configured'}`].join('\n'));
         return EXIT.OK;
       }
       default:

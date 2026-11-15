@@ -43,7 +43,7 @@ async function opened(page: Page, label: string) {
   catch (error) { if (app) await app.close(); if (bridge) await stopBridge(bridge.proc); await removeDataHome(home); throw error; }
   const p = await api<{ value: { id: string } }>(page, 'projects.create', { name: 'Ops', kind: 'folder' });
   await page.reload();
-  await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
   return { page, projectId: p.value.id, end: async () => { if (app) await app.close(); if (bridge) await stopBridge(bridge.proc); await removeDataHome(home); } };
 }
 

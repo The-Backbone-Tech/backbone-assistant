@@ -2,7 +2,7 @@
 
 **Status:** accepted 12 November 2026; implementation updated 14 November 2026. Public macOS packages require libiconv 1.18 and GNU gettext 0.26's libintl built from pinned GNU source archives, with the resulting dynamic-library digests checked against the build record. The original third-party libraries still have unknown provenance and cannot pass the public build check.
 
-**Context.** The notices inventory identifies the native payload. The embedded PostgreSQL distribution used by the app and the CLI includes two native libraries under the GNU Lesser General Public License: **libiconv** (character-set conversion) and **libintl** (GNU gettext's message translation runtime). [ADR 0001](0001-licence-and-dependencies.md) and `scripts/licences.mjs` permit only the licences in `ALLOWED`, which does not include LGPL, which originally left these native libraries outside the written policy. This decision defines the narrow native-library exception and its checks.
+**Context.** The notices inventory identifies the native payload. The embedded PostgreSQL distribution used by the app and the CLI includes two native libraries under the GNU Lesser General Public License: **libiconv** (character-set conversion) and **libintl** (GNU gettext's message translation runtime). [ADR 0001](0001-licence-and-dependencies.md) and `scripts/licences.mjs` permit only the licences in `ALLOWED`, which does not include LGPL, so today we distribute them outside our written policy. The notices unit exposes their terms; it did not change the policy.
 
 **Decision.** LGPL-2.1 and LGPL-3.0 are permitted only for native libraries that we ship **unmodified** and **dynamically linked**, as separate files a recipient can replace. Each such library must have:
 

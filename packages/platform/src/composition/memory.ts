@@ -144,7 +144,7 @@ export function createMemory(deps: MemoryDeps) {
   const skillView = (values: readonly string[] | null) => skillControlsView(deps.home, state, values, withDiff(deps.home, deps.userHome, state, values));
   const skills = (values: readonly string[] | null) => skillView(values).skills;
   const exact = async () => { try { return await deps.credentials(); } catch { return null; } };
-  const reviewNotice = () => deps.brief?.({ key: 'agent-role-migration-review', threadId: null, title: 'Legacy agent files need your review', detail: 'The skills/agents folder needs manual review before its cleanup can finish. Other skills continue normally. Open Settings > Agent roles; keep skill references with their skill and save only your own roles.' });
+  const reviewNotice = () => deps.brief?.({ key: 'agent-role-migration-review', threadId: null, title: 'Legacy agent files need your review', detail: 'The skills/agents folder needs manual review before its cleanup can finish. Other skills continue normally. Open Settings > Helper roles; keep skill references with their skill and save only your own roles.' });
   // Only this legacy folder is protected. Never expose candidate bytes or exception text.
   const migration = (values: readonly string[] | null) => {
     const complete = migrateAgentRoles(deps.home, values);
@@ -544,7 +544,7 @@ export function createMemory(deps: MemoryDeps) {
           const protectedFolders = migration(values);
           return { ok: true as const, value: { ...readAgentRoleListing(deps.home, values), manualReview: protectedFolders.size > 0 } };
         });
-      } catch (error) { return refused('NOT_AVAILABLE', error instanceof AgentRoleError ? error.message : 'Agent roles could not be read safely.'); }
+      } catch (error) { return refused('NOT_AVAILABLE', error instanceof AgentRoleError ? error.message : 'Helper roles could not be read safely.'); }
     },
     'agents.save': async ({ name, markdown, base }) => locked(async () => {
       const values = await exact();
@@ -736,7 +736,7 @@ export function createMemory(deps: MemoryDeps) {
       }
       if (verdict === 'restore') return refused('INVALID', 'Only an archived skill can be restored.');
       if (verdict === 'enable' || verdict === 'disable') {
-        if (skill.origin === 'backbone') return refused('INVALID', 'Accept or decline a drafted skill; the data home\'s own skills are always on.');
+        if (skill.origin === 'backbone') return refused('INVALID', 'Accept or decline a drafted skill; the data folder\'s own skills are always on.');
         if (verdict === 'disable') { disableSkill(deps.home, skill); changed(); return { ok: true, value: skills(await exact()).find((s) => s.id === id) ?? null }; }
         const values = await exact();
         if (!values) return refused('NOT_AVAILABLE', UNCHECKED);

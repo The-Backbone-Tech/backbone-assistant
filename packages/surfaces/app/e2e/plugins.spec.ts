@@ -36,7 +36,7 @@ test('a person enables a plugin command in Settings and invokes it from the comp
 
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Settings' });
-    await dialog.getByRole('navigation', { name: 'Settings sections' }).getByRole('button', { name: 'Plugin commands and agents' }).click();
+    await dialog.getByRole('navigation', { name: 'Settings sections' }).getByRole('button', { name: 'Plugins', exact: true }).click();
     const plugin = dialog.getByRole('region', { name: 'tools@market' });
     const greet = plugin.getByTestId('plugin-part').filter({ hasText: '/greet' });
     await expect(greet).toContainText('Off');
@@ -49,7 +49,7 @@ test('a person enables a plugin command in Settings and invokes it from the comp
     await expect(greet).toContainText('On');
     await dialog.getByRole('button', { name: 'Done' }).click();
 
-    await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
     const box = page.getByRole('textbox', { name: 'Message' });
     await box.fill('/gr');
     await expect(page.getByTestId('command-hint')).toContainText('/greet <name> · Greet someone by name');
@@ -97,7 +97,7 @@ test('a /command typed while a turn runs is filled when it steers the turn, not 
     await expect.poll(async () => (await api<{ value: { summary: { running: boolean } } }>(page, 'threads.get', { id: threadId })).value.summary.running).toBe(false);
     await page.reload();
     await expect(page.locator('[data-ready=true]')).toBeVisible();
-    await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
     await page.getByRole('navigation').getByText('Hello').first().click();
     holding = true;
     await api(page, 'turns.send', { threadId, projectId: p.value.id, text: 'Hold on', attachments: [], settings, clientKey: 'hold' });

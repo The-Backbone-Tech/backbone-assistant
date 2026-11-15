@@ -124,7 +124,7 @@ test('Linux refuses a data home overlapping cgroup controls before a probe can w
     }) as unknown as typeof childProcess.execFile; syncBuiltinESMExports();
     for (const home of ['/sys', '/sys/fs/cgroup', '/sys/fs/cgroup/owned-fixture']) {
       assert.equal(await workspaceAvailable('linux', undefined, home), false);
-      await assert.rejects(assertLinuxWorkspace(home), /data home.*cgroup/i);
+      await assert.rejects(assertLinuxWorkspace(home), /data folder.*cgroup/i);
     }
     assert.equal(probes, 0);
   } finally {

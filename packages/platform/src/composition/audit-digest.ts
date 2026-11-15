@@ -14,7 +14,7 @@ export function auditDigester(home:string,homeId:string,vault:Vault):AuditDigest
     // masterKey() would create the missing entry. Neither transport may write keys during export.
     const external=join(home,'pg','external.json');
     const password=existsSync(external)?decodeURIComponent(new URL(JSON.parse(readFileSync(external,'utf8')).appUrl).password):(await vault.passwords().read())?.app;
-    if(!password)throw new AuditInvalid('This home has neither a credential master nor an existing service secret for audit anchors.');
+    if(!password)throw new AuditInvalid('This data folder has neither a credential master nor an existing service secret for audit anchors.');
     return{key:Buffer.from(password),derivation:'legacy-service-secret' as const};
   })();
   return{

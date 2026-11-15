@@ -1,12 +1,18 @@
-# Deliver Backbone, the open-source AI assistant for people, teams and companies
+# Deliver Backbone, the open and composable working environment for people and AI
 
 This page owns the outcome and completion bar. The [roadmap](docs/execution.md) records public status; [shape](docs/shape.md) describes the design.
 
 ## Ambitious outcome
 
-Backbone is an assistant people own and run. Give it work; it understands the assignment, chooses a feasible route using existing tools, subscriptions and data, completes and verifies the work, remembers useful guidance, continues unattended and shows enough evidence for a person to steer it.
+Backbone is a complete, open-source and composable working environment for people and capable AI. Use one useful part, combine selected parts with existing tools, or run the whole product. Incorporate strong current capabilities into a coherent environment that keeps improving as tools, models and needs change.
+
+Give it an outcome. People and agents work on inspectable, editable documents, tables, data, tasks, sources and decisions. The AI understands the situation, finds suitable resources, chooses and adapts its method, completes and checks work, and continues across interruptions and handovers. Corrections, knowledge and useful methods should improve later work and help people understand and steer their operation.
 
 Familiar assistant clients set the experience and breadth. Adopt a maintained component or proven behaviour when it solves the need. Preserve native capabilities. Backbone joins engines and subscriptions with one record of work, permission signed once, receipts for outside effects, visible unknown outcomes, data kept at its authoritative source and a way to export and leave.
+
+Reference products are sources of capabilities and ideas. Editors, data tools and business systems matter alongside assistants. Learn what they solve; adopt, integrate, replicate, adapt or build what serves the complete outcome. Novelty against vendors is not a scope limit. Earlier repositories inform intent and trade-offs; their implementations do not prescribe today's construction.
+
+PostgreSQL supplies the current relational and durable operating substrate: related working records, identity and scope, consistent changes, accepted knowledge and attributable crossings. It supports an adaptable working world rather than only storing conversations. Sources remain authoritative in their own systems. Earlier schemas and lab results do not establish that every current engine route has the same controls; [architecture](docs/architecture.md) names actual boundaries.
 
 ## Completion bar for this objective
 
@@ -14,20 +20,21 @@ Familiar assistant clients set the experience and breadth. Adopt a maintained co
 2. **Used.** Exercise releases on real work and accounts. Label agent use separately from human acceptance. Findings from use take priority; no waiting period establishes completion.
 3. **Trustworthy.** Authority only narrows; outside effects have receipts; unknown outcomes remain visible without blind replay. Human edits survive interruption, upgrade and export. Test the shipped consumer and independently review consequential authority, secrets and outside-effect changes.
 4. **Complete, release by release.** Deliver personal work first, then team collaboration and company identity, policy, audit and fleet. The [journey catalogue](docs/journeys.json) and [scorecard](docs/scorecard.md) map breadth without holding a useful release for every future capability.
-5. **Open and maintainable.** Keep the whole loop open and usable without a Backbone subscription. Make the outcome, status, reasons, installation and contribution path easy to find.
+5. **Open, composable and maintainable.** Keep the whole loop open and usable without a Backbone subscription. Demonstrate useful supported parts beside existing tools, as well as the complete app, with dependencies, limits, replacement and exit clear. Package separation alone is not independent adoption.
+6. **Improves work and the environment.** Judge complete outcomes, retained capability, human effort, understanding, correction, recovery and upkeep. Demonstrate the later-task benefit of claimed learning. Distinguish observations, hypotheses, correctness and comparative value.
 
 ## Current delivery objective
 
 Backbone Personal should be useful in daily work:
 
-- A familiar desktop conversation with files, editable documents and versions beside it.
+- A familiar desktop conversation with native editable documents, tables and versioned working material beside it.
 - Existing signed-in clients, model keys, local models, connectors, MCP servers and skills.
 - Mail, calendar and files within the person's actual permission.
 - Schedules, background work and login startup.
 - Memory and learning under the person's control.
 - Installation and updates without a terminal.
 
-The 0.2.0 source implements Team people, roles and shared projects, with installed tests on one Mac. Physical two-computer use and complete Company identity, fleet and data-location configurations remain open.
+The current source implements Team people, roles and shared projects, with controlled two-process and two-app evidence on one Mac. Human use across two physical computers remains open. Company identity, fleet and data-location controls still require complete supported qualification. The [roadmap](docs/execution.md) separates this implementation from the complete goal.
 
 ## What the design must optimise
 

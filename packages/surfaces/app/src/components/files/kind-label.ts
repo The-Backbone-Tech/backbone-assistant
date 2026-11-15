@@ -20,5 +20,5 @@ export const KIND_LABEL: Record<FileKind | 'folder', string> = {
   code: 'Code', json: 'JSON', image: 'Image', archive: 'Archive', file: 'File', folder: 'Folder',
 };
 
-/** Text the editor and reader can open; everything else is shown as facts and a download. */
+/** Text the editor and reader can open; FileTab chooses supported document previews first. */
 export const isText = (name: string, mediaType?: string) => ['markdown', 'text', 'code', 'json'].includes(kindOf(name)) || !!mediaType?.startsWith('text/');

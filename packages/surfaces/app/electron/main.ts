@@ -1,3 +1,4 @@
+import { registerBrowserPane } from './browser-pane';
 import { confirmUnknownCheck } from './unknown-check';
 import { listNotices, readNotice } from '@backbone-next/platform/notices';
 import { governedPolicy, keyDecision, PolicyRefused } from '@backbone-next/platform/policy';
@@ -6,7 +7,7 @@ import { governedPolicy, keyDecision, PolicyRefused } from '@backbone-next/platf
 // It also owns the one file write a person asks for from the
 // window: exporting a document where they choose (export-document.ts).
 import { app, BrowserWindow, dialog, type IpcMainEvent, type IpcMainInvokeEvent, ipcMain, Menu, nativeTheme, powerSaveBlocker, safeStorage } from 'electron';
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join, sep } from 'node:path';
@@ -14,7 +15,7 @@ import { pathToFileURL } from 'node:url';
 import { METHODS, type Method } from '@backbone-next/platform';
 import { configureTelemetry, telemetryView } from './telemetry-settings.ts';
 import { startConfiguredTelemetry } from '@backbone-next/platform/composition/telemetry';
-import { createHost, hostClosed, personKeychainRoutes } from '@backbone-next/platform/composition';
+import { createHost, hostClosed, personKeychainRoutes, requireCompleteHome } from '@backbone-next/platform/composition';
 import { appSharing, observeSharing, closeSharedHost, computerAddresses } from './shared-listener.ts';
 import { serveIdentityApi } from '@backbone-next/platform/composition/identity-http';
 import { sharedCertificate } from '@backbone-next/platform/composition/shared-certificate';
@@ -23,8 +24,11 @@ import { makeJoinLink, RemoteError } from '@backbone-next/platform/remote/client
 import { RendererIdentitySessions } from './identity-session.ts';
 import { companyBrowserSignIn } from './identity-company.ts';
 import {assertHomeWriteAdmission} from '@backbone-next/platform/composition/home-lock';
-import { ApiLineProjectBudget, type ApiLineServer, serveApiLine } from '@backbone-next/platform/composition/api-line';
+import { ApiLineAttachmentBudget, ApiLineProjectBudget, type ApiLineServer, serveApiLine } from '@backbone-next/platform/composition/api-line';
 import { exportDestinations, rendererExport } from '@backbone-next/platform/composition/backup';
+import { checkFolderStorage, createDataFolderOpener, folderChoiceRefusal, folderStartupProblem, folderVisibleResult, launchDataFolder, reportBeforeExit, secondLaunchAction } from './data-folder-open.ts';
+import { answerRestore, createRestorer } from './restore.ts';
+import { homeKeyProvider } from '@backbone-next/platform/system-keys';
 import { keychainKeys, plaintextKeys } from '@backbone-next/platform/keys';
 import { brand } from '../src/brand';
 import { confirmLine } from './api-line';
@@ -43,28 +47,37 @@ import { pieceUpgradeDialog, upgradeAnswer, upgradeQuestionPage } from './piece-
 import { registerMacPresence, updateSharingPresence } from './mac-presence.ts';
 
 // A test or journey passes BACKBONE_HOME so it never touches the default profile.
-const home = process.env.BACKBONE_HOME ?? join(app.getPath('userData'), 'backbone');
+const defaultHome = join(app.getPath('userData'), 'backbone');
+const home = process.env.BACKBONE_HOME ?? defaultHome;
+const dataFolder = home === defaultHome ? undefined : home;
+const reportFolder = (result: object) => { if (process.connected && process.send) process.send(result, () => {}); };
 try{governedPolicy(home);assertHomeWriteAdmission(home,join(home,'electron'));}
-catch(error){dialog.showErrorBox('Data folder unavailable',error instanceof Error?error.message:String(error));app.exit(1);process.exit(1);}
+catch(error){reportFolder({state:'failed',detail:error instanceof Error?error.message:String(error)});dialog.showErrorBox('Data folder unavailable',error instanceof Error?error.message:String(error));app.exit(1);process.exit(1);}
 app.setPath('userData', join(home, 'electron'));
 
 // One app per data home: Electron's single-instance lock, keyed by the user-data folder set just
 // above. A second launch on the same home stops before it touches anything, and the first comes
 // forward. Other processes (the door's own grant and revoke) take the data home's lock instead.
-if (!app.requestSingleInstanceLock()) {
-  app.exit(0);
-  process.exit(0);
+const singleOwner = app.requestSingleInstanceLock();
+if (!singleOwner) {
+  reportBeforeExit({state:'already-open'}, process.connected && process.send ? (result, done) => { process.send!(result, done); } : undefined, () => { app.exit(0); process.exit(0); });
 }
+// A duplicate instance runs no startup work while its final IPC report drains.
+if (singleOwner) {
 app.on('second-instance', () => {
-  const win = BrowserWindow.getAllWindows()[0];
+  const existing = BrowserWindow.getAllWindows()[0];
+  const action = secondLaunchAction(!!existing, app.isReady(), !!quitting || quitReady);
+  const win = action === 'open' ? open() : action === 'focus' ? existing : undefined;
   if (!win) return;
   if (win.isMinimized()) win.restore();
+  win.show();
   win.focus();
 });
 
 // The core's baseline and PostgreSQL binaries ship with the app (scripts/build.mjs, package.mjs).
 const unpacked = (path: string) => path.replace(`app.asar${sep}`, `app.asar.unpacked${sep}`);
 const baselineFile = join(__dirname, 'baseline.sql');
+const pieceDirs = { 'harness-pi': join(__dirname, '..', 'pieces', 'harness-pi'), 'harness-codex': join(__dirname, '..', 'pieces', 'harness-codex'), 'harness-acp': join(__dirname, '..', 'pieces', 'harness-acp') };
 const postgresNative = app.isPackaged ? join(process.resourcesPath, 'postgres', 'native') : join(__dirname, '..', 'postgres', 'native');
 // Packaged, the door's files sit beside the archive (scripts/package.mjs): another process runs them.
 const doorPiece = unpacked(join(__dirname, '..', 'pieces', 'mcp'));
@@ -126,8 +139,8 @@ const host = createHost({
   // A key the person stored in the Keychain under backbone-openrouter routes Pi through OpenRouter, read per request.
   keychainRoutes: personKeychainRoutes(process.env),
   // Its files ship beside the bundle (scripts/build.mjs); the platform checks them against its registration.
-  pieceDirs: { 'harness-pi': join(__dirname, '..', 'pieces', 'harness-pi'), 'harness-codex': join(__dirname, '..', 'pieces', 'harness-codex'), 'harness-acp': join(__dirname, '..', 'pieces', 'harness-acp') },
-  // Settings › Connect your AI tools: the door the tools start (it checks its own files).
+  pieceDirs,
+  // Settings › Assistants using this app: the door the tools start (it checks its own files).
   tools: { label: brand.name, door: { command: doorCommand, piece: doorPiece } },
   // The doors the tools start hold no secret: they reach their grants through this process, the
   // only one holding the home's keys, over a socket only the person's user can open.
@@ -172,6 +185,7 @@ const host = createHost({
   },
 });
 const telemetry = startConfiguredTelemetry(host, home, keys).catch(async error => {
+  reportFolder({state:'failed',detail:error instanceof Error?error.message:String(error)});
   host.close(); await hostClosed(home).catch(() => {});
   if (withdrawingUpgrade) return;
   if (error instanceof PolicyRefused) dialog.showErrorBox('Managed policy refused', error.message);
@@ -184,8 +198,9 @@ void telemetry.then(() => host.resumeInterrupted()).catch(() => {});
 let line: ApiLineServer | undefined;
 let lineEnded = false;
 const projectCreationBudget = new ApiLineProjectBudget();
+const attachmentBudget = new ApiLineAttachmentBudget();
 void telemetry.then(() => stage('core (first call)', () => host.call('projects.list', {})))
-  .then(() => (lineEnded ? undefined : stage('api line', () => serveApiLine({ home, projectCreationBudget, projectCreation: companyConfiguration ? 'signed-in-app' : true, call: (method, args) => host.call(method, args), connectorEffects: host.connectorEffectDecisions, unknownChecks: host.unknownChecks, confirm: (ask, signal) => confirmLine(ask, signal) }))))
+  .then(() => (lineEnded ? undefined : stage('api line', () => serveApiLine({ home, attachmentBudget, attachment: companyConfiguration ? 'signed-in-app' : true, projectCreationBudget, projectCreation: companyConfiguration ? 'signed-in-app' : true, call: (method, args) => host.call(method, args), connectorEffects: host.connectorEffectDecisions, unknownChecks: host.unknownChecks, confirm: (ask, signal) => confirmLine(ask, signal) }))))
   .then((served) => { if (lineEnded) void served?.close(); else line = served; })
   .catch(() => {}); // With no line the command line says the app is not reachable; the app itself goes on.
 
@@ -195,6 +210,8 @@ const remote = telemetry.then(()=>remoteWorkspace(home,keys));
 const identitySessions = new RendererIdentitySessions(host,()=>remote,!!companyConfiguration);
 const sharing = observeSharing(telemetry.then(async () => appSharing(home, keys, {
   addresses: computerAddresses,
+  engineBringsOwnTools: () => host.engineBringsOwnTools(),
+  sharedEngineNotice: () => host.sharedEngineNotice(),
   start: async (address, port) => {
     const tls = await sharedCertificate(home, keys);
     const listener = await serveIdentityApi({host, address, port, tls});
@@ -209,6 +226,10 @@ const refuseOthers = (e: IpcMainEvent | IpcMainInvokeEvent) => {
   refusePage(e);
   if (!identitySessions.deviceOwner(e.sender.id)) throw new Error('This operation requires the local device owner.');
 };
+registerBrowserPane(refusePage, home, {unavailable: event =>
+  identitySessions.remoteView(event.sender.id) ? 'Browser is not available in a joined workspace. Pages belong to the local device owner.' :
+  companyConfiguration ? 'Browser is not available in a company configuration. Company policy does not define personal browser access.' :
+  identitySessions.deviceOwner(event.sender.id) ? undefined : 'Browser is not available here. Pages belong to the local device owner.'});
 async function localAdministrator(e:IpcMainInvokeEvent,ownerOnly=false){
   refusePage(e);
   if(identitySessions.remoteView(e.sender.id))throw new Error('Manage this computer from its local window.');
@@ -247,6 +268,25 @@ ipcMain.handle('remote-send-checked',async(e,key:unknown)=>{refusePage(e);if(typ
 ipcMain.handle('identity-leave-remote',async e=>{refusePage(e);await identitySessions.leaveRemote(e.sender.id);return{ok:true};});
 ipcMain.handle('identity-company',(e,invitation:unknown)=>{refusePage(e);if(invitation!==undefined&&typeof invitation!=='string')throw new Error('Invalid invitation.');return companySignIn.begin(e.sender.id,invitation);});
 const exportTickets = exportDestinations();
+// Restore a backup into a new data folder, through the same operation `backbone restore` runs. The new
+// data folder is opened with this app's own keys, so the app can open it when the person starts it there.
+const folders = createDataFolderOpener({
+  currentFolder: home,
+  check: (target) => {
+    checkFolderStorage(realpathSync(target), assertHomeWriteAdmission);
+    requireCompleteHome(target);
+    const stamp = JSON.parse(readFileSync(join(target, 'kernel.json'), 'utf8'));
+    if (stamp.kernel !== 'core') throw new Error('This data folder uses a format this build cannot open.');
+  },
+  launch: (target) => launchDataFolder(target, { executable: process.execPath, appPath: app.getAppPath(), packaged: app.isPackaged, env: process.env }),
+});
+const restorer = createRestorer({
+  folders,
+  home,
+  unavailable: () => companyConfiguration ? 'This app is set up by your company, which keeps data folders under its own control. Ask your administrator to restore a backup.' : undefined,
+  openHost: (target) => createHost({ home: target, keys, baselineSql: readFileSync(baselineFile, 'utf8'), postgresNative, harness: 'harness-pi', pieceDirs }),
+});
+ipcMain.handle('backup-restore', (e, request: unknown) => { refuseOthers(e); return answerRestore(restorer, request, e.sender.id); });
 ipcMain.handle('telemetry-settings', (e) => { refuseOthers(e); return telemetryView(home); });
 ipcMain.handle('telemetry-configure', (e, request: unknown) => { refuseOthers(e); return configureTelemetry(home, keys, request); });
 const noticesDirectory = join(__dirname, '..', 'notices');
@@ -254,7 +294,7 @@ ipcMain.handle('notices-list', e => { refuseOthers(e); return listNotices(notice
 ipcMain.handle('notices-read', (e, id: unknown) => { refuseOthers(e); if (typeof id !== 'string') throw new Error('Invalid notice id.'); return readNotice(noticesDirectory, id); });
 ipcMain.handle('app-info', (e) => {
   refusePage(e);
-  return { packaged: app.isPackaged, version: app.getVersion() };
+  return { packaged: app.isPackaged, version: app.getVersion(), ...(dataFolder ? { dataFolder } : {}) };
 });
 ipcMain.handle('api', async (e, method: Method, args: unknown) => {
   refusePage(e);
@@ -320,6 +360,55 @@ ipcMain.handle('choose-export-folder', async (e) => {
   if (!picked) return null;
   // Bound to this window and to the folder as it is now: another window, or the folder swapped for a link, is refused.
   return exportTickets.issue(picked, e.sender.id);
+});
+// A backup to restore, and a place for the new data folder, are picked by the person here, in the native picker.
+ipcMain.handle('choose-backup-folder', async (e) => {
+  refuseOthers(e);
+  const window = BrowserWindow.fromWebContents(e.sender);
+  const options = { title: 'Choose the backup folder', message: 'The folder an export made, the one that holds manifest.json', properties: ['openDirectory'] as 'openDirectory'[] };
+  const chosen = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+  const picked = chosen.canceled ? undefined : chosen.filePaths[0];
+  return picked ? restorer.source(picked, e.sender.id) : null;
+});
+ipcMain.handle('choose-data-folder', async (e) => {
+  refuseOthers(e);
+  const refusal = folderChoiceRefusal(!!companyConfiguration);
+  if (refusal) return refusal;
+  const window = BrowserWindow.fromWebContents(e.sender);
+  const options = {title:'Open another data folder',properties:['openDirectory'] as 'openDirectory'[]};
+  const chosen = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+  return chosen.canceled || !chosen.filePaths[0] ? null : folders.pick(chosen.filePaths[0], e.sender.id);
+});
+// Read the original Core refusal rather than the identity bootstrap's generic pause.
+async function startupProblem() {
+  try { await host.call('projects.list', {}); return undefined; }
+  catch (error) {
+    let provider: ReturnType<typeof homeKeyProvider>;
+    try { provider = homeKeyProvider(home); } catch { provider = null; }
+    return folderStartupProblem(error, provider);
+  }
+}
+ipcMain.handle('data-folder-status', async e => {
+  refuseOthers(e);
+  const problem = await startupProblem();
+  return problem && problem.kind !== 'startup' ? problem : undefined;
+});
+// The isolated page says it has painted a startup outcome. Main owns the verdict.
+ipcMain.on('data-folder-visible', async (e, failed: unknown) => {
+  if (!fromOurPage(e) || !process.connected) return;
+  try {
+    const status = await host.call('host.status', {});
+    const problem = status.owns ? await startupProblem() : undefined;
+    reportFolder(folderVisibleResult({owns:status.owns,readSucceeded:!problem,failed:failed===true,problem}));
+  } catch(error) { reportFolder({state:'failed',detail:folderStartupProblem(error).detail}); }
+});
+ipcMain.handle('choose-restore-place', async (e) => {
+  refuseOthers(e);
+  const window = BrowserWindow.fromWebContents(e.sender);
+  const options = { title: 'Choose where the restored data folder goes', message: 'A new folder is made inside the one you choose', properties: ['openDirectory', 'createDirectory'] as ('openDirectory' | 'createDirectory')[] };
+  const chosen = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options);
+  const picked = chosen.canceled ? undefined : chosen.filePaths[0];
+  return picked ? restorer.target(picked, e.sender.id) : null;
 });
 ipcMain.handle('connector-read', (e, request: unknown) => {
   refuseOthers(e);
@@ -410,12 +499,13 @@ function open(deviceOwner = !companyConfiguration, primary = true, restoreRemote
     height: Number(process.env.BACKBONE_WINDOW_HEIGHT ?? 900),
     minWidth: 320,
     minHeight: 480,
-    title: brand.name,
+    title: dataFolder ? `${brand.name} — ${dataFolder}` : brand.name,
     // Standard Electron/macOS chrome: real window controls share the app's 42px bar.
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 12, y: 13 } } : {}),
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c1c1c' : '#fbfaf7',
     webPreferences: { preload: join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });
+  if (dataFolder) win.on('page-title-updated', event => { event.preventDefault(); });
   const identityWindowId = win.webContents.id;
   const identityWindow={id:identityWindowId,prepare:()=>prepareClose(win),
     reload:async()=>{await win.webContents.executeJavaScript('sessionStorage.clear()');win.webContents.reload();},
@@ -481,7 +571,7 @@ app.on('before-quit', (event) => {
     companySignIn.close();
     lineEnded = true;
     releaseAwake();
-    void (async()=>{await closeSharedHost(sharing,host);await Promise.race([hostClosed(home),new Promise(resolve=>setTimeout(resolve,3_000))]);})().catch(()=>{}).finally(()=>app.exit(0));
+    void (async()=>{await Promise.race([restorer.drain(),new Promise(resolve=>setTimeout(resolve,10_000))]);await closeSharedHost(sharing,host);await Promise.race([hostClosed(home),new Promise(resolve=>setTimeout(resolve,3_000))]);})().catch(()=>{}).finally(()=>app.exit(0));
     return;
   }
   quitting = (async () => {
@@ -497,6 +587,8 @@ app.on('before-quit', (event) => {
     // A flushed renderer must leave before Host shutdown refuses live view refreshes.
     // Otherwise its live subscriptions refresh against a Host that now refuses calls.
     for (const win of BrowserWindow.getAllWindows()) if (!win.isDestroyed()) win.destroy();
+    // A restore that is running finishes first, as the current host does: its result is then kept for the next start.
+    await Promise.race([restorer.drain(), new Promise((r) => setTimeout(r, 60_000))]);
     host.close(); // Existing host shutdown/recovery ownership is unchanged; close() returns void.
     quitReady = true;
     // Every window has flushed. Exit directly once the host has stopped, or after a bound: a second
@@ -507,3 +599,5 @@ app.on('before-quit', (event) => {
     for (const win of BrowserWindow.getAllWindows()) if (!win.webContents.isDestroyed()) win.webContents.send('workspace-close-failed', 'The app could not finish closing. Your work is still open; try again.');
   }).finally(() => { quitting = undefined; if (!quitReady) identitySessions.reopen(); });
 });
+
+} // singleOwner

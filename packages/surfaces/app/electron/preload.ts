@@ -19,7 +19,19 @@ ipcRenderer.on('workspace-close-failed', (_event, message: string) => {
   for (const listener of closing) listener.failed(message);
 });
 
+// Observe the actual rendered startup result; no folder or authority crosses this notification.
+window.addEventListener('DOMContentLoaded', () => {
+  const observer = new MutationObserver(() => {
+    const failed = !!document.querySelector('[data-startup-failed=true]');
+    if (failed || document.querySelector('[data-ready=true]')) { observer.disconnect(); ipcRenderer.send('data-folder-visible', failed); }
+  });
+  observer.observe(document.documentElement, { childList:true, subtree:true, attributes:true, attributeFilter:['data-ready','data-startup-failed'] });
+});
+
 contextBridge.exposeInMainWorld('backbone', {
+  browserRequest: (request: unknown) => ipcRenderer.invoke('browser-request', request),
+  onBrowserState: (listener: (state: unknown) => void) => { const handler = (_event: unknown, state: unknown) => listener(state); ipcRenderer.on('browser-state', handler); return () => ipcRenderer.removeListener('browser-state', handler); },
+  onBrowserFocusAddress: (listener: () => void) => { const handler = () => listener(); ipcRenderer.on('browser-focus-address', handler); return () => ipcRenderer.removeListener('browser-focus-address', handler); },
   remoteSendChecked:(key:string)=>ipcRenderer.invoke('remote-send-checked',key),
   onSharingSettings:(listener:()=>void)=>{const handler=()=>listener();ipcRenderer.on('mac-sharing-settings',handler);return()=>ipcRenderer.removeListener('mac-sharing-settings',handler);},
   sharingView:()=>ipcRenderer.invoke('sharing-view'),
@@ -45,6 +57,7 @@ contextBridge.exposeInMainWorld('backbone', {
   configureTelemetry: (request: { endpoint: string; headers?: string }) => ipcRenderer.invoke('telemetry-configure', request),
   listNotices: () => ipcRenderer.invoke('notices-list'),
   readNotice: (id: string) => ipcRenderer.invoke('notices-read', id),
+  dataFolderStatus: () => ipcRenderer.invoke('data-folder-status'),
   appInfo: () => ipcRenderer.invoke('app-info'),
   call: (method: string, args: unknown) => ipcRenderer.invoke('api', method, args),
   onEvent: (listener: (e: unknown) => void) => {
@@ -70,6 +83,10 @@ contextBridge.exposeInMainWorld('backbone', {
   signConnectorTool: (serverId: string, tool: string) => ipcRenderer.invoke('connector-standing', { serverId, tool }),
   exportDocument: (projectId: string, id: string, version: number, format: string) => ipcRenderer.invoke('document-export', { projectId, id, version, format }),
   chooseExportFolder: () => ipcRenderer.invoke('choose-export-folder'),
+  restoreBackup: (request: unknown) => ipcRenderer.invoke('backup-restore', request),
+  chooseBackupFolder: () => ipcRenderer.invoke('choose-backup-folder'),
+  chooseDataFolder: () => ipcRenderer.invoke('choose-data-folder'),
+  chooseRestorePlace: () => ipcRenderer.invoke('choose-restore-place'),
   beforeClose: (prepare: () => Promise<void>, failed: (message: string) => void) => {
     const listener = { prepare, failed };
     closing.add(listener);

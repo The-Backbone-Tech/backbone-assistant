@@ -19,7 +19,7 @@ async function open(page: Page, label: string) {
 async function project(page: Page) {
   const p = await api<{ value: { id: string } }>(page, 'projects.create', { name: 'Launch', kind: 'folder' });
   await api(page, 'material.attach', { projectId: p.value.id, ...file('note.md') });
-  await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
   return p.value.id;
 }
 
@@ -113,7 +113,7 @@ test('a person withdraws an original with honest words, the refused send keeps t
   const { end } = await open(page, 'flow-withdraw');
   try {
     const projectId = (await api<{ value: { id: string } }>(page, 'projects.create', { name: 'Launch', kind: 'folder' })).value.id;
-    await page.getByRole('navigation').getByRole('button', { name: 'Launch' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
     await attached(page);
     await page.getByRole('textbox', { name: 'Message' }).fill('Use this note');
     await page.keyboard.press('ControlOrMeta+p');

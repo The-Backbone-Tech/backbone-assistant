@@ -62,7 +62,7 @@ test('a chat says what it remembered, and the Memory page shows it to change or 
     const page = await f.launch();
     await api(page, 'projects.create', { name: 'Ops', kind: 'folder' });
     await page.reload();
-    await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
     const composer = page.getByRole('textbox', { name: 'Message', exact: true });
     await composer.fill('Remember that the launch moved to Friday.');
     await composer.press('Enter');
@@ -91,7 +91,7 @@ test('a person reviews a skill drafted from a chat before accepting it for use',
     expect(project.ok).toBe(true); if (!project.ok) throw new Error(project.detail);
     await send(page, project.value.id, 'Prepare the weekly report');
     await page.reload();
-    await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+    await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
     await page.getByRole('navigation').getByText('Prepare the weekly report').first().click();
     await page.getByRole('button', { name: 'Chat details' }).click();
     await page.getByRole('menuitem', { name: 'Make a skill from this chat' }).click();
@@ -209,7 +209,7 @@ test('Settings reports bounded role discovery and manual review of ambiguous leg
     });
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const settings = page.getByRole('dialog', { name: 'Settings' });
-    await settings.getByRole('button', { name: 'Agent roles', exact: true }).click();
+    await settings.getByRole('button', { name: 'Helper roles', exact: true }).click();
     await expect(settings.getByRole('status').filter({ hasText: /64 directory entries/i })).toBeVisible();
     await expect(settings.getByRole('status').filter({ hasText: /manual review/i })).toBeVisible();
     await expect(settings.getByRole('button', { name: 'Reload roles', exact: true })).toBeVisible();

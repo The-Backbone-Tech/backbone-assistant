@@ -20,7 +20,7 @@ test('direct system wrapping admits storage before identity or item creation', a
 test('read-only selection neither initializes an empty home nor publishes a protection marker', async (t) => {
   const home = fs.mkdtempSync(join(tmpdir(), 'backbone-key-admission-')), store = new MemoryKeyStore();
   t.after(() => fs.rmSync(home, { recursive: true, force: true }));
-  await assert.rejects(chooseKeys(home, {}, store, { readOnly: true, create: true }), /not an existing data home/);
+  await assert.rejects(chooseKeys(home, {}, store, { readOnly: true, create: true }), /not an existing data folder/);
   assert.deepEqual(fs.readdirSync(home), []);
   await Vault.open(home, systemKeys(home, store));
   const before = fs.readFileSync(join(home, 'keys', 'vault.json'));

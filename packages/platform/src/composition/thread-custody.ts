@@ -295,7 +295,7 @@ export async function settleUnproposedWrites(home: string, thread: string, run: 
  */
 export async function reconcileClosedCustody(context: CustodyContext, core: Pick<CoreLink, 'system' | 'read'>, retainHistory = false): Promise<CustodyReconciliation> {
   return withHomeLock(context.home, async (lost) => {
-    const stillHeld = () => { if (lost.aborted) throw new Error('The home lock was lost; custody is unchanged.'); };
+    const stillHeld = () => { if (lost.aborted) throw new Error('The data folder lock was lost; custody is unchanged.'); };
     const { rows: runs } = await core.read<{ status: string }>(core.system(), 'SELECT status FROM app.runs WHERE id = $1', [context.run]);
     stillHeld();
     if (runs.length !== 1 || !['succeeded', 'failed', 'cancelled'].includes(runs[0].status)) return { status: 'not-closed' };
@@ -322,7 +322,7 @@ export async function reconcileClosedCustody(context: CustodyContext, core: Pick
 export async function reconcileReclaimedCustody(context: CustodyContext, core: Pick<CoreLink, 'system' | 'runOf' | 'read'>, handle: RunHandle, checkpoint?: RetainedCheckpoint | null): Promise<CustodyReconciliation> {
   if (handle.run !== context.run || !Number.isSafeInteger(handle.fence) || handle.fence < 2 || !handle.secret) return { status: 'not-current' };
   return withHomeLock(context.home, async lost => {
-    const stillHeld = () => { if (lost.aborted) throw new Error('The home lock was lost; custody is unchanged.'); };
+    const stillHeld = () => { if (lost.aborted) throw new Error('The data folder lock was lost; custody is unchanged.'); };
     const current = async () => {
       const { rows } = await core.read<{ id: string }>(core.runOf(handle),
         "SELECT id FROM app.runs WHERE id = $1 AND status = 'running' AND fence = $2 AND sec.current_run() = $1", [context.run, handle.fence]);

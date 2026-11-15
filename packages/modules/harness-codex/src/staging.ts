@@ -38,7 +38,7 @@ function sourceName(name: string): { name: string; inspection: boolean } {
 }
 export type StagedSource = ToolFile & { inspectionPath?: string };
 export async function stageSources(root: string, host: ToolHost, request: TurnRequest, signal: AbortSignal): Promise<{ original: Map<string, string>; inspection: Map<string, string>; sources: { name: string; version: number }[]; sourceFiles: StagedSource[] }> {
-  const files = await host.list();
+  const files = await host.list({ purpose: 'staging' });
   if (!Array.isArray(files) || files.length > MAX_FILES) throw new Error('The staged project has too many source files.');
   const plan = files.map(file => ({ file, ...sourceName(file.name) }));
   const roots = new Set(files.map(file => file.name.split('/')[0].toLowerCase()));
@@ -103,7 +103,7 @@ export class StagedCheckpoints<T extends { name: string; body: string }> {
 }
 /** The last check before inference. Past it a withdrawal cannot reach the request. */
 export async function confirmSources(host: ToolHost, sources: { name: string }[]) {
-  const present = new Set((await host.list()).map((file) => file.name));
+  const present = new Set((await host.list({ purpose: 'staging' })).map((file) => file.name));
   if (sources.some((source) => !present.has(source.name))) throw new Error('A staged source was withdrawn before the model request. Nothing was sent.');
 }
 export async function proposedFiles(original: Map<string, string>, snapshot: unknown, inspection: ReadonlyMap<string, string> = new Map()): Promise<readonly { name: string; body: string; existing: boolean }[]> {

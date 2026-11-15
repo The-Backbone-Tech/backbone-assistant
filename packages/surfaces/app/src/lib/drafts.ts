@@ -59,9 +59,12 @@ export async function readDraft(key: string) {
   return call('drafts.get', { key });
 }
 
-/** Bind a revision only after this consumer actually applies that read to its view. */
+/** Bind a revision only after this consumer actually applies that read to its view.
+ * A read can precede an acknowledged write in this renderer (including a send's clear).
+ * Applying that earlier snapshot must never rewind the ordered writer's base.
+ */
 export function acceptDraftRead(key: string, revision: number) {
-  if (!hasUnconfirmedDraft(key) && !writers.get(key)?.get(key) && Number.isSafeInteger(revision) && revision >= 0) revisions.set(key, revision);
+  if (!hasUnconfirmedDraft(key) && !writers.get(key)?.get(key) && Number.isSafeInteger(revision) && revision >= 0) revisions.set(key, Math.max(revisions.get(key) ?? 0, revision));
 }
 
 /** A failed draft remains local until the person reviews the authoritative saved value. */

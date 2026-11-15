@@ -46,7 +46,12 @@ export class Session {
     if (bound.acceptsProcessVisibility === true) verifyAgentExecutable(bound);
     for (let attempt = 0; ; attempt++) {
       try { return await Session.allocate(bound, threadId); }
-      catch (error) { if (attempt >= 7 || (error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+      catch (error) {
+        // Another process closing its last session removes the empty shared parent. That reads as ENOENT,
+        // and from mkdtemp on macOS sometimes as EINVAL; both mean the parent went and is made again.
+        const { code, syscall } = error as NodeJS.ErrnoException;
+        if (attempt >= 7 || !(code === 'ENOENT' || (code === 'EINVAL' && syscall === 'mkdtemp'))) throw error;
+      }
     }
   }
   private static async allocate(options: AgentOptions & { storageDir?: string; temporaryRoot?: string }, threadId: string): Promise<Session> {

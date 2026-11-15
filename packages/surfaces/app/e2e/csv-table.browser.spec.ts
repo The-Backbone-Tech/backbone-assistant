@@ -1,0 +1,140 @@
+// Real Pi/tool/material/Core and browser transport; the model is controlled and local.
+import { expect as baseExpect, test, type Page } from '@playwright/test';
+import type { MaterialEntry, Receipt, ThreadSummary } from '@backbone-next/platform';
+import { startScriptedModel, type Message } from '@backbone-next/platform/testing';
+import { freshDataHome } from '@backbone-next/platform/testing/data-home';
+import { removeDataHome } from '@backbone-next/platform/composition';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { startBridge, stopBridge } from './bridge';
+import { api, closePaneOnNarrow, narrow } from './journey';
+
+const csv = 'Name,ID,Notes\r\n"North, west",0012,"First\nSecond"\r\n';
+const expect = baseExpect.configure({ timeout: 15000 });
+const value = <T,>(receipt: Receipt<T>): T => { if (!receipt.ok) throw new Error(receipt.detail); return receipt.value; };
+const textOf = (message: Message) => typeof message.content === 'string' ? message.content : (message.content ?? []).map(item => item.text ?? '').join('');
+const tab = (page: Page) => page.getByTestId('file-tab').filter({ visible: true });
+async function openFile(page: Page, name: string) {
+  await page.keyboard.press('ControlOrMeta+p');
+  await page.getByTestId('file-row').filter({ hasText: name }).click();
+  await expect(tab(page)).toBeVisible();
+}
+
+test('person and AI continue the same versioned CSV; table/text drafts survive, stale Save keeps the newer version', async ({ page }, info) => {
+  test.setTimeout(90000);
+  page.setDefaultTimeout(15000);
+  const model = await startScriptedModel('csv-table-model', messages => {
+    const start = messages.findLastIndex(message => message.role === 'user');
+    const results = messages.slice(start + 1).filter(message => message.role === 'tool');
+    if (results.length) return { text: results.map(textOf).join('\n') };
+    if (/Create locale/.test(textOf(messages[start]))) return { calls: [{ name: 'write_file', args: { name: 'locale.csv', content: 'A;1,5\nB;2,5\n' } }] };
+    return /Read the current CSV/.test(textOf(messages[start]))
+      ? { calls: [{ name: 'read_file', args: { name: 'work.csv' } }] }
+      : { calls: [{ name: 'write_file', args: { name: 'work.csv', content: csv } }] };
+  });
+  const home = freshDataHome('csv-table');
+  let bridge: Awaited<ReturnType<typeof startBridge>> | undefined;
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  try {
+    bridge = await startBridge(home, { BACKBONE_HARNESS: 'harness-pi', BACKBONE_MODEL_ENDPOINT: model.url, BACKBONE_MODEL_ID: model.model });
+    await page.goto(bridge.url);
+    await expect(page.locator('[data-ready=true]')).toBeVisible();
+    await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Create an editable CSV table.');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.getByTestId('work-block').first()).toContainText('Worked for');
+    const [thread] = await api<ThreadSummary[]>(page, 'threads.list', {});
+    const entries = await api<MaterialEntry[]>(page, 'material.list', { projectId: thread.projectId });
+    const file = entries.find(entry => entry.name === 'work.csv')!;
+    expect(file.class).toBe('working');
+    await openFile(page, 'work.csv');
+    await tab(page).getByRole('button', { name: 'Edit', exact: true }).click();
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    const cell = () => tab(page).getByRole('textbox', { name: 'Row 2, column 2', exact: true });
+    await expect(cell()).toHaveValue('0012');
+    await expect(tab(page).getByRole('textbox', { name: 'Row 2, column 3', exact: true })).toHaveValue('First\nSecond');
+    await cell().fill('0042');
+    await expect.poll(async () => (await api<{ text: string }>(page, 'drafts.get', { key: `edit:${file.id}` }))?.text).toContain('0042');
+    await tab(page).getByRole('button', { name: 'Text', exact: true }).click();
+    await expect(tab(page).getByRole('textbox', { name: 'Edit work.csv', exact: true })).toContainText('0042');
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    await expect(cell()).toHaveValue('0042');
+    await tab(page).getByRole('button', { name: 'Add row', exact: true }).click();
+    await tab(page).getByRole('textbox', { name: 'Row 3, column 1', exact: true }).fill('East');
+    await tab(page).getByRole('button', { name: 'Add column', exact: true }).click();
+    const newCell = tab(page).getByRole('textbox', { name: 'Row 3, column 4', exact: true });
+    await newCell.fill('new field');
+    const screenshotDir = process.env.BACKBONE_CSV_SCREENSHOTS;
+    if (screenshotDir) { mkdirSync(screenshotDir, { recursive: true }); await page.screenshot({ path: join(screenshotDir, `${info.project.name}-table.png`) }); }
+    await newCell.press('ControlOrMeta+s');
+    await expect.poll(async () => value(await api<Receipt<{ entry: MaterialEntry }>>(page, 'material.read', { id: file.id })).entry.current).toBe(2);
+    const saved = value(await api<Receipt<{ entry: MaterialEntry; text: string }>>(page, 'material.read', { id: file.id }));
+    expect(saved.entry.versions.at(-1)?.by).toBe('person');
+    expect(saved.text).toContain('0042');
+    expect(saved.text).toContain('East');
+    expect(saved.text).toContain('new field');
+    await page.reload();
+    await expect(page.locator('[data-ready=true]')).toBeVisible();
+    await openFile(page, 'work.csv');
+    await tab(page).getByRole('button', { name: 'Edit', exact: true }).click();
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    await expect(cell()).toHaveValue('0042');
+    await cell().fill('local draft');
+    const concurrent = value(await api<Receipt<MaterialEntry>>(page, 'material.save', { id: file.id, text: 'Name,ID,Notes\nOther person,0099,current\n', baseVersion: 2 }));
+    expect(concurrent.current).toBe(3);
+    await tab(page).getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(tab(page).getByRole('alert')).toBeVisible();
+    await expect(cell()).toHaveValue('local draft');
+    const current = value(await api<Receipt<{ entry: MaterialEntry; text: string }>>(page, 'material.read', { id: file.id }));
+    expect(current.entry.current).toBe(3);
+    expect(current.text).toContain('0099');
+    // Keep the draft: opening the conversation does not silently rebase or resend it.
+    if (narrow(page)) await closePaneOnNarrow(page);
+    else await page.getByRole('button', { name: 'Hide side pane', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Read the current CSV.');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.getByTestId('work-block')).toHaveCount(2);
+    await expect(page.getByTestId('work-block').last()).toContainText('Worked for');
+    expect(model.requests.some(request => request.body.includes('0099'))).toBe(true);
+    expect(model.requests.some(request => request.body.includes('local draft'))).toBe(false);
+    const original = value(await api<Receipt<MaterialEntry>>(page, 'material.attach', { projectId: thread.projectId, name: 'source.csv', base64: Buffer.from(csv).toString('base64'), mediaType: 'text/csv' }));
+    expect(original.class).toBe('original');
+    await openFile(page, 'source.csv');
+    await expect(tab(page).getByRole('button', { name: 'Edit', exact: true })).toBeDisabled();
+    if (narrow(page)) await closePaneOnNarrow(page);
+    else await page.getByRole('button', { name: 'Hide side pane', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Create locale.csv');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.getByTestId('work-block')).toHaveCount(3);
+    await expect(page.getByTestId('work-block').last()).toContainText('Worked for');
+    await openFile(page, 'locale.csv');
+    await tab(page).getByRole('button', { name: 'Edit', exact: true }).click();
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    await expect(tab(page)).toContainText('More than one separator fits');
+    await tab(page).getByRole('combobox', { name: 'CSV separator', exact: true }).selectOption(';');
+    const localeCell = tab(page).getByRole('textbox', { name: 'Row 1, column 2', exact: true });
+    await expect(localeCell).toHaveValue('1,5');
+    await localeCell.fill('3,75');
+    await localeCell.press('ControlOrMeta+s');
+    const locale = (await api<MaterialEntry[]>(page, 'material.list', { projectId: thread.projectId })).find(entry => entry.name === 'locale.csv')!;
+    await expect.poll(async () => value(await api<Receipt<{ entry: MaterialEntry }>>(page, 'material.read', { id: locale.id })).entry.current).toBe(2);
+    const localeSaved = value(await api<Receipt<{ text: string }>>(page, 'material.read', { id: locale.id })).text;
+    expect(localeSaved).toContain('3,75');
+    expect(localeSaved.endsWith('B;2,5\n')).toBe(true);
+    await tab(page).getByRole('button', { name: 'Text', exact: true }).click();
+    await tab(page).getByRole('textbox', { name: 'Edit locale.csv', exact: true }).fill('k,value');
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    await tab(page).getByRole('combobox', { name: 'CSV separator', exact: true }).selectOption('');
+    const pinnedCell = tab(page).getByRole('textbox', { name: 'Row 1, column 2', exact: true });
+    await pinnedCell.fill('p;q');
+    await expect(pinnedCell).toHaveValue('p;q');
+    await expect(pinnedCell).toBeFocused();
+    await tab(page).getByRole('button', { name: 'Text', exact: true }).click();
+    await tab(page).getByRole('textbox', { name: 'Edit locale.csv', exact: true }).fill('"unclosed,value');
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    await expect(tab(page)).toContainText('could not be read as a complete table');
+    await tab(page).getByRole('button', { name: 'Open Text', exact: true }).click();
+    await expect(tab(page).getByRole('textbox', { name: 'Edit locale.csv', exact: true })).toContainText('"unclosed,value');
+    expect(errors).toEqual([]);
+  } finally { if (bridge) await stopBridge(bridge.proc); await removeDataHome(home); await model.close(); }
+});

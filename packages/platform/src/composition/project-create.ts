@@ -1,3 +1,4 @@
+import {validProjectName} from '../project-name.ts';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -16,6 +17,7 @@ const failed = (home:string, intent:ProjectIntent):Receipt<Project> => ({ok:fals
 
 /** The serialized creator records an intent before any filesystem operation. */
 export function createKeyedProject(deps:{home:string;list():StoredProject[];save(projects:StoredProject[]):void;emit(id:string):void;cut?:Cut}, name:string, kind:Project['kind'], clientKey:string):Promise<Receipt<Project>> {
+  if (!validProjectName(name))return Promise.resolve(invalid('Use a nonempty project name of at most 1,000 characters.'));
   if (typeof clientKey !== 'string' || !clientKey || clientKey.length > 256 || (kind !== 'folder' && kind !== 'git')) return Promise.resolve(invalid('The project creation identity is invalid.'));
   let wrote = false;
   return withHomeLock<Receipt<Project>>(deps.home, async lost => {
@@ -32,37 +34,39 @@ export function createKeyedProject(deps:{home:string;list():StoredProject[];save
     if (decision.action==='unknown') return unknown(`The earlier project creation could not be confirmed. Inspect any files at ${join(resolve(deps.home),'projects',prior!.project.dir)} before leaving this attempt.`);
     if (decision.action==='failed') return failed(deps.home,decision.intent);
     if (decision.action==='reserve') {
-      if(lost.aborted) throw new Error('The home lock was lost.');
+      if(lost.aborted) throw new Error('The data folder lock was lost.');
       assertHomeWriteAdmission(deps.home,intentDir);
       writeJson(path,decision.intent);deps.cut?.('reserved');prior=decision.intent;
       decision=decideProjectIntent(prior,proposed,undefined);
     }
     if (decision.action==='start') {
-      if(lost.aborted) throw new Error('The home lock was lost.');
+      if(lost.aborted) throw new Error('The data folder lock was lost.');
       assertHomeWriteAdmission(deps.home,intentDir);
       writeJson(path,decision.intent);deps.cut?.('started');
       let partial=false;
       try { prepareReservedProject(deps.home,decision.intent,()=>{partial=true;}); }
       catch (error) {
         if(error instanceof HomeWriteUnavailable) throw error;
-        if(lost.aborted) throw new Error('The home lock was lost.');
+        if(lost.aborted) throw new Error('The data folder lock was lost.');
         const stopped:ProjectIntent={...decision.intent,phase:'failed',partial};
         assertHomeWriteAdmission(deps.home,intentDir);
         writeJson(path,stopped);
         return failed(deps.home,stopped);
       }
       deps.cut?.('prepared');
-      if(lost.aborted) throw new Error('The home lock was lost.');
+      if(lost.aborted) throw new Error('The data folder lock was lost.');
       const projects=[...deps.list(),decision.intent.project];
       assertHomeWriteAdmission(deps.home);
       deps.save(projects);deps.cut?.('recorded');
       decision={action:'ready',intent:{...decision.intent,phase:'ready'}};
     }
     if(decision.action!=='ready') throw new Error('Project creation did not reach a confirmed state.');
-    if(lost.aborted) throw new Error('The home lock was lost.');
+    if(lost.aborted) throw new Error('The data folder lock was lost.');
     assertHomeWriteAdmission(deps.home,intentDir);
     writeJson(path,decision.intent);
-    const {dir:_dir,...project}=decision.intent.project;deps.emit(project.id);
+    // Reconciliation observes current properties without undoing a later rename or archive.
+    const current=deps.list().find(project=>project.id===decision.intent.project.id)??decision.intent.project;
+    const {dir:_dir,...project}=current;deps.emit(project.id);
     return {ok:true,value:project};
   }).catch(error => {
     if (!(error instanceof HomeWriteUnavailable)) throw error;

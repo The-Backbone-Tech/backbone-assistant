@@ -43,7 +43,7 @@ type DirectMethod = { [M in Method]: Result<M> extends Receipt<unknown> ? never 
 const DIRECT_RESULTS = {
   'core.signatureStatus': true, 'projects.list': true, 'threads.list': true, 'threads.search': true,
   'goals.runs': true, 'host.status': true, 'material.list': true, 'work.now': true, 'files.list': true,
-  'drafts.get': true, 'models.list': true, 'settings.policy.get': true, 'settings.model.get': true,
+  'drafts.get': true, 'models.list': true, 'settings.policy.get': true, 'settings.model.get': true, 'settings.engines.get': true,
   'models.local': true, 'viewer.get': true, 'viewer.put': true, 'tools.list': true, 'triage.get': true,
   'schedules.get': true, 'triggers.get': true, 'solutions.options': true, 'memory.get': true,
   'memory.search': true, 'plugins.parts': true, 'connectors.list': true,
@@ -52,7 +52,7 @@ const DIRECT_RESULTS = {
 /** Preserve read shapes and the person's Stop, draft and permission controls. */
 export function rewindControl(method: Method, args: unknown): boolean {
   if (Object.hasOwn(DIRECT_RESULTS, method)) return true;
-  if (['turns.stop', 'sidechat.stop', 'goals.pause', 'tools.disconnect', 'connectors.set', 'drafts.put', 'queue.remove'].includes(method)) return true;
+  if (['terminal.stop', 'terminal.list', 'terminal.clear', 'turns.stop', 'sidechat.stop', 'goals.pause', 'tools.disconnect', 'connectors.set', 'drafts.put', 'queue.remove'].includes(method)) return true;
   const input = args as { verdict?: string; patch?: { paused?: boolean } } | null;
   if (method === 'connectors.decide' || method === 'connectors.resolveRead') return input?.verdict === 'discard';
   if (method === 'schedules.update' || method === 'triggers.update') return input?.patch?.paused === true;
@@ -61,6 +61,7 @@ export function rewindControl(method: Method, args: unknown): boolean {
 
 export function createThreadRewind(ctx: {
   home: string; material: MaterialStore; threads: Map<string, StoredThread>; journal: ThreadJournal;
+  terminalRunning?: (projectId: string) => boolean | string;
   projectDir: (id: string) => string; busy: (thread: StoredThread) => boolean;
   save: (thread: StoredThread) => Promise<void>; changed: (id: string) => void;
   sync?: (revisions: RewindRevision[]) => Promise<void>;
@@ -95,6 +96,8 @@ export function createThreadRewind(ctx: {
   function plan(args: Args<'threads.rewindPreview'>, unresolved: Set<string>): Receipt<RewindPlan> {
     const thread = ctx.threads.get(args.threadId);
     if (!thread) return refused('This conversation is unavailable.');
+    const terminalHold = ctx.terminalRunning?.(thread.summary.projectId);
+    if (terminalHold) return refused(typeof terminalHold === 'string' ? terminalHold : 'A terminal command is running in this project; stop it in Terminal first.');
     const pending = thread.rewindPending;
     if (pending && pending.turnId !== args.turnId) return refused('Use Resume rewind on the pending rewind banner.');
     if (!pending && (ctx.busy(thread) || thread.summary.running || thread.queue?.length || thread.child || thread.sideTurns.some(turn => turn.sideRecoveryPending || turn.unknownOutcome || turn.status === 'running' || turn.effects.some(effect => effect.outcome === 'UNKNOWN')))) return refused('Stop work and settle pending recovery before rewinding.');

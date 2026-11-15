@@ -48,7 +48,8 @@ export function FilesTab({ projectId, compact = false, active = true }: { projec
   const tree: TreeFile[] = files.map((f) => ({ key: f.materialId ?? f.path, path: f.path, ...facts(f.materialId), meta: <ClassMark c={f.class} /> }));
   const archived: TreeFile[] = material.filter((m) => m.hidden).map((m) => ({ key: m.id, path: m.name, ...facts(m.id), meta: <span className="shrink-0 text-caption text-muted">{m.held ? 'Held · ' : m.withdrawals?.at(-1) && !m.withdrawals.at(-1)!.restoredAt ? 'Withdrawn · ' : ''}v{m.current}</span> }));
   const review = reviewFiles(files);
-  const open = (f: TreeFile) => byId.has(f.key) && openTab('file', f.key);
+  // File identities arrive with the file list; details may still be loading.
+  const open = (f: TreeFile) => (byId.has(f.key) || files.some(file => file.materialId === f.key)) && openTab('file', f.key);
   const activeFile = prefs.pane.tabs.find((t) => t.id === prefs.pane.active && t.kind === 'file');
   const selectedKey = activeFile?.kind === 'file' ? activeFile.materialId : undefined;
 

@@ -6,7 +6,7 @@ import type { KeysRefused } from '../keys/vault.ts';
 import { SystemKeysRefused, type SystemKeyRefusalReason } from './refusal.ts';
 import { ACCOUNT, SERVICE, type SystemKeyStore } from './store.ts';
 
-export const STORE_UNAVAILABLE = 'No usable system key store is available (macOS Keychain or Linux Secret Service with /usr/bin/secret-tool). Unlock or start the store and try again. For an explicit plaintext home, BACKBONE_KEYS=plaintext writes the data key in plain text; copied homes and backups expose it. Nothing falls back to plaintext.';
+export const STORE_UNAVAILABLE = 'No usable system key store is available (macOS Keychain or Linux Secret Service with /usr/bin/secret-tool). Unlock or start the store and try again. For an explicit plaintext data folder, BACKBONE_KEYS=plaintext writes the data key in plain text; copied data folders and backups expose it. Nothing falls back to plaintext.';
 export const unavailable = () => new SystemKeysRefused({ kind: ['darwin', 'linux'].includes(process.platform) ? 'store-unavailable' : 'platform-unsupported' }, 'no-keychain', process.platform === 'win32' ? 'System key storage is not supported on Windows yet. ' + STORE_UNAVAILABLE : STORE_UNAVAILABLE);
 
 // Preserve only errors made here; an injected store's arbitrary text remains private.

@@ -9,8 +9,11 @@ export const DropdownMenuSub = M.Sub;
 export const DropdownMenuRadioGroup = M.RadioGroup;
 export const DropdownMenuGroup = M.Group;
 
-const panel = 'z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-48 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border border-border bg-surface p-1 text-fg shadow-lg';
-const item = 'relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4';
+// Written out in full (not built from parts) so Tailwind sees each class; the context menu differs only in the variable's name.
+const panelRest = 'min-w-48 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border border-border bg-surface p-1 text-fg shadow-lg';
+export const menuPanel = { dropdown: `z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] ${panelRest}`, context: `z-50 max-h-[var(--radix-context-menu-content-available-height)] ${panelRest}` };
+const panel = menuPanel.dropdown;
+export const menuItem = 'relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4';
 
 export function DropdownMenuContent({ className, sideOffset = 4, ...props }: React.ComponentProps<typeof M.Content>) {
   return (
@@ -21,12 +24,12 @@ export function DropdownMenuContent({ className, sideOffset = 4, ...props }: Rea
 }
 
 export function DropdownMenuItem({ className, ...props }: React.ComponentProps<typeof M.Item>) {
-  return <M.Item className={cn(item, className)} {...props} />;
+  return <M.Item className={cn(menuItem, className)} {...props} />;
 }
 
 export function DropdownMenuRadioItem({ className, children, ...props }: React.ComponentProps<typeof M.RadioItem>) {
   return (
-    <M.RadioItem className={cn(item, 'pl-7', className)} {...props}>
+    <M.RadioItem className={cn(menuItem, 'pl-7', className)} {...props}>
       <span className="absolute left-2 flex size-4 items-center justify-center">
         <M.ItemIndicator>
           <Check />
@@ -39,7 +42,7 @@ export function DropdownMenuRadioItem({ className, children, ...props }: React.C
 
 export function DropdownMenuSubTrigger({ className, children, ...props }: React.ComponentProps<typeof M.SubTrigger>) {
   return (
-    <M.SubTrigger className={cn(item, 'data-[state=open]:bg-hover', className)} {...props}>
+    <M.SubTrigger className={cn(menuItem, 'data-[state=open]:bg-hover', className)} {...props}>
       {children}
       <ChevronRight className="ml-auto" />
     </M.SubTrigger>

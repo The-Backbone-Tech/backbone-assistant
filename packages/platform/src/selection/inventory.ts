@@ -42,7 +42,7 @@ export function inventory({ codex, settings, local, tools = [], claude = claudeC
   routes.push({
     id: savedId ?? 'model-route', label: active ? `Pi on ${active.label}` : 'Pi on a model route', kind: 'model-route', model: active?.model, fingerprint: active?.fingerprint, capabilities: ['model', 'files'], network: !localActive, spends: localActive ? 'none' : 'metered',
     eligible: !!active,
-    availability: active ? { state: 'now', detail: localActive ? 'The effective route is a configured keyless model endpoint on this computer.' : 'Configured route; provider quota and entitlement are not independently checked.' } : settings.own?.keySet || settings.gateway?.keySet ? { state: 'setup', detail: 'A key is configured. Select its model route in Settings, then check it.' } : { state: 'entitlement', detail: 'No API credential was found in this home. Supply an existing entitled API key or obtain API access; a client subscription alone does not establish API access.' },
+    availability: active ? { state: 'now', detail: localActive ? 'The effective route is a configured keyless model endpoint on this computer.' : 'Configured route; provider quota and entitlement are not independently checked.' } : settings.own?.keySet || settings.gateway?.keySet ? { state: 'setup', detail: 'A key is configured. Select its model route in Settings, then check it.' } : { state: 'entitlement', detail: 'No API credential was found in this data folder. Supply an existing entitled API key or obtain API access; a client subscription alone does not establish API access.' },
     ...(active ? {} : { blocked: settings.hint ?? 'no model route is set: an API key or gateway key the person adds' }),
   });
   if (settings.active?.kind === 'agent') {
@@ -75,7 +75,7 @@ export function inventory({ codex, settings, local, tools = [], claude = claudeC
   for (const route of routes.filter((r) => r.eligible)) {
     const engine = route.kind === 'native-engine' ? 'codex' : route.kind === 'agent-engine' ? 'acp' : route.kind === 'local-model' || route.kind === 'model-route' ? 'pi' : null;
     if (engine && !new RegExp(`^(?:harness-)?${engine}(?:$|[\\s·(])`, 'i').test(settings.harness)) {
-      route.availability = { state: 'setup', detail: `${route.availability?.detail ?? 'The route was found on this machine.'} Select its engine for this home with backbone engine ${engine}, then reopen the home before running it.` };
+      route.availability = { state: 'setup', detail: `${route.availability?.detail ?? 'The route was found on this machine.'} Select its engine for this data folder with backbone engine ${engine}, then reopen the data folder before running it.` };
     } else if (route.kind === 'native-engine' && (settings.active?.kind !== 'native' || settings.hint)) {
       route.availability = { state: 'setup', detail: settings.hint ?? 'Choose a model for the installed Codex client in Settings or with backbone model codex --model <id>.' };
     }

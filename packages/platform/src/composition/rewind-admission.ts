@@ -16,7 +16,8 @@ export function rewindWriteHold(threads: Iterable<StoredThread>, method: Method,
   const held = [...threads].find(thread => {
     if (!thread.rewindPending) return false;
     if (method.startsWith('material.')) return thread.rewindPending.files.some(file => file.materialId === input?.id);
-    if (method.startsWith('files.') || method === 'terminal.run') return thread.summary.projectId === input?.projectId && thread.rewindPending.files.length > 0;
+    if (method === 'terminal.run' || method === 'terminal.start') return thread.summary.projectId === input?.projectId;
+    if (method.startsWith('files.')) return thread.summary.projectId === input?.projectId && thread.rewindPending.files.length > 0;
     return thread.summary.id === input?.threadId || thread.summary.id === input?.parentThreadId || method.startsWith('threads.') && thread.summary.id === input?.id;
   });
   return held && rewindNotice(held);

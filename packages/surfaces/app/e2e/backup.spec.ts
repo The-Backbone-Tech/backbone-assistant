@@ -1,7 +1,7 @@
 // Settings › Backup as a person meets it, on the browser bridge with the stub engine: the export goes
 // only into a folder picked in the app's own picker (the bridge's stand-in, BACKBONE_BRIDGE_PICK),
 // as a one-time ticket bound to the page; a path it names itself is refused. The export says what is
-// never in it, and is checked file for file, with how to bring it into a new home.
+// never in it, and is checked file for file; bringing it back is the restore dialog's job.
 import { removeDataHome } from '@backbone-next/platform/composition';
 import { freshDataHome } from '@backbone-next/platform/testing/data-home';
 import { expect, test, type Page } from '@playwright/test';
@@ -61,7 +61,8 @@ test('Settings › Backup exports only into the picked folder, says what it left
     await section.getByRole('button', { name: 'Check' }).click();
     const checked = section.getByTestId('backup-checked');
     await expect(checked).toContainText('Every file matches');
-    await expect(checked).toContainText(`backbone restore "${to}" --home <new-data-folder> --dry-run`);
+    // The terminal way moved under "From a terminal"; the app restores it in a guided dialog (e2e/restore.spec.ts).
+    await expect(section.getByTestId('restore-terminal')).toContainText(`backbone restore "${to}" --home <new-data-folder> --dry-run`);
 
     writeFileSync(join(to, 'README.md'), 'changed\n');
     await section.getByRole('button', { name: 'Check' }).click();

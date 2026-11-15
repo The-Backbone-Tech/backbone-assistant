@@ -5,6 +5,12 @@ import { removeDataHome } from '@backbone-next/platform/composition';
 import { startBridge, stopBridge } from './bridge';
 import { api, phase2ProjectAndAttach, phase3Brief } from './journey';
 
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return {promise, resolve};
+}
+
 test('a stale composer keeps local text and can explicitly review the saved draft', async ({page, context}) => {
   const home = freshDataHome('draft-conflict-ui'); const bridge = await startBridge(home); const other = await context.newPage();
   try {
@@ -16,6 +22,10 @@ test('a stale composer keeps local text and can explicitly review the saved draf
     await otherInput.fill('Second writer local text');
     await expect(other.getByRole('alert')).toContainText(/draft.*changed|draft.*saved/i);
     await expect(otherInput).toHaveValue('Second writer local text');
+    await otherInput.press('Enter');
+    await expect(other.getByRole('alert')).toContainText('Nothing was sent: this message could not be made safe to retry: Error: This draft changed since it was read. Your unsaved text is still here; review the saved draft before trying again.');
+    await expect(otherInput).toHaveValue('Second writer local text');
+    expect(await api(page, 'projects.list', {})).toEqual([]);
     const review = other.getByRole('button', {name:'Review saved draft'});
     await expect(review).toBeVisible();
     await review.click();
@@ -114,4 +124,61 @@ test('a saved unconfirmed submission cannot be overwritten and can be adopted ex
     await expect(other.getByText(/earlier route submission is unconfirmed/i)).toBeVisible();
     const current=await api<{text:string;meta:{sendKey:string}}>(page,'drafts.get',{key:'composer:home:none'});expect(current.text).toBe('Earlier request');expect(current.meta.sendKey).toBe('existing-identity');
   } finally {await other.close();await page.close();await stopBridge(bridge.proc);await removeDataHome(home);}
+});
+
+
+test('a fast new chat sends after the previous draft clear answers late', async ({page}) => {
+  const home = freshDataHome('draft-clear-order'); const bridge = await startBridge(home);
+  const releaseClear = deferred();
+  const clearStarted = deferred();
+  const releaseFallback = deferred();
+  const fallbackStarted = deferred();
+  try {
+    await page.goto(bridge.url); await expect(page.locator('[data-ready=true]')).toBeVisible();
+    const project = await api<{value:{id:string}}>(page, 'projects.create', {name:'Launch',kind:'folder'});
+    await page.getByRole('navigation').getByRole('button', { name: 'Launch', exact: true }).click();
+    const message = page.getByRole('textbox', {name:'Message'});
+    await expect(message).toBeEnabled();
+    const key = `composer:home:${project.value.id}`;
+    let clearing = false;
+    await page.route('**/api', async route => {
+      const {method,args} = route.request().postDataJSON();
+      if (method === 'drafts.put' && args.key === key && args.text === '') {
+        clearing = true;
+        const response = await route.fetch();
+        clearStarted.resolve();
+        await releaseClear.promise;
+        await route.fulfill({response});
+      } else if (clearing && method === 'drafts.get' && args.key === 'composer:home:none') {
+        fallbackStarted.resolve();
+        await releaseFallback.promise;
+        await route.continue();
+      } else await route.continue();
+    });
+    await message.fill('First'); await message.press('Enter');
+    await expect(page.getByTestId('turn')).toHaveCount(1);
+    await clearStarted.promise;
+    await page.getByRole('button', {name:'New chat'}).click();
+    await expect(page.getByRole('heading', {name:/What should we work on in Launch/})).toBeVisible();
+    await fallbackStarted.promise;
+    const answered = page.waitForResponse(async response => {
+      if (!response.url().endsWith('/api') || response.request().method() !== 'POST') return false;
+      const body = response.request().postDataJSON();
+      return body.method === 'drafts.put' && body.args.key === key && body.args.text === '';
+    });
+    releaseClear.resolve(); await (await answered).finished();
+    // A bridge round trip lets the renderer apply the clear before its fallback read returns.
+    await api(page, 'drafts.get', {key});
+    releaseFallback.resolve();
+    await message.fill('Second'); await message.press('Enter');
+    await expect(page.getByRole('tab', {name:/Second/}).or(page.getByRole('alert'))).toBeVisible();
+    expect(await page.getByRole('alert').allTextContents()).toEqual([]);
+    await expect(page.getByRole('tab', {name:/Second/})).toHaveAttribute('aria-selected','true');
+    await expect(page.getByTestId('turn').first()).toContainText('Second');
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    await expect.poll(async () => (await api<{id:string}[]>(page,'threads.list',{projectId:project.value.id})).length).toBe(2);
+  } finally {
+    releaseClear.resolve(); releaseFallback.resolve();
+    await page.close(); await stopBridge(bridge.proc); await removeDataHome(home);
+  }
 });

@@ -5,7 +5,7 @@ export function keyProviderCheck(home: string): { name: string; status: 'ok' | '
   try {
     const provider = homeKeyProvider(home);
     if (!provider) return { name: 'keys', status: 'fail', detail: 'No key provider is recorded.' };
-    if (provider.holder === 'plaintext') return { name: 'keys', status: 'warn', detail: 'recorded: plaintext (none); the data key is in plain text in the home.' };
+    if (provider.holder === 'plaintext') return { name: 'keys', status: 'warn', detail: 'recorded: plaintext (none); the data key is in plain text in the data folder.' };
     if (provider.wrap === SYSTEM_WRAP) return { name: 'keys', status: 'ok', detail: 'recorded: system key store (keychain, os-keyring-v1).' };
     if (provider.wrap === 'electron-safeStorage') return { name: 'keys', status: 'ok', detail: 'recorded: app key store (keychain, electron-safeStorage).' };
     return { name: 'keys', status: 'warn', detail: 'A different keychain provider is recorded; this command cannot open it.' };

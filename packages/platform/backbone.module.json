@@ -197,5 +197,5 @@
     "rule": "not removable while a surface uses it; replaced by another implementation of the api and Gateway ports, once its UNKNOWN effects are settled"
   },
   "swap": "another implementation of the api port (src/api.ts) and the Gateway port (src/gateway.ts) over the same core crossings",
-  "digest": "sha256:c2c4d1842da7463b487054678d2df8501d32560bcd20cd8e4655dc6d322df989"
+  "digest": "sha256:53ae5de85b1a968bf5bfdfde18d53615e3422ca89fb470c1098ee8df87dead01"
 }

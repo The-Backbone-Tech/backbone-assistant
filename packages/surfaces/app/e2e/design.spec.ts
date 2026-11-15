@@ -47,7 +47,7 @@ test('the rebuilt screens', async ({ page }, info) => {
     await page.getByRole('button', { name: 'New project' }).click();
     await page.getByRole('textbox', { name: 'Name' }).fill('Harbor');
     await page.getByRole('button', { name: 'Create project' }).click();
-    await expect(page.getByRole('navigation').getByRole('button', { name: 'Harbor' })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('button', { name: 'Harbor', exact: true })).toBeVisible();
     await closeSidebar(page);
     await page.keyboard.press('Control+Backquote');
     await page.getByRole('textbox', { name: 'Terminal command' }).fill("mkdir -p notes/q4 && printf '# Plan\\n' > notes/q4/plan.md && printf 'todo\\n' > notes/todo.txt");
@@ -160,9 +160,8 @@ test('the rebuilt screens', async ({ page }, info) => {
     await page.getByRole('button', { name: 'Settings' }).click();
     const settings = page.getByRole('dialog', { name: 'Settings' });
     const sections = settings.getByRole('navigation', { name: 'Settings sections' });
-    // The bundled licence reader adds a Workspace section, and Team adds People and roles and Sharing
-    // (the device owner invites the first colleague there); keep the full navigation contract.
-    await expect(sections.getByRole('button')).toHaveText(['General', 'Connect your AI tools', 'Connected tools', 'Tool permissions', 'Plugin commands and agents', 'Agent roles', 'AI and models', 'Licences and notices', 'People and roles', 'Sharing', 'Heartbeat and brief', 'Telemetry', 'Backup']);
+    // Grouped by the decision (You, AI, Apps and tools, Team, This computer); keep the full navigation contract.
+    await expect(sections.getByRole('button')).toHaveText(['General', 'AI and models', 'Helper roles', 'Connected tools', 'Tool permissions', 'Plugins', 'Assistants using this app', 'People and roles', 'Sharing', 'Heartbeat and brief', 'Backup', 'Telemetry', 'Licences and notices']);
     if (narrow(page)) await sections.getByRole('button', { name: 'General' }).click();
     await expect(settings.getByRole('radiogroup', { name: 'Appearance' })).toBeVisible();
     await shot('11-settings-general');
@@ -218,6 +217,8 @@ test('the rebuilt screens', async ({ page }, info) => {
       failSettingsRead = false;
       await settings.getByRole('button', { name: 'Try again', exact: true }).click();
       await expect(settings.getByTestId('model-active')).toContainText('Model');
+      await expect(settings.getByRole('form', { name: 'Or a gateway' })).toBeHidden();
+      await settings.getByText('Change your model', { exact: true }).click();
       await expect(settings.getByRole('form', { name: 'Or a gateway' })).toBeVisible();
       const own = settings.getByRole('form', { name: 'Your own key', exact: true });
       const key = own.getByLabel('Your own key: key', { exact: true });

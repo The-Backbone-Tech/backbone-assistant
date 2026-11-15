@@ -66,6 +66,7 @@ test('detect Ollama and LM Studio, choose a keyless model, continue after restar
       await page.getByRole('button', { name: 'Settings', exact: true }).click();
       const settings = page.getByRole('dialog', { name: 'Settings', exact: true });
       await settings.getByRole('button', { name: 'AI and models', exact: true }).click();
+      await settings.getByText('Change your model', { exact: true }).click();
       const local = settings.getByRole('region', { name: 'Local models', exact: true });
       await local.getByRole('button', { name: 'Look again', exact: true }).click();
       await expect(local.getByRole('button', { name: 'ollama-owned-model', exact: true })).toBeVisible();

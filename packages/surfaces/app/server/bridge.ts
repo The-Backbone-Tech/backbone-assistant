@@ -5,9 +5,11 @@ import { createServer } from 'node:http';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { METHODS, type Method } from '@backbone-next/platform';
-import { createHost } from '@backbone-next/platform/composition';
+import { createHost, hostClosed } from '@backbone-next/platform/composition';
+import { keysFromEnvironment } from '@backbone-next/platform/keys';
 import { exportDestinations, rendererExport } from '@backbone-next/platform/composition/backup';
 import { callFromRenderer } from '../electron/renderer-api.ts';
+import { answerRestore, createRestorer } from '../electron/restore.ts';
 
 const home = process.env.BACKBONE_HOME;
 if (!home) throw new Error('Set BACKBONE_HOME to a fresh data folder.');
@@ -19,6 +21,9 @@ void host.resumeInterrupted().catch(() => {});
 const types: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.json': 'application/json', '.woff2': 'font/woff2', '.woff': 'font/woff' };
 
 const exportTickets = exportDestinations();
+// A restore opens its new data folder the way this bridge opened the first one.
+// A journey that needs restore to be unavailable (a company configuration) names the reason.
+const restorer = createRestorer({ home, unavailable: () => process.env.BACKBONE_BRIDGE_RESTORE_UNAVAILABLE || undefined, openHost: (target) => createHost({ home: target, keys: keysFromEnvironment(), ...(process.env.BACKBONE_USER_HOME ? { memory: { userHome: process.env.BACKBONE_USER_HOME } } : {}) }) });
 /** The bridge serves one page, a journey's: its tickets are bound to it as Electron binds them to a window. */
 const BRIDGE_PAGE = 0;
 const server = createServer((req, res) => {
@@ -48,6 +53,26 @@ const server = createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(picked ? exportTickets.issue(picked, BRIDGE_PAGE) : null));
     return;
   }
+  // The same stand-ins for the restore pickers: the backup folder is BACKBONE_BRIDGE_RESTORE_FROM, and the
+  // folder a new data folder is made inside is BACKBONE_BRIDGE_PICK, as for an export.
+  if (url.pathname === '/api/choose-backup-folder' && req.method === 'POST') {
+    res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(process.env.BACKBONE_BRIDGE_RESTORE_FROM ? restorer.source(process.env.BACKBONE_BRIDGE_RESTORE_FROM, BRIDGE_PAGE) : null));
+    return;
+  }
+  if (url.pathname === '/api/choose-restore-place' && req.method === 'POST') {
+    const picked = process.env.BACKBONE_BRIDGE_PICK;
+    res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(picked ? restorer.target(picked, BRIDGE_PAGE) : null));
+    return;
+  }
+  if (url.pathname === '/api/restore' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (c: Buffer) => (body += c.toString('utf8')));
+    req.on('end', async () => {
+      try { res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(await answerRestore(restorer, JSON.parse(body), BRIDGE_PAGE))); }
+      catch (err) { res.writeHead(400, { 'content-type': 'application/json' }).end(JSON.stringify({ error: err instanceof Error ? err.message : String(err) })); }
+    });
+    return;
+  }
   if (url.pathname === '/api/events') {
     res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive' });
     res.write(': open\n\n');
@@ -69,4 +94,12 @@ server.listen(Number(process.env.PORT ?? 0), '127.0.0.1', () => {
   const a = server.address();
   console.log(`backbone bridge on http://127.0.0.1:${typeof a === 'object' && a ? a.port : ''}`);
 });
-for (const sig of ['SIGINT', 'SIGTERM'] as const) process.on(sig, () => (host.close(), server.close(), process.exit(0)));
+let closing = false;
+for (const sig of ['SIGINT', 'SIGTERM'] as const) process.on(sig, () => {
+  if (closing) { process.exit(1); return; }
+  closing = true; server.close(); server.closeIdleConnections();
+  const deadline = setTimeout(() => { console.error('The bridge could not finish closing its data folder in time.'); process.exit(1); }, 5_000);
+  host.close();
+  // The terminal ladder and its final record belong to Host shutdown, before the owning process exits.
+  void hostClosed(home).then(() => { clearTimeout(deadline); process.exit(0); }, () => { clearTimeout(deadline); console.error('The bridge could not finish closing its data folder.'); process.exit(1); });
+});

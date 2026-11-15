@@ -11,7 +11,7 @@ import {createKeyedProject} from '../src/composition/project-create.ts';
 const input = {name:'Launch plan',kind:'folder',clientKey:'create-1'} as const;
 
 test('project creation is exactly one opt-in local request and all other writes stay closed', async () => {
-  assert.deepEqual(API_LINE_PROJECTS, ['projects.create']);
+  assert.deepEqual(API_LINE_PROJECTS, ['projects.create', 'projects.update']);
   for (const enabled of [false, true]) {
     const home = mkdtempSync(join(tmpdir(), 'line-projects-'));
     const calls:unknown[] = [];

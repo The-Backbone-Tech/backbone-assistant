@@ -5,7 +5,8 @@ import { terminalModelHint } from '@backbone-next/platform';
 import type { LocalProvider, MaterialEntry, Project, Receipt } from '@backbone-next/platform';
 import type { Api, Io, Parsed } from './commands.ts';
 
-export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+import {MAX_ATTACHMENT_BYTES} from '@backbone-next/platform/doors/api-line';
+export {MAX_ATTACHMENT_BYTES} from '@backbone-next/platform/doors/api-line';
 
 export function attachFile(api: Api, projectId: string, path: string): Promise<Receipt<MaterialEntry>> {
   let bytes: Buffer; let fd: number | undefined;
@@ -43,8 +44,8 @@ export async function firstJobCommand(parsed: Parsed, api: Api, io: Io, project:
       const model = parsed.options.model!;
       const change = parsed.target === 'codex' ? { route: 'native' as const, provider: 'codex' as const, model }
         : { route: 'local' as const, provider: (parsed.options.runtime ?? 'other') as LocalProvider, baseUrl: parsed.options.endpoint!, model };
-      const settings = value(await api.call('settings.model.put', { change }));
-      say(settings, `Engine: ${settings.harness}\nRoute: ${settings.active?.label ?? terminalModelHint(settings.hint ?? 'none')}`);
+      const settings = value(await api.call('settings.model.put', { change: parsed.target === 'shared local' ? { route: 'shared', change } : change }));
+      say(settings, `Engine: ${settings.harness}\nRoute: ${settings.active?.label ?? terminalModelHint(settings.hint ?? 'none')}${parsed.target === 'shared local' ? `\nShared work: Pi · ${settings.shared?.active?.label ?? 'not configured'}` : ''}${settings.localNote ? `\n${settings.localNote}` : ''}`);
       return 0;
     }
     const projectId = selectedProject!.id;

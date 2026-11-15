@@ -23,7 +23,7 @@ for(const operation of ['grant','revoke'])test(`${operation} reports closing aft
  const result=spawnSyncHang(process.execPath,[fixture,main,home,operation],{encoding:'utf8',timeout: TEST_HANG_MS,env:{...process.env,BACKBONE_KEYS:'plaintext'}});
  assert.equal(result.status,2,result.stderr);assert.equal(result.signal,null);
  assert.equal((result.stderr.match(/synthetic-close-admission:/g)??[]).length,2);
- assert.match(result.stderr,/data home is closing; nothing was granted or revoked by this attempt/i);
+ assert.match(result.stderr,/data folder is closing; nothing was granted or revoked by this attempt/i);
  assert.doesNotMatch(result.stderr,/CoreCloseWaitRefusal:|at personOperation|at asPerson/);
  assert.equal(result.stdout,'','no Granted/Revoked success is printed');
 });

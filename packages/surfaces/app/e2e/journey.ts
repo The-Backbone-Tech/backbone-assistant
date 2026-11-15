@@ -112,7 +112,7 @@ export async function phase2ProjectAndAttach(page: Page, name = 'Q4 review') {
   await page.getByRole('button', { name: 'New project' }).click();
   await page.getByRole('textbox', { name: 'Name' }).fill(name);
   await page.getByRole('button', { name: 'Create project' }).click();
-  await expect(page.getByRole('navigation').getByRole('button', { name })).toBeVisible();
+  await expect(page.getByRole('navigation').getByRole('button', { name, exact: true })).toBeVisible();
   await closeSidebar(page);
   await expect(page.getByRole('heading', { name: new RegExp(`What should we work on in ${name}`) })).toBeVisible();
   const chooser = page.waitForEvent('filechooser');

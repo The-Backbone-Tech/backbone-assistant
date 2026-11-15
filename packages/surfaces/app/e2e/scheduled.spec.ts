@@ -19,7 +19,7 @@ async function chat(page: Page, label: string) {
   await expect.poll(async () => (await api<{ value: { summary: { running: boolean } } }>(page, 'threads.get', { id: sent.value.threadId })).value.summary.running).toBe(false);
   await page.reload();
   await expect(page.locator('[data-ready=true]')).toBeVisible();
-  await page.getByRole('navigation').getByRole('button', { name: 'Ops' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Ops', exact: true }).click();
   await page.getByRole('navigation').getByText('Summarise the inbox').first().click();
   await expect(page.getByTestId('turn').first()).toBeVisible();
   return { end: async () => { await stopBridge(bridge.proc); await removeDataHome(home); } };
@@ -77,7 +77,7 @@ test('the Scheduled page makes a schedule with its own button, and a chat\'s sid
     await expect(scheduled).not.toContainText('Nothing is scheduled');
 
     const nav = page.getByRole('navigation');
-    await nav.getByRole('button', { name: 'Ops' }).click();
+    await nav.getByRole('button', { name: 'Ops', exact: true }).click();
     await nav.getByRole('button', { name: /^Thread actions for / }).first().click({ force: true });
     await page.getByRole('menuitem', { name: 'Schedule…' }).click();
     await expect(page.getByRole('dialog', { name: 'Schedule', exact: true }).getByRole('textbox', { name: 'When' })).toBeVisible();

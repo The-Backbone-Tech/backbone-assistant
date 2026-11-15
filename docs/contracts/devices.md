@@ -8,7 +8,7 @@
 
 ## Purpose
 
-Pair a phone to the person's computer and answer approval cards from it, as Codex, Claude, Threadlines and T3 do (`reference-baseline.md` §2.8).
+Pair a phone to the person's computer and answer approval cards from it, as Codex, Claude, Threadlines and T3 do (the [app contract](../../packages/surfaces/app/CONTRACT.md) owns the composition).
 
 ## Owns
 

@@ -1,4 +1,4 @@
-// Connecting a person's AI tools to the MCP door, from the app (Settings › Connect your AI tools).
+// Connecting a person's AI tools to the MCP door, from the app (Settings › Assistants using this app).
 //
 // Declarative, as Kubernetes controllers and Terraform are: for each tool the data home keeps what
 // the person chose (connected under grant G, or taken back), and a reconciler converges what is

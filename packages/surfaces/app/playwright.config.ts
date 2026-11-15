@@ -49,6 +49,9 @@ export default defineConfig({
     { name: 'held', testMatch: /held\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'goals', testMatch: /(goals|restart)\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'backup', testMatch: /backup\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
+    { name: 'restore', testMatch: /restore\.spec\.ts/, timeout: TEST_HANG_MS * 6, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
+    ...(['light', 'dark'] as const).map((scheme) => ({ name: `restore-views-${scheme}-1440`, testMatch: /restore-views\.spec\.ts/, timeout: TEST_HANG_MS * 6, use: { viewport: { width: 1440, height: 900 }, colorScheme: scheme, browserName: 'chromium' as const } })),
+    { name: 'restore-views-light-375', testMatch: /restore-views\.spec\.ts/, timeout: TEST_HANG_MS * 6, use: { viewport: { width: 375, height: 812 }, colorScheme: 'light' as const, browserName: 'chromium' as const } },
     { name: 'memory', testMatch: /(memory|plugins)\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'first-run', testMatch: /first-run\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'first-send', testMatch: /first-send\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
@@ -73,9 +76,16 @@ export default defineConfig({
     { name: 'workspace-dark-1440', testMatch: /(?<!continuity\.)workspace\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'dark', browserName: 'chromium' } },
     { name: 'side-pane-light-1440', testMatch: /side-pane\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'side-pane-dark-1440', testMatch: /side-pane\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'dark', browserName: 'chromium' } },
+    // Both tab strips with many tabs (e2e/tab-strips.spec.ts), in Light and Dark at 1440 and in a narrow window.
+    ...([['light', 1440, 900], ['dark', 1440, 900], ['light', 375, 812]] as const).map(([scheme, width, height]) => ({ name: `tab-strips-${scheme}-${width}`, testMatch: /tab-strips\.spec\.ts/, use: { viewport: { width, height }, colorScheme: scheme, browserName: 'chromium' as const } })),
     { name: 'primitives', testMatch: /primitives\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'flows', testMatch: /flows\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
     { name: 'parallel', testMatch: /parallel\.spec\.ts/, use: { viewport: { width: 1440, height: 900 }, colorScheme: 'light', browserName: 'chromium' } },
-    { name: 'electron', testMatch: /electron\.spec\.ts|long-conversations\.spec\.ts/ },
+    { name: 'electron', testMatch: /electron\.spec\.ts|long-conversations\.spec\.ts/, testIgnore: /browser-pane\.electron\.spec\.ts/ },
+    // The browser pane's journeys hand keyboard focus to a native child view and back, which only the
+    // window the operating system has focused can do. Another Electron app starting at that moment takes
+    // the focus for good, so these run one at a time, after every other Electron journey has finished.
+    // Run them alone with --project=electron-keyboard-focus --no-deps.
+    { name: 'electron-keyboard-focus', testMatch: /browser-pane\.electron\.spec\.ts/, workers: 1, dependencies: ['connector-approval-electron', 'signed-tools-electron', 'electron'] },
   ],
 });

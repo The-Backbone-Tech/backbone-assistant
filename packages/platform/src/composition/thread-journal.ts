@@ -18,7 +18,7 @@ export type StoredChild = ChildLink & { mandate: string; key: string; reviewTurn
 export type StoredThread = Omit<Thread, 'card' | 'child' | 'children' | 'queueHeld' | 'steering' | 'reviewer'> & { personId?: string; automationId?: string; rewindPending?: import('../api-rewind.ts').RewindRecord; /** Stop holds the queue until the person sends it on. */ queuePaused?: string; /** Queued messages that were sent or removed: a retried add does not bring one back. */ queueDone?: Id[]; clientKeys: string[]; task?: string; child?: StoredChild; forkKey?: string; /** The tasks a fork came from: a hold outlives a deleted thread between them. */ heldTasks?: string[]; /** A fork of a briefed child: the brief keeps its sources, though the fork is no child. */ briefSources?: Source[]; /** And its unknown provenance: withheld once anything in the project was withdrawn. */ briefUnknown?: true };
 
 export interface ToldItem { kind: 'goal' | 'brief' | 'report' | 'transcript' | 'steer' | 'peer'; digest: string; sources: Source[]; /** The record's decision: its words were not given. */ withheld?: boolean; report?: { threadId: Id; turnId: Id } }
-type Closed = Pick<Turn, 'status' | 'effects'> & Partial<Pick<Turn, 'answer' | 'completed' | 'withheld' | 'unknownSources' | 'reads' | 'refusal' | 'failure' | 'unknownOutcome' | 'unknownEvidence' | 'nativeAccountActivity'>> & { endedAt?: string; usage?: Turn['work']['usage'] };
+type Closed = Pick<Turn, 'status' | 'effects'> & Partial<Pick<Turn, 'answer' | 'completed' | 'withheld' | 'unknownSources' | 'reads' | 'refusal' | 'failure' | 'unknownOutcome' | 'unknownEvidence' | 'nativeAccountActivity'>> & { endedAt?: string; usage?: Turn['work']['usage']; carriers?: Turn['work']['carriers'] };
 
 export type JournalBody =
   | { kind: 'turn.unknown.checked'; threadId: Id; turnId: Id; check: import('../api.ts').UnknownCheck }
@@ -39,6 +39,7 @@ export type JournalBody =
   | { kind: 'queue.paused'; threadId: Id; reason: string }
   | { kind: 'turn.stop'; threadId: Id; turnId: Id }
   | { kind: 'turn.told'; threadId: Id; turnId: Id; digest: string; items: ToldItem[]; unknownSources?: true }
+  | { kind: 'turn.recovery.refused'; threadId: Id; turnId: Id; attempt: NonNullable<Turn['recoveryAttempt']> }
   | { kind: 'turn.closed'; threadId: Id; turnId: Id; state: Closed }
   | { kind: 'goal.changed'; threadId: Id; change: GoalChange; reads?: Turn['reads'] }
   | { kind: 'goal.proposed'; threadId: Id; proposal: GoalProposal }
@@ -111,6 +112,7 @@ function strip(t: StoredThread) {
   for (const field of ['rewinds', 'rewindPending', 'goal', 'child', 'forkedFrom', 'heldTasks', 'forkKey', 'briefSources', 'queue', 'queuePaused', 'queueDone'] as const) delete t[field];
   for (const turn of t.turns) {
     // `stopRequested` stays: a stop only narrows, so a cache saying so is safe to honour with the journal.
+    delete turn.recoveryAttempt;
     delete turn.unknownChecked;
     delete turn.unknownCheckedCurrent;
     delete turn.unknownCheck;
@@ -153,7 +155,7 @@ export function applyEvent(threads: Map<Id, StoredThread>, event: JournalBody): 
       if (event.created?.automationId) t.automationId = event.created.automationId;
       if (event.created?.child) t.child = event.created.child;
       const held = t.turns.find((x) => x.id === event.turn.id);
-      if (held) held.status = 'running';
+      if (held) { held.status = 'running'; held.sharedEngine = event.turn.sharedEngine; }
       else { t.turns.push(event.turn); t.clientKeys.push(event.clientKey); }
       t.summary.running = true;
       // A Stop's hold is answered one message at a time, and ends with the last of them.
@@ -210,13 +212,23 @@ export function applyEvent(threads: Map<Id, StoredThread>, event: JournalBody): 
       if (turn) turn.unknownChecked = event.check;
       return;
     }
+    case 'turn.recovery.refused': {
+      const turn = turnOf(threads, event.threadId, event.turnId);
+      if (!turn) return;
+      turn.recoveryAttempt = event.attempt;
+      if (!turn.work.steps.some(step => step.kind === 'note' && step.label === event.attempt.detail)) turn.work.steps.push({ kind: 'note', label: event.attempt.detail });
+      if (turn.status === 'running') turn.status = 'stopped';
+      thread!.summary.running = thread!.turns.some(other => other !== turn && other.status === 'running');
+      return;
+    }
     case 'turn.closed': {
       const turn = turnOf(threads, event.threadId, event.turnId);
       if (!turn) return;
-      const { endedAt, usage, ...state } = event.state;
+      const { endedAt, usage, carriers, ...state } = event.state;
       Object.assign(turn, state);
       if (endedAt) turn.work.endedAt = endedAt;
       if (usage) turn.work.usage = usage;
+      if (carriers) turn.work.carriers = carriers;
       if (thread!.turns.at(-1) === turn) thread!.summary.running = false;
       return;
     }

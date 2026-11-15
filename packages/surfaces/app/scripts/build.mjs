@@ -15,7 +15,11 @@ const source = sourceIdentity();
 const identity = buildIdentity(source, buildConfiguration(brand, productVersion()));
 console.log(`brand: ${brand.name} (${brand.appId})`);
 
-await build({ plugins: [notices.plugin('renderer')], configFile: 'vite.config.ts', define: { __BUILD__: JSON.stringify(identity) } });
+// The workbook reader incorporates openpyxl; preserve its additional MIT notice.
+notices.extra('office-kit-xlsx-third-parties', 'Office workbook reader third parties', '0.27.0', 'MIT',
+  (await import('node:fs')).readFileSync((await import('node:path')).join(installedPackage('@office-kit/xlsx', process.cwd()), 'THIRD_PARTY_NOTICES.md'), 'utf8'));
+// Preview workers have their own module graph and bundled licence inventory.
+await build({ worker: { format: 'es', plugins: () => [notices.plugin('renderer')] }, plugins: [notices.plugin('renderer')], configFile: 'vite.config.ts', define: { __BUILD__: JSON.stringify(identity) } });
 for (const entry of ['main', 'preload']) {
   await build({
     configFile: false,

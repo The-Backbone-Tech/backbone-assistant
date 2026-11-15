@@ -6,6 +6,7 @@ import type { RemoteView } from './api';
 import { beforeClose, call, onEvent, setWindowTheme } from './api';
 import { approveCloseWithoutConflictCopies, ConflictCopyError, flushDrafts } from './drafts';
 import { createViewerLayoutWriter, retainedViewerLayout } from './viewer-layout';
+import { projectRefreshSelection } from './project-selection';
 import { layoutPerson } from './identity-startup';
 
 export type TabKind = PaneTab['kind'];
@@ -13,6 +14,8 @@ export type TabKind = PaneTab['kind'];
 interface AppState {
   remote?:RemoteView;
   ready: boolean;
+  dataFolder?: string;
+  folderProblem?: import('../../electron/data-folder-open').FolderStartupProblem;
   identityRecovery?:{available:boolean;notice?:string};
   sentNotice?: { threadId: string; detail: string; target?: 'side-chat'; attention?: boolean };
   showSentNotice(threadId: string, detail?: string, target?: 'side-chat', attention?: boolean): void;
@@ -22,6 +25,8 @@ interface AppState {
   /** Set when another process owns this data home: the app shows who, and opens nothing else. */
   held?: HostStatus;
   projects: Project[];
+  /** Refresh the sidebar and return its current projects, if access is still active. */
+  refresh(): Promise<Project[] | undefined>;
   threads: ThreadSummary[];
   models: ModelChoice[];
   prefs: ViewerPrefs;
@@ -55,8 +60,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = React.useState(false);
   const [identityRecovery,setIdentityRecovery]=React.useState<{available:boolean;notice?:string}>();
   const [failed, setFailed] = React.useState<string>();
+  const [dataFolder, setDataFolder] = React.useState<string>();
+  const [folderProblem, setFolderProblem] = React.useState<import('../../electron/data-folder-open').FolderStartupProblem>();
   const [held, setHeld] = React.useState<HostStatus>();
   const [projects, setProjects] = React.useState<Project[]>([]);
+  const previousProjects=React.useRef<Project[]|undefined>(undefined);
   const [threads, setThreads] = React.useState<ThreadSummary[]>([]);
   const [models, setModels] = React.useState<ModelChoice[]>([]);
   const [prefs, setPrefsState] = React.useState<ViewerPrefs>(DEFAULT_PREFS);
@@ -124,7 +132,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if(save.retired())return;
     setProjects(p);
     setThreads(t);
-  }, [save]);
+    const before=previousProjects.current;
+    const repaired=projectRefreshSelection(currentPrefs.current,before,p);
+    if(repaired!==currentPrefs.current)setPrefs(current=>projectRefreshSelection(current,before,p));
+    previousProjects.current=p;
+    return p;
+  }, [save,setPrefs]);
 
   React.useEffect(() => {
     let booting=false,live=true;
@@ -132,12 +145,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if(booting||booted.current||save.retired())return;booting=true;
       const configuration=await window.backbone?.identityConfiguration?.().catch(()=>undefined);
       remoteState.current=configuration?.remote;if(live)setRemote(configuration?.remote);
+      const info = !configuration?.remote && !configuration?.workspaceWindow ? await window.backbone?.appInfo?.().catch(()=>undefined) : undefined;
+      if(live)setDataFolder(info?.dataFolder);
       // Asked first: on a home another process owns, every other call fails, and the window would half work.
       const status = await call('host.status', {}).catch(() => null);
       if (status && !status.owns) { setHeld(status); setReady(true);booting=false; return; }
       const recovery=await window.backbone?.identityRecoveryStatus?.().catch(()=>undefined);
       setIdentityRecovery(recovery);
       try {
+        // Main reads the original Core refusal, before identity.get can mask it as a Team pause.
+        const problem = !configuration?.company && !configuration?.remote && !configuration?.workspaceWindow
+          ? await window.backbone?.dataFolderStatus?.().catch(()=>undefined) : undefined;
+        setFolderProblem(problem);
+        if(problem){setFailed(problem.detail);setReady(true);booting=false;return;}
         const [person,stored,m]=await Promise.all([layoutPerson(()=>call('identity.get',{})),call('viewer.get',{}),call('models.list',{})]);
         currentPerson.current=person;
         const original = retained.read(currentPerson.current) ?? stored;
@@ -212,7 +232,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sentNotice,
     showSentNotice: (threadId, detail = 'An earlier message was sent. Open its chat before sending it again.', target, attention) => { setSentNotice({ threadId, detail, target, attention }); void refresh().catch(() => {}); },
     dismissSentNotice: () => setSentNotice(undefined),
-    remote, ready, failed, identityRecovery, held, projects, threads, models, prefs, tick, dark, setPrefs, sidebarOpen, setSidebarOpen,
+    remote, ready, dataFolder, folderProblem, failed, identityRecovery, held, projects, refresh, threads, models, prefs, tick, dark, setPrefs, sidebarOpen, setSidebarOpen,
     selectThread: (id) => {
       setSidebarOpen(false);
       setPrefs((p) => ({ ...p, view: undefined, selectedThreadId: id, selectedProjectId: id ? (threads.find((t) => t.id === id)?.projectId ?? p.selectedProjectId) : p.selectedProjectId }));

@@ -10,7 +10,7 @@ let server: ViteDevServer; let url: string;
 test.beforeAll(async () => { server = await createServer({ root: fileURLToPath(new URL('..', import.meta.url)), server: { host: '127.0.0.1', port: 0 } }); await server.listen(); url = server.resolvedUrls!.local[0]; });
 test.afterAll(async () => { await server?.close(); });
 
-async function open(page: import('@playwright/test').Page, options: { chat?: boolean; codex?: boolean; shared?: boolean; nonDevice?: boolean } = {}) {
+async function open(page: import('@playwright/test').Page, options: { chat?: boolean; codex?: boolean; shared?: boolean; nonDevice?: boolean; fullOnly?: boolean } = {}) {
   await page.addInitScript(({ prefs, options }) => {
     const at = '2026-11-13T10:00:00Z';
     // The "disk": written once, so a reload sees what the last session saved.
@@ -27,7 +27,7 @@ async function open(page: import('@playwright/test').Page, options: { chat?: boo
           case 'identity.sharing': return { ok: true, value: { access: 'owner', people: [], grants: [], nativeAccountTools: !options.shared } };
           case 'viewer.get': return disk.prefs;
           case 'viewer.put': disk.prefs = args.prefs; save(); return args.prefs;
-          case 'models.list': return [{ id: 'stub', label: 'Controlled model', efforts: [3] }];
+          case 'models.list': return [{ id: 'stub', label: 'Controlled model', efforts: [3], ...(options.fullOnly ? { permissions: ['full'] } : {}) }];
           case 'settings.model.get': return options.codex ? { native: { provider: 'codex', model: 'gpt' }, harness: 'codex' } : { harness: 'stub' };
           case 'projects.list': return structuredClone(disk.projects);
           case 'threads.list': return structuredClone(disk.threads);
@@ -82,6 +82,21 @@ test('Choose another opens the permission menu and the card is gone', async ({ p
   await expect(card(page)).toHaveCount(0);
   await page.reload();
   await expect(card(page)).toHaveCount(0);
+});
+
+test('an engine that works with Full access only does not offer a choice it would not keep', async ({ page }) => {
+  // Found in use on 15 November: on the Codex engine "Ask for approval" could be chosen and Full access stayed, silently.
+  await open(page, { codex: true, fullOnly: true });
+  await card(page).getByRole('button', { name: 'Choose another' }).click();
+  await expect(page.getByRole('menuitemradio', { name: /Full access/ })).toBeEnabled();
+  for (const name of [/Auto-review/, /Ask for approval/]) {
+    await expect(page.getByRole('menuitemradio', { name })).toBeDisabled();
+    await expect(page.getByRole('menuitemradio', { name })).toContainText('Not available with this engine');
+  }
+  await expect(page.getByRole('menu')).toContainText('This engine works with Full access only. To approve steps yourself, choose another engine in Settings › AI and models.');
+  await page.getByRole('menuitemradio', { name: /Ask for approval/ }).click({ force: true });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Permissions: Full access' })).toBeVisible();
 });
 
 test('sending a first message records the decision', async ({ page }) => {

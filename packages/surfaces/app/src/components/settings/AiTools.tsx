@@ -1,15 +1,19 @@
-// Connect your AI tools: Claude Code, Codex, Cursor and Claude Desktop act through the MCP door,
+// Assistants using this app: Claude Code, Codex, Cursor and Claude Desktop act through the MCP door,
 // under a permission the person gives. Connect asks the app's main process, which shows the actual
 // grant in its own window: one click there approves it, "Change…" narrows it. This page never
 // grants; it lists, starts that confirmation, and disconnects (which only takes authority back).
 import type { AiTool } from '@backbone-next/platform';
 import * as React from 'react';
 import { brand } from '../../brand';
-import { call, connectTool, onEvent } from '../../lib/api';
+import { call, connectTool } from '../../lib/api';
 import { permissionWords } from '../../lib/permission';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { SettingsRow } from './SettingsRow';
+import { useSettingsRead } from '../../lib/use-settings-read';
+import { SettingsReadStatus } from './SettingsReadStatus';
+
+const readTools = () => call('tools.list', {});
 
 const STATE: Record<AiTool['state'], { label: string; tone: 'neutral' | 'committed' | 'pending' | 'danger' }> = {
   'not-installed': { label: 'Not installed', tone: 'neutral' },
@@ -20,22 +24,21 @@ const STATE: Record<AiTool['state'], { label: string; tone: 'neutral' | 'committ
 };
 
 export function AiToolsSection() {
-  const [data, setData] = React.useState<Awaited<ReturnType<typeof call<'tools.list'>>>>();
-  const load = React.useCallback(() => void call('tools.list', {}).then(setData), []);
-  React.useEffect(() => {
-    load();
-    return onEvent((e) => e.topic === 'tools' && load());
-  }, [load]);
-  if (!data) return <p className="py-4 text-sm text-muted">Loading…</p>;
-  if (!data.available) return <p className="py-4 text-sm text-muted">Connecting AI tools is done in the desktop app.</p>;
+  const { value: data, pending, failed, reload: load } = useSettingsRead(readTools, 'tools');
+  const status = <SettingsReadStatus label="Assistants using this app" pending={pending} failed={failed} hasValue={data !== undefined} retry={load} />;
+  if (!data) return status;
+  if (!data.available) return <>{status}<p className="py-4 text-sm text-muted">Connecting AI tools is done in the desktop app.</p></>;
   return (
     <div>
+      {status}
+      <fieldset aria-label="Assistants using this app">
       <p className="pt-3 text-xs text-muted">
         Each tool acts through {brand.name}: every action is checked against the permission you give it and gets a receipt. Disconnect takes the permission back at once.
       </p>
       {data.tools.map((t) => (
         <ToolRow key={t.id} tool={t} onChange={load} />
       ))}
+      </fieldset>
     </div>
   );
 }

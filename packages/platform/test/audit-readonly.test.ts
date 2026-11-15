@@ -64,6 +64,6 @@ for(const kind of ['system','app'] as const)test(`standalone audit refuses ${kin
   const before=bytes(home),reads=store.reads,writes=store.writes;
   store.usable=false;
   assert.equal(process.env.BACKBONE_SYSTEM_STORE_UNAVAILABLE,'1','shared test wrappers keep real stores denied');
-  await assert.rejects(exportAuditHome(home,AUDIT_PERIOD,async()=>assert.fail('protected export must not write output'),{keys}),/Standalone audit export requires a home with plaintext keys/);
+  await assert.rejects(exportAuditHome(home,AUDIT_PERIOD,async()=>assert.fail('protected export must not write output'),{keys}),/Standalone audit export requires a data folder with plaintext keys/);
   assert.ok(bytes(home).equals(before));assert.equal(store.reads,reads);assert.equal(store.writes,writes);
 });

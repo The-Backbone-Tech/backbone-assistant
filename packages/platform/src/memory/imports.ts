@@ -48,7 +48,7 @@ function linesOf(text: string): { text: string; line: number }[] {
 
 /** Each file to import, with the root it must stay inside. */
 function sources(a: { from: 'codex' | 'claude' | 'file'; path?: string }, userHome: string | undefined): { root: Root; file: string }[] {
-  if (a.from !== 'file' && !userHome) throw new Error(`No user home is named for this data home, so no ${a.from === 'codex' ? 'Codex' : 'Claude'} folder was read. Set BACKBONE_USER_HOME to the home folder to read, or import a file.`);
+  if (a.from !== 'file' && !userHome) throw new Error(`No user home is named for this data folder, so no ${a.from === 'codex' ? 'Codex' : 'Claude'} folder was read. Set BACKBONE_USER_HOME to the home folder to read, or import a file.`);
   if (a.from === 'codex') {
     const root = anchoredRoot(userHome!, ['.codex', 'memories']);
     return root ? markdownIn(root).map((file) => ({ root, file })) : [];

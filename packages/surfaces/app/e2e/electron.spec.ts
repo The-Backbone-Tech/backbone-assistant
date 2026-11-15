@@ -102,9 +102,10 @@ test('approved light chat cream is exact in the composed Electron build and Dark
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     const identity = page.getByTestId('build-identity');
     await expect(identity).toContainText(installed ? 'Packaged desktop app' : 'Unpacked desktop build');
-    await expect(identity).toContainText(compiled.id);
     await expect(identity).toContainText(compiled.revision ? `Revision ${compiled.revision.slice(0, 12)}` : 'Revision unknown (Git unavailable)');
     await expect(identity).toContainText(compiled.dirty === null ? 'Working tree unknown' : compiled.dirty ? 'Includes uncommitted changes' : 'Clean source checkout');
+    await identity.getByText('Build details', { exact: true }).click();
+    await expect(identity.getByText(`Build ${compiled.id} · ${compiled.builtAt}`, { exact: true })).toBeVisible();
     await identity.scrollIntoViewIfNeeded();
     await rec.shot('compiled-build-identity');
     await page.keyboard.press('Escape');
@@ -227,7 +228,7 @@ test('screenshots: Dark, 375 and 320 px on the Electron app', async () => {
   await page.getByRole('button', { name: 'Dark theme' }).click();
   await page.waitForTimeout(400);
   await rec.shot('dark-1440-repository');
-  await page.getByRole('navigation').getByRole('button', { name: 'Q4 review' }).click();
+  await page.getByRole('navigation').getByRole('button', { name: 'Q4 review', exact: true }).click();
   await rec.shot('dark-1440-home-in-project');
   await win(375, 812);
   await page.getByRole('button', { name: 'Close pane' }).click();
@@ -258,6 +259,7 @@ test('R-MODEL-02, R-MODEL-01: Settings takes a key the person pastes, seals it, 
   await dialog.getByRole('button', { name: 'AI and models' }).click();
   await expect(dialog.getByTestId('model-active')).toContainText('Pi 1.4.0');
   await expect(dialog.getByTestId('model-active')).toContainText('Local endpoint · scripted-model');
+  await dialog.getByText('Change your model', { exact: true }).click();
   const gateway = dialog.getByRole('form', { name: 'Or a gateway' });
   await gateway.getByRole('radio', { name: 'OpenRouter' }).check();
   await expect(gateway).toContainText('billed by OpenRouter to your credits, with its fee');

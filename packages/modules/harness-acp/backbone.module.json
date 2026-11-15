@@ -114,5 +114,5 @@
     "rule": "stop active ACP attempts before removal; canonical receipts stay with the core"
   },
   "swap": "select another Harness through composition; native agent sessions do not transfer",
-  "digest": "sha256:a94696fc60538576ebd59c42c8e5cd3eac0269293d463acbcdd533ae78775a33"
+  "digest": "sha256:07e94480870cac650942e1ea8bd50505606c45532a77f289610258f0d4f46707"
 }

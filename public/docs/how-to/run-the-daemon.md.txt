@@ -6,7 +6,7 @@
 
 ## What it is
 
-`backbone daemon run` opens one host for one data folder and keeps it open. It owns the data folder exactly as the app does: one owner per data folder, so a second daemon, or the app, is refused while it runs, and says so. It serves reads and local project creation on the data folder’s api line: `backbone projects create` can add a folder or Git project while it runs. No send and no stop crosses it, because no one is there to approve model work. The data folder's permission door runs too, as it does in the app, so an agent you permitted may propose effects through it within that permission. Work starts from schedules, the heartbeat and goal runs.
+`backbone daemon run` opens one host for one data folder and keeps it open. It owns the data folder exactly as the app does: one owner per data folder, so a second daemon, or the app, is refused while it runs, and says so. It serves reads, local project creation and file attachment on the data folder’s api line: `backbone projects create` can add a folder or Git project and `backbone files attach <path> --project <name-or-id>` can retain an original while it runs. Attachments are regular files of at most 25 MiB, with the same filename rules and result as the standalone command. No send and no stop crosses it, because no one is there to approve model work. The data folder's permission door runs too, as it does in the app, so an agent you permitted may propose effects through it within that permission. Work starts from schedules, the heartbeat and goal runs.
 
 ## Steps
 

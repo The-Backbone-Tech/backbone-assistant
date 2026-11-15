@@ -147,7 +147,7 @@ test('reading an eligible turn does not consume backup import admission', async 
   const from = join(freshDir('checked-import-'), 'export');
   await exportHome({ home: freshDir('checked-empty-source-'), projects: [], documents: () => [], versionPath: () => '', threads: [], receipts: async () => [], secrets: async () => [] }, { to: from });
   // Import reaches its ordinary populated-home validation: reading consumed no admission.
-  await assert.rejects(native.host.importExport(from), /not a new, empty home/);
+  await assert.rejects(native.host.importExport(from), /not a new, empty data folder/);
 });
 
 test('checking one of two unknown turns leaves the other turn holding the thread', async () => {
