@@ -111,3 +111,12 @@ test('the row ceiling counts records, with no phantom row after the last newline
   assert.equal(parseCsvTable(Array.from({ length: 1000 }, () => 'a,b').join('\n') + '\n').ok, true);
   assert.equal(parseCsvTable(Array.from({ length: 1001 }, () => 'a,b').join('\n') + '\n').ok, false);
 });
+
+test('clearing the last one-column cell keeps its empty record reachable', () => {
+  const read = parseCsvTable('Name\nAna\nBob');
+  assert.equal(read.ok, true);
+  if (!read.ok) return;
+  const result = parseCsvTable(serializeCsvTable(setCsvCell(read.table, 2, 0, '')));
+  assert.equal(result.ok, true);
+  if (result.ok) assert.deepEqual(result.table.rows, [['Name'], ['Ana'], ['']]);
+});

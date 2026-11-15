@@ -122,6 +122,14 @@ test('person and AI continue the same versioned CSV; table/text drafts survive, 
     expect(localeSaved).toContain('3,75');
     expect(localeSaved.endsWith('B;2,5\n')).toBe(true);
     await tab(page).getByRole('button', { name: 'Text', exact: true }).click();
+    await tab(page).getByRole('textbox', { name: 'Edit locale.csv', exact: true }).fill('k,value');
+    await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
+    await tab(page).getByRole('combobox', { name: 'CSV separator', exact: true }).selectOption('');
+    const pinnedCell = tab(page).getByRole('textbox', { name: 'Row 1, column 2', exact: true });
+    await pinnedCell.fill('p;q');
+    await expect(pinnedCell).toHaveValue('p;q');
+    await expect(pinnedCell).toBeFocused();
+    await tab(page).getByRole('button', { name: 'Text', exact: true }).click();
     await tab(page).getByRole('textbox', { name: 'Edit locale.csv', exact: true }).fill('"unclosed,value');
     await tab(page).getByRole('button', { name: 'Table', exact: true }).click();
     await expect(tab(page)).toContainText('could not be read as a complete table');

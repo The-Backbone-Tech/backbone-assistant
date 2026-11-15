@@ -43,7 +43,7 @@ export function FileTab({ materialId, version, active, onSaved, extra }: { mater
   const [staleDraft, setStaleDraft] = React.useState<number>();
   const [mode, setMode] = React.useState<'read' | 'edit'>('read');
   const [csvMode, setCsvMode] = React.useState<'table' | 'text'>('text');
-  const [csvSeparator, setCsvSeparator] = React.useState<string>();
+  const [csvSeparator, setCsvSeparator] = React.useState<{material: string; version: number; delimiter: string}>();
   const [full, setFull] = React.useState(false);
   const [confirming, setConfirming] = React.useState(false);
   // A live editor owns newer text; asynchronous draft hydration cannot replace it.
@@ -133,6 +133,7 @@ export function FileTab({ materialId, version, active, onSaved, extra }: { mater
         if (!mounted.current) return;
         if (!r.ok) { setState('draft'); return setError(r.detail); }
         setEntry(r.value);
+        setCsvSeparator(previous => previous?.material === materialId && previous.version === entry.current ? { ...previous, version: r.value.current } : undefined);
         setText(snapshot);
         editBase.current = r.value.current;
         if (editGeneration.current === generation) {
@@ -400,13 +401,13 @@ export function FileTab({ materialId, version, active, onSaved, extra }: { mater
           </div>}
           <div className="min-h-0 flex-1">
           {csvEditing && csvMode === 'table' ? <React.Suspense fallback={<p role="status" className="p-4 text-sm text-muted">Opening table…</p>}>
-            <CsvEditor name={entry.name} value={edit ?? text ?? ''} separator={csvSeparator} onSeparator={setCsvSeparator} onChange={changeText} onSave={() => void save()} onText={() => setCsvMode('text')} />
+            <CsvEditor name={entry.name} value={edit ?? text ?? ''} separator={csvSeparator?.material === materialId && csvSeparator.version === entry.current ? csvSeparator.delimiter : undefined} onSeparator={delimiter => setCsvSeparator(delimiter ? {material: materialId, version: entry.current, delimiter} : undefined)} onChange={changeText} onSave={() => void save()} onText={() => setCsvMode('text')} />
           </React.Suspense> : <Editor
             label={`Edit ${entry.name}`}
             lang={kindOf(entry.name) === 'markdown' ? 'markdown' : 'text'}
             value={edit ?? text ?? ''}
             onSave={() => void save()}
-            onChange={changeText}
+            onChange={value => { setCsvSeparator(undefined); changeText(value); }}
           />}
           </div>
           </div>

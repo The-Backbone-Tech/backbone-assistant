@@ -79,10 +79,11 @@ export function serializeCsvTable(table: CsvTable): string {
   return (table.bom ? '\uFEFF' : '') + table.rows.map((row, index) => {
     const original = table.records[index];
     const unchanged = original && row.length === original.values.length && row.every((value, column) => value === original.values[column]);
-    const raw = unchanged ? original.raw : Papa.unparse([row], {
+    let raw = unchanged ? original.raw : Papa.unparse([row], {
       delimiter: table.delimiter, header: false, skipEmptyLines: false,
       quotes: value => /[,;\t|]/.test(String(value)) || String(value).startsWith('\uFEFF'),
     });
+    if (!unchanged && raw === '' && index === table.rows.length - 1) raw = '""';
     // Appending a row supplies a boundary if the old last record had no ending.
     const ending = original ? original.ending || (index < table.rows.length - 1 ? table.newline : '') : table.newline;
     return raw + ending;
