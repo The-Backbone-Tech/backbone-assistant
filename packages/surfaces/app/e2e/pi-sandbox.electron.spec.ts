@@ -132,6 +132,9 @@ print(json.dumps(dict(
     await page.getByRole('button', { name: 'New project' }).click();
     await page.getByRole('textbox', { name: 'Name', exact: true }).fill('OS confinement');
     await page.getByRole('button', { name: 'Create project', exact: true }).click();
+    // Project creation and the list refresh are asynchronous. Exercise the boundary from the
+    // selected project's composer, rather than the no-project composer it replaces.
+    await expect(page.getByTestId('home').getByRole('button', { name: 'OS confinement', exact: true })).toBeVisible();
     await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Check the OS workspace boundary');
     await page.getByRole('textbox', { name: 'Message', exact: true }).press('Enter');
     await expect(page.getByTestId('work-block').first()).toHaveText(/Worked for \d+/, { timeout: 90_000 });

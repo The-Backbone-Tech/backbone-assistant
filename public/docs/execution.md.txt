@@ -1,6 +1,6 @@
 # Roadmap and status
 
-15 November 2026. Source pre-release 2, version 0.2.0, equivalent to qualified development pre-release 8. This page separates implemented capabilities, observed use and the complete [goal](../GOAL.md). Build instructions are in [README](../README.md).
+15 November 2026. Source pre-release 3, version 0.2.0, equivalent to qualified development pre-release 8. This page separates implemented capabilities, observed use and the complete [goal](../GOAL.md). Build instructions are in [README](../README.md).
 
 ## Available in this source cut
 
