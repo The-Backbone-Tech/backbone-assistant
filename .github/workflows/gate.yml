@@ -7,7 +7,7 @@ on:
       ref:
         description: Exact published source commit
         required: true
-        default: 8fee4557c37b7f78e09875cd1003f9a06e6b1c28
+        default: 46876913fb10fe2d652083b03cfa2971513db1f3
       test_scope:
         description: Full installed qualification or focused boundary diagnosis
         type: choice
@@ -20,7 +20,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 60
     env:
-      SOURCE_COMMIT: 8fee4557c37b7f78e09875cd1003f9a06e6b1c28
+      SOURCE_COMMIT: 46876913fb10fe2d652083b03cfa2971513db1f3
       PUBLIC_SOURCE: /private/tmp/backbone-public-source
       TEST_SCOPE: ${{ inputs.test_scope }}
       BACKBONE_PUBLIC_DISTRIBUTION: '1'
